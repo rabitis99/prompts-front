@@ -8,6 +8,9 @@ interface ButtonProps {
   icon?: boolean;
   variant?: "primary" | "secondary" | "surface";
   fullWidth?: boolean;
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
+  "aria-label"?: string;
 }
 
 export default function Button({
@@ -16,6 +19,9 @@ export default function Button({
   icon = false,
   variant = "primary",
   fullWidth = false,
+  disabled = false,
+  type = "button",
+  "aria-label": ariaLabel,
 }: ButtonProps) {
   const base =
     "flex items-center justify-center gap-2 px-10 py-4 rounded-full font-semibold text-lg shadow-md transition-all duration-300 group";
@@ -37,12 +43,14 @@ export default function Button({
 
   return (
     <button
+      type={type ?? "button"}
       onClick={onClick}
+      disabled={disabled}
       className={classNames(base, variantStyles, width)}
       style={{
         backgroundColor: background,
-        transition: "all 0.3s ease",
       }}
+      aria-label={ariaLabel}
     >
       <span>{label}</span>
       {icon && (

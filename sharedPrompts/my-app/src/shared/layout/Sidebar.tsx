@@ -84,7 +84,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </button>
           </nav>
 
-          < div className="mt-auto px-8 pb-[calc(env(safe-area-inset-bottom,40px)+40px)]">
+          <div className="mt-auto px-8 pb-[calc(env(safe-area-inset-bottom,40px)+40px)]">
             <button className="w-full py-3 rounded-xl bg-[var(--color-primary)] text-white font-semibold text-base hover:opacity-90 transition-all duration-300">
               로그아웃
             </button>
