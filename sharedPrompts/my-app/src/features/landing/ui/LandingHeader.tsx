@@ -31,7 +31,7 @@ export function LandingHeader() {
           </button>
 
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/signup")}
             className="px-4 py-2 text-sm font-medium bg-neutral-900 text-white rounded-xl hover:bg-neutral-800 transition-colors"
           >
             시작하기

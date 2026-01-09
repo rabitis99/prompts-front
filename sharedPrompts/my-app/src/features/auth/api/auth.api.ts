@@ -1,10 +1,15 @@
 import { api } from '@/shared/api/axios';
-import type { TokenResponse } from '../model/auth.types';
+import type { TokenResponse } from '@/features/auth/model/auth.types';
+import type { SignupRequest } from '@/features/auth/types/signup.types';
 
 export const authApi = {
   // 로컬 로그인
   login: (email: string, password: string) =>
     api.post<TokenResponse>('/auth/login', { email, password }),
+
+  // 회원가입
+  signup: (data: SignupRequest) =>
+    api.post<TokenResponse>('/auth/signup', data),
 
   // OAuth2 callback
   oauthCallback: (key: string, state: string) =>

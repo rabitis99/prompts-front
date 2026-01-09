@@ -25,7 +25,7 @@ export function LandingHero() {
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <button
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/signup")}
           className="group px-10 py-5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl font-semibold text-lg hover:shadow-2xl hover:shadow-violet-500/50 transition-all flex items-center justify-center gap-2"
         >
           무료로 시작하기
