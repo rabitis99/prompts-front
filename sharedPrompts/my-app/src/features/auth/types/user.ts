@@ -1,0 +1,65 @@
+// features/auth/types/user.ts
+
+export enum Provider {
+  LOCAL = 'LOCAL',
+  GOOGLE = 'GOOGLE',
+  KAKAO = 'KAKAO',
+  NAVER = 'NAVER',
+}
+
+export interface UserTermsResponseDto {
+  required: boolean;
+  privacy: boolean;
+  marketing: boolean;
+}
+
+export interface UserTermsRequestDto {
+  required: boolean;
+  privacy: boolean;
+  marketing: boolean;
+}
+
+export interface UserResponseDto {
+  id: number;
+  email: string;
+  provider: Provider;
+  nickname: string;
+  age?: number;
+  job?: string;
+  thumbnail?: string;
+  user_terms?: UserTermsResponseDto;
+}
+
+export interface UserUpdateRequestDto {
+  nickname?: string;
+  age?: number;
+  job?: string;
+  thumbnail?: string;
+  user_terms?: UserTermsRequestDto;
+}
+
+export interface PasswordChangeRequestDto {
+  current_password: string;
+  new_password: string;
+}
+
+// Custom Response (백엔드 응답 형식)
+export interface CustomResponse<T> {
+  success: boolean;
+  data: T;
+  error?: {
+    code: string;
+    message: string;
+    fieldName?: string;
+  };
+}
+
+// 기존 User 타입 (호환성 유지)
+export interface User {
+  id: number;
+  email: string;
+  nickname: string;
+  role: string;
+  provider: string;
+  status: boolean;
+}

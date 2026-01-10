@@ -1,0 +1,23 @@
+export const PAGE_TITLE_CONFIG: Record<string, string> = {
+  "/": "PromptHub",
+  "/login": "로그인",
+  "/signup": "회원가입",
+  "/auth/verify": "이메일 인증",
+  "/auth/forgot-password": "비밀번호 찾기",
+  "/auth/success": "OAuth 로그인 처리 중...", // 추가
+  "/feed": "홈",
+  "/prompts/new": "새 프롬프트",
+  "/prompts/:id": "프롬프트 상세",
+  "/prompts/:id/edit": "프롬프트 수정",
+  "/prompts/me": "내 프롬프트",
+  "/profile": "프로필",
+  "/settings": "설정",
+  "/users/:id": "사용자 프로필",
+  "/search": "검색",
+  "/bookmarks": "북마크",
+  "/notifications": "알림",
+  "/admin": "관리자 대시보드",
+  "/admin/users": "사용자 관리",
+  "/admin/prompts": "프롬프트 관리",
+  "/admin/reports": "신고 관리",
+};

@@ -1,0 +1,5 @@
+export const ENV = {
+  OAUTH_SUCCESS_URL: import.meta.env.VITE_OAUTH2_REDIRECT_FRONT_URL,
+  OAUTH_FAILURE_URL: import.meta.env.VITE_OAUTH2_FAILURE_REDIRECT_URL,
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+};
