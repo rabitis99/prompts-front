@@ -3,13 +3,13 @@ import type { TokenResponse } from '@/features/auth/model/auth.types';
 import type { SignupRequest } from '@/features/auth/types/signup.types';
 
 export const authApi = {
-  // 로컬 로그인
-  login: (email: string, password: string) =>
-    api.post<TokenResponse>('/auth/login', { email, password }),
-
   // 회원가입
   signup: (data: SignupRequest) =>
     api.post<TokenResponse>('/auth/signup', data),
+
+  // 로컬 로그인
+  login: (email: string, password: string) =>
+    api.post<TokenResponse>('/auth/login', { email, password }),
 
   // OAuth2 callback
   oauthCallback: (key: string, state: string) =>

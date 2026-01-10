@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Eye,
   EyeOff,
@@ -13,7 +12,6 @@ interface Props {
 }
 
 export function LoginView({ onChangeView }: Props) {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -123,10 +121,7 @@ export function LoginView({ onChangeView }: Props) {
         >
           비밀번호 찾기
         </button>
-        <button
-          onClick={() => navigate("/signup")}
-          className="text-violet-600 hover:underline"
-        >
+        <button className="text-violet-600 hover:underline">
           회원가입
         </button>
       </div>

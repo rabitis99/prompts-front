@@ -1,2 +1,2 @@
-export * from './comment.types';
+export * from '@/features/comment/types/comment.types';
 

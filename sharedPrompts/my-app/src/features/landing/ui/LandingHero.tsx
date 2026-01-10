@@ -1,9 +1,10 @@
-import { useNavigate } from "react-router-dom";
-import { Sparkles, ChevronRight } from "lucide-react";
+import { Sparkles, ChevronRight } from 'lucide-react';
+import type { LandingHeroProps } from '@/features/landing/types/landing.types';
 
-export function LandingHero() {
-  const navigate = useNavigate();
-
+export function LandingHero({
+  onNavigateToSignup,
+  onNavigateToExplore,
+}: LandingHeroProps) {
   return (
     <div className="max-w-4xl mx-auto w-full text-center">
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-violet-200 text-violet-700 text-sm font-medium mb-8">
@@ -25,7 +26,7 @@ export function LandingHero() {
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <button
-          onClick={() => navigate("/signup")}
+          onClick={onNavigateToSignup}
           className="group px-10 py-5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl font-semibold text-lg hover:shadow-2xl hover:shadow-violet-500/50 transition-all flex items-center justify-center gap-2"
         >
           무료로 시작하기
@@ -33,7 +34,7 @@ export function LandingHero() {
         </button>
 
         <button
-          onClick={() => navigate("/explore")}
+          onClick={onNavigateToExplore}
           className="px-10 py-5 bg-white/80 backdrop-blur-sm text-neutral-700 rounded-2xl font-semibold text-lg border-2 border-neutral-200 hover:border-neutral-300 hover:bg-white transition-all"
         >
           프롬프트 둘러보기

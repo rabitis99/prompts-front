@@ -1,5 +1,5 @@
-import { authApi } from '../api/auth.api';
-import { useAuthStore } from '../store/auth.store';
+import { authApi } from '@/features/auth/api/auth.api';
+import { useAuthStore } from '@/features/auth/store/auth.store';
 
 export const useAuth = () => {
   const setTokens = useAuthStore((s) => s.setTokens);

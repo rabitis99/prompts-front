@@ -5,7 +5,7 @@ import type {
   PromptUpdateDto,
   PromptSearchCondition,
   PageResponse,
-} from '../types/prompt.types';
+} from '@/features/prompt/types/prompt.types';
 import type { CustomResponse } from '@/features/auth/types/user';
 
 export const promptApi = {
