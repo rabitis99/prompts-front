@@ -102,16 +102,27 @@ features/auth/
 ```typescript
 // features/{feature}/api/{feature}.api.ts
 import { api } from '@/shared/api/axios';
+import type { ResponseType } from '@/features/{feature}/types/{feature}.types';
 
 export const {feature}Api = {
-  getList: (params) => api.get('/endpoint', { params }),
-  create: (data) => api.post('/endpoint', data),
+  getList: (params: ParamsType) => 
+    api.get<ResponseType>('/endpoint', { params }),
+  create: (data: CreateType) => 
+    api.post<ResponseType>('/endpoint', data),
   // ...
 };
 ```
 
+**패턴 규칙**:
+- `@/shared/api/axios`의 `api` 인스턴스만 사용
+- 타입은 `@/features/{feature}/types/` 또는 `model/`에서 import
+- 비즈니스 로직 포함 금지
+- 데이터 변환은 최소화
+
 **현재 구현된 API 모듈**:
-- `auth.api.ts`: 인증 관련 API
+- `auth.api.ts`: 인증 관련 API (login, logout 등)
+- `oauth.ts`: OAuth 로그인 URL 생성
+- `user.api.ts`: 사용자 정보 조회
 - `prompt.api.ts`: 프롬프트 관련 API
 - `comment.api.ts`: 댓글 관련 API
 - `like.api.ts`: 좋아요 관련 API
@@ -129,20 +140,29 @@ export const {feature}Api = {
 
 **패턴**:
 ```typescript
+// features/{feature}/store/{feature}.store.ts
 import { create } from 'zustand';
+import type { StateType } from '@/features/{feature}/types/{feature}.types';
 
 interface State {
   // 상태
-  setState: (value) => void;
+  data: StateType | null;
+  setData: (value: StateType) => void;
   clear: () => void;
 }
 
 export const useStore = create<State>((set) => ({
   // 초기값
-  setState: (value) => set({ value }),
-  clear: () => set({ /* 초기화 */ }),
+  data: null,
+  setData: (value) => set({ data: value }),
+  clear: () => set({ data: null }),
 }));
 ```
+
+**규칙**:
+- 타입은 `@/features/{feature}/types/`에서 import
+- 전역에서 공유해야 하는 상태만 저장
+- 로컬 상태는 컴포넌트나 `model/`의 커스텀 훅에서 관리
 
 ---
 
@@ -157,6 +177,7 @@ export const useStore = create<State>((set) => ({
   <Route element={<AppLayout />}>
     <Route path="/" element={<PromptsHub />} />
     <Route path="/login" element={<LoginPage />} />
+    <Route path="/signup" element={<SignupPage />} />
     <Route path="/auth/success" element={<OAuthSuccessPage />} />
     <Route path="/auth/bootstrap" element={<AuthBootstrapPage />} />
   </Route>
@@ -203,16 +224,23 @@ export const useStore = create<State>((set) => ({
 **현재 페이지**:
 1. `PromptsHub.tsx` (랜딩 페이지)
 2. `auth/LoginPage.tsx` (로그인 페이지)
-3. `auth/OAuthSuccessPage.tsx` (OAuth 성공 처리)
-4. `auth/AuthBootstrapPage.tsx` (인증 후 부트스트랩)
+3. `auth/SignupPage.tsx` (회원가입 페이지)
+4. `auth/OAuthSuccessPage.tsx` (OAuth 성공 처리)
+5. `auth/AuthBootstrapPage.tsx` (인증 후 부트스트랩)
 
 ### 페이지와 View 분리
 
-- **페이지** (`pages/`): 라우트에 직접 연결되는 컴포넌트
-- **View** (`features/{feature}/ui/`): 실제 UI 로직을 담은 컴포넌트
+- **페이지** (`pages/`): 라우트에 직접 연결되는 얇은 래퍼 컴포넌트
+  - 역할: 라우트 연결, View 컴포넌트 렌더링
+  - 패턴: 최소한의 로직만 포함, 대부분 View 컴포넌트로 위임
+
+- **View** (`features/{feature}/ui/`): 실제 UI 로직과 프레젠테이션을 담은 컴포넌트
+  - 역할: UI 렌더링, 사용자 인터랙션, 내부 상태 관리
 
 **예시**:
+- `pages/PromptsHub.tsx` → `features/landing/ui/LandingView.tsx` 사용
 - `pages/auth/LoginPage.tsx` → `features/auth/ui/LoginView.tsx` 사용
+- `pages/auth/SignupPage.tsx` → `features/auth/ui/SignupView.tsx` 사용
 
 ---
 
@@ -234,26 +262,191 @@ export const useStore = create<State>((set) => ({
    - 컴포넌트: PascalCase (예: `LoginView.tsx`)
    - 유틸리티/타입: camelCase (예: `auth.types.ts`)
    - API: camelCase (예: `auth.api.ts`)
+   - 훅: camelCase (예: `useAuth.ts`, `useAuthView.ts`)
 
 2. **폴더명**:
    - 소문자 (예: `features/auth/api/`)
 
 3. **컴포넌트 export**:
    - Named export (예: `export function LoginView()`)
-   - Default export는 페이지 컴포넌트에만 사용
+   - Default export는 페이지 컴포넌트(`pages/`)에만 사용
 
-### Import 경로
+### 파일 분리 규칙
 
-- `@/` 별칭 사용 (예: `@/features/auth/hooks/useAuth`)
-- 상대 경로는 같은 폴더 내에서만 사용
+프로젝트의 관심사 분리를 위해 다음과 같이 파일을 분리합니다:
+
+#### 1. 페이지(Pages) vs 뷰(View) 분리
+
+- **페이지** (`src/pages/`): 라우트에 직접 연결되는 얇은 래퍼 컴포넌트
+  - 역할: 라우트 연결만 담당
+  - 패턴: View 컴포넌트를 import하여 렌더링
+  - 예시:
+    ```typescript
+    // pages/auth/LoginPage.tsx
+    import { LoginView } from '@/features/auth/ui/LoginView';
+    
+    export default function LoginPage() {
+      return <LoginView />;
+    }
+    ```
+
+- **뷰** (`src/features/{feature}/ui/`): 실제 UI 로직과 프레젠테이션을 담은 컴포넌트
+  - 역할: UI 렌더링, 사용자 인터랙션 처리, 내부 상태 관리
+  - 패턴: API 호출은 feature의 `api/` 또는 `hooks/`에서 가져와 사용
+  - 예시:
+    ```typescript
+    // features/auth/ui/LoginView.tsx
+    import { authApi } from '@/features/auth/api/auth.api';
+    
+    export function LoginView() {
+      // UI 로직
+    }
+    ```
+
+#### 2. API 분리
+
+- **위치**: `src/features/{feature}/api/`
+- **역할**: 서버와의 통신만 담당
+- **규칙**:
+  - `shared/api/axios.ts`의 `api` 인스턴스를 사용
+  - 비즈니스 로직 포함 금지
+  - 데이터 변환 최소화
+- **예시**:
+  ```typescript
+  // features/auth/api/auth.api.ts
+  import { api } from '@/shared/api/axios';
+  
+  export const authApi = {
+    login: (email: string, password: string) => 
+      api.post('/auth/login', { email, password }),
+  };
+  ```
+
+#### 3. 훅(Hooks) vs 모델(Model) 분리
+
+- **훅** (`src/features/{feature}/hooks/`): 재사용 가능한 비즈니스 로직 훅
+  - 역할: 여러 컴포넌트에서 공유되는 로직
+  - 예시: `useAuth.ts` - 인증 관련 전역 로직
+
+- **모델** (`src/features/{feature}/model/`): 특정 View나 페이지에 종속된 상태 관리 로직
+  - 역할: 특정 UI 컨텍스트의 상태 관리
+  - 예시: `useAuthView.ts` - 로그인 페이지의 view 전환 로직, `useSignupView.ts` - 회원가입 단계 관리
+
+#### 4. 타입(Types) 분리
+
+- **위치**: `src/features/{feature}/types/` 또는 `model/`
+- **구분**:
+  - `types/`: 도메인 엔티티 타입 (예: `user.ts`, `signup.types.ts`)
+  - `model/`: 특정 기능에서만 사용하는 타입 (예: `auth.types.ts`)
+
+#### 5. 스토어(Store) 분리
+
+- **위치**: `src/features/{feature}/store/`
+- **역할**: Zustand를 사용한 전역 상태 관리
+- **규칙**: API 호출 결과나 여러 컴포넌트에서 공유해야 하는 상태만 저장
+
+### Import 경로 규칙
+
+**⚠️ 중요: 모든 `src` 내부 파일은 반드시 `@/` 별칭을 사용해야 합니다.**
+
+#### @ 별칭 사용 (필수)
+
+- **규칙**: `src` 폴더 내의 모든 파일은 `@/` 별칭을 사용하여 import
+- **형식**: `@/{src 하위 경로}`
+- **예시**:
+  ```typescript
+  // ✅ 올바른 사용
+  import { LoginView } from '@/features/auth/ui/LoginView';
+  import { authApi } from '@/features/auth/api/auth.api';
+  import { useAuthStore } from '@/features/auth/store/auth.store';
+  import { api } from '@/shared/api/axios';
+  import { Button } from '@/shared/components/Button';
+  ```
+
+#### 상대 경로 사용 (제한적)
+
+- **규칙**: 같은 폴더 내의 파일만 상대 경로 허용
+- **예시**:
+  ```typescript
+  // ✅ 같은 폴더 내에서는 허용
+  // features/auth/ui/signup/SignupStep1.tsx
+  import { SignupStep2 } from './SignupStep2';
+  
+  // ❌ 다른 폴더에서는 상대 경로 사용 금지
+  import { LoginView } from '../LoginView'; // ❌ 잘못된 사용
+  // ✅ 올바른 사용
+  import { LoginView } from '@/features/auth/ui/LoginView';
+  ```
+
+#### @ 별칭 설정
+
+- **Vite 설정** (`vite.config.ts`):
+  ```typescript
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  }
+  ```
+
+- **TypeScript 설정** (`tsconfig.json`, `tsconfig.app.json`):
+  ```json
+  {
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["src/*"]
+      }
+    }
+  }
+  ```
 
 ### 관심사 분리 원칙
 
 1. **API 호출**: `features/{feature}/api/`에만 위치
-2. **비즈니스 로직**: `features/{feature}/hooks/` 또는 `model/`
-3. **UI 컴포넌트**: `features/{feature}/ui/` 또는 `shared/components/`
-4. **상태 관리**: `features/{feature}/store/` (Zustand)
-5. **타입 정의**: `features/{feature}/types/` 또는 `model/`
+   - 서버 통신 로직만 포함
+   - 비즈니스 로직 포함 금지
+
+2. **비즈니스 로직**: 
+   - 재사용 가능한 로직: `features/{feature}/hooks/`
+   - View별 로직: `features/{feature}/model/`
+
+3. **UI 컴포넌트**: 
+   - Feature별 UI: `features/{feature}/ui/`
+   - 공통 UI: `shared/components/`
+
+4. **상태 관리**: 
+   - 전역 상태: `features/{feature}/store/` (Zustand)
+   - 로컬 상태: 컴포넌트 내부 또는 `model/`의 커스텀 훅
+
+5. **타입 정의**: 
+   - 도메인 타입: `features/{feature}/types/`
+   - 기능별 타입: `features/{feature}/model/`
+
+### Import 예시
+
+```typescript
+// ✅ 페이지 컴포넌트
+// pages/auth/LoginPage.tsx
+import { LoginView } from '@/features/auth/ui/LoginView';
+import { useAuthView } from '@/features/auth/model/useAuthView';
+
+// ✅ View 컴포넌트
+// features/auth/ui/LoginView.tsx
+import { authApi } from '@/features/auth/api/auth.api';
+import { oauthLogin } from '@/features/auth/api/oauth';
+import { useAuthStore } from '@/features/auth/store/auth.store';
+
+// ✅ API 모듈
+// features/auth/api/auth.api.ts
+import { api } from '@/shared/api/axios';
+import type { TokenResponse } from '@/features/auth/model/auth.types';
+
+// ✅ 공통 컴포넌트
+// shared/layout/AppLayout.tsx
+import Header from '@/shared/layout/Header';
+import { PAGE_UI_CONFIG } from '@/shared/config/pageConfig';
+```
 
 ---
 
@@ -294,10 +487,9 @@ export const useStore = create<State>((set) => ({
 
 ### 🔍 개선 가능한 부분
 
-1. **페이지 컴포넌트의 역할**: 일부 페이지가 직접 API 호출하거나 비즈니스 로직 포함
-2. **에러 처리**: 일관된 에러 처리 패턴 부재
-3. **로딩 상태**: 로딩 상태 관리가 페이지별로 다름
-4. **타입 정의 위치**: `model/`과 `types/` 폴더가 혼재
+1. **에러 처리**: 일관된 에러 처리 패턴 부재
+2. **로딩 상태**: 로딩 상태 관리가 페이지별로 다름
+3. **타입 정의 위치**: `model/`과 `types/` 폴더의 사용 기준 명확화 필요
 
 ---
 
@@ -310,4 +502,5 @@ export const useStore = create<State>((set) => ({
 4. 개선 제안
 
 이 문서는 프로젝트 구조를 이해한 후, 특정 페이지 리팩토링 시 참고 자료로 사용됩니다.
+
 

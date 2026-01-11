@@ -1,7 +1,12 @@
 import { api } from '@/shared/api/axios';
-import type { TokenResponse } from '../model/auth.types';
+import type { TokenResponse } from '@/features/auth/model/auth.types';
+import type { SignupRequest } from '@/features/auth/types/signup.types';
 
 export const authApi = {
+  // 회원가입
+  signup: (data: SignupRequest) =>
+    api.post<TokenResponse>('/auth/signup', data),
+
   // 로컬 로그인
   login: (email: string, password: string) =>
     api.post<TokenResponse>('/auth/login', { email, password }),
@@ -13,8 +18,14 @@ export const authApi = {
     }),
 
   // 토큰 갱신
-  refresh: () => api.post<TokenResponse>('/auth/refresh'),
+  refresh: (refreshToken: string) =>
+    api.post<TokenResponse>('/auth/refresh', {
+      refresh_token: refreshToken,
+    }),
 
   // 로그아웃
-  logout: () => api.post('/auth/logout'),
+  logout: (refreshToken: string) =>
+    api.post('/auth/logout', {
+      refresh_token: refreshToken,
+    }),
 };

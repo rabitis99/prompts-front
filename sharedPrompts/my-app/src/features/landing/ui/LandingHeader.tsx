@@ -1,17 +1,19 @@
-import { useNavigate } from "react-router-dom";
-import { Layers } from "lucide-react";
-import { useHeaderScroll } from "../model/useHeaderScroll";
+import { Layers } from 'lucide-react';
+import { useHeaderScroll } from '@/features/landing/model/useHeaderScroll';
+import type { LandingHeaderProps } from '@/features/landing/types/landing.types';
 
-export function LandingHeader() {
+export function LandingHeader({
+  onNavigateToLogin,
+  onNavigateToSignup,
+}: LandingHeaderProps) {
   const scrolled = useHeaderScroll();
-  const navigate = useNavigate();
 
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/80 backdrop-blur-xl shadow-sm"
-          : "bg-transparent"
+          ? 'bg-white/80 backdrop-blur-xl shadow-sm'
+          : 'bg-transparent'
       }`}
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -24,14 +26,14 @@ export function LandingHeader() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate("/login")}
+            onClick={onNavigateToLogin}
             className="px-4 py-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors"
           >
             로그인
           </button>
 
           <button
-            onClick={() => navigate("/login")}
+            onClick={onNavigateToSignup}
             className="px-4 py-2 text-sm font-medium bg-neutral-900 text-white rounded-xl hover:bg-neutral-800 transition-colors"
           >
             시작하기

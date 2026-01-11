@@ -4,15 +4,18 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  isLoggingOut: boolean;
 
   setTokens: (accessToken: string, refreshToken: string) => void;
   clear: () => void;
+  setLoggingOut: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   accessToken: localStorage.getItem('accessToken'),
   refreshToken: localStorage.getItem('refreshToken'),
   isAuthenticated: !!localStorage.getItem('accessToken'),
+  isLoggingOut: false,
 
   setTokens: (accessToken, refreshToken) => {
     localStorage.setItem('accessToken', accessToken);
@@ -33,6 +36,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
+      isLoggingOut: false,
     });
+  },
+
+  setLoggingOut: (value) => {
+    set({ isLoggingOut: value });
   },
 }));

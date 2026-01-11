@@ -1,10 +1,10 @@
 import { Outlet, useLocation, matchPath } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Header from "./Header";
-import Sidebar from "./Sidebar";
-import FloatingButtonManager from "./FloatingButtonManager";
-import { PAGE_UI_CONFIG, PAGE_TITLE_CONFIG } from "../config/pageConfig";
-import { colors } from "../../theme/colors";
+import Header from "@/shared/layout/Header";
+import Sidebar from "@/shared/layout/Sidebar";
+import FloatingButtonManager from "@/shared/layout/FloatingButtonManager";
+import { PAGE_UI_CONFIG, PAGE_TITLE_CONFIG } from "@/shared/config/pageConfig";
+import { colors } from "@/theme/colors";
 
 const defaultConfig = {
   header: true,

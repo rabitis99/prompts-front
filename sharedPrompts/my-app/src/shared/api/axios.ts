@@ -11,9 +11,15 @@ export const api = axios.create({
 /**
  * Request Interceptor
  * - accessToken 자동 첨부
+ * - 로그아웃 중일 때 logout 요청 외 모든 요청 차단
  */
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const { accessToken } = useAuthStore.getState();
+  const { accessToken, isLoggingOut } = useAuthStore.getState();
+
+  // 로그아웃 중일 때, logout 요청이 아니면 차단
+  if (isLoggingOut && !config.url?.includes('/auth/logout')) {
+    return Promise.reject(new Error('로그아웃 중입니다. 요청이 취소되었습니다.'));
+  }
 
   if (accessToken) {
     (config.headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
@@ -44,8 +50,8 @@ api.interceptors.response.use(
         }
 
         // refresh 요청
-        const res = await axios.post(`${API_BASE_URL}/api/auth/refresh`, { refreshToken });
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = res.data.data;
+        const res = await axios.post(`${API_BASE_URL}/api/auth/refresh`, { refresh_token: refreshToken });
+        const { access_token: newAccessToken, refresh_token: newRefreshToken } = res.data.data;
 
         // 토큰 갱신
         setTokens(newAccessToken, newRefreshToken);

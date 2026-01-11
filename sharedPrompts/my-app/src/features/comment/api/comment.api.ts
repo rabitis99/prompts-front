@@ -3,7 +3,7 @@ import type {
   CommentResponseDto,
   CommentRequestDto,
   CommentUpdateDto,
-} from '../types/comment.types';
+} from '@/features/comment/types/comment.types';
 import type { CustomResponse } from '@/features/auth/types/user';
 
 export const commentApi = {

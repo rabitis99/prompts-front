@@ -1,2 +1,2 @@
-export * from './comment.api';
+export * from '@/features/comment/api/comment.api';
 
