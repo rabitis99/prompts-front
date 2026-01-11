@@ -58,7 +58,7 @@ export function SignupView() {
         };
 
         const response = await authApi.signup(signupData);
-        setTokens(response.data.accessToken, response.data.refreshToken);
+        setTokens(response.data.access_token, response.data.refresh_token);
         setIsLoading(false);
         setStep(5);
       } catch (error) {

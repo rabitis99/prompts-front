@@ -18,8 +18,14 @@ export const authApi = {
     }),
 
   // 토큰 갱신
-  refresh: () => api.post<TokenResponse>('/auth/refresh'),
+  refresh: (refreshToken: string) =>
+    api.post<TokenResponse>('/auth/refresh', {
+      refresh_token: refreshToken,
+    }),
 
   // 로그아웃
-  logout: () => api.post('/auth/logout'),
+  logout: (refreshToken: string) =>
+    api.post('/auth/logout', {
+      refresh_token: refreshToken,
+    }),
 };
