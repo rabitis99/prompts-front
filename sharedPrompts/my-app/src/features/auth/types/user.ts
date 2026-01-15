@@ -1,11 +1,6 @@
 // features/auth/types/user.ts
 
-export enum Provider {
-  LOCAL = 'LOCAL',
-  GOOGLE = 'GOOGLE',
-  KAKAO = 'KAKAO',
-  NAVER = 'NAVER',
-}
+export type Provider = 'LOCAL' | 'GOOGLE' | 'KAKAO' | 'NAVER';
 
 export interface UserTermsResponseDto {
   required: boolean;
@@ -27,6 +22,7 @@ export interface UserResponseDto {
   age?: number;
   job?: string;
   thumbnail?: string;
+  is_signup_completed?: boolean;
   user_terms?: UserTermsResponseDto;
 }
 

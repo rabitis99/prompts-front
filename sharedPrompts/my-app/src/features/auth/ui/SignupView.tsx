@@ -1,11 +1,12 @@
 import { Sparkles } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useSignupView } from '@/features/auth/model/useSignupView';
 import { authApi } from '@/features/auth/api/auth.api';
 import { userApi } from '@/features/auth/api/user.api';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import type { JobId, SignupRequest } from '@/features/auth/types/signup.types';
+import type { LoginRequest } from '@/features/auth/model/auth.types';
 import { extractTokenData } from '@/features/auth/hooks/useAuth';
 import { SignupProgress } from '@/features/auth/ui/signup/SignupProgress';
 import { SignupStep1 } from '@/features/auth/ui/signup/SignupStep1';
@@ -38,8 +39,6 @@ export function SignupView() {
   } = useSignupView();
 
   // URL 파라미터에서 step과 oauth 확인하여 초기화
-  // 의도적으로 빈 의존성 배열 사용: OAuth 리다이렉트 시 최초 1회만 실행되어야 함
-  // 같은 페이지 내에서 URL 파라미터가 변경되는 경우는 고려하지 않음
   useEffect(() => {
     const stepParam = searchParams.get('step');
     const oauthParam = searchParams.get('oauth');
@@ -57,26 +56,15 @@ export function SignupView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 스텝 2일 때 user/me API 호출 (무조건 호출)
-  const hasFetchedUserInfo = useRef(false);
-  const { accessToken } = useAuthStore();
-  
+  // OAuth 회원가입 시 스텝 2 진입 시 user/me 호출
   useEffect(() => {
-    // 스텝이 2가 아닐 때 플래그 리셋
-    if (step !== 2) {
-      hasFetchedUserInfo.current = false;
-      return;
-    }
-    
-    // 스텝 2이고 아직 호출하지 않았으면 API 호출
-    // 토큰이 있을 때만 API 호출 (OAuth 콜백 후 토큰이 저장되기 전에 호출되는 것을 방지)
-    if (step === 2 && !hasFetchedUserInfo.current && accessToken) {
-      hasFetchedUserInfo.current = true;
-      setIsLoading(true);
-      
-      userApi.getMyInfo()
-        .then((response) => {
-          const userData = response.data.data;
+    if (step === 2 && signupMethod === 'oauth') {
+      const fetchUserInfo = async () => {
+        setIsLoading(true);
+        try {
+          const userResponse = await userApi.getMyInfo();
+          const userData = userResponse.data.data;
+          
           // JobId 타입 검증
           const validJobIds: JobId[] = ['developer', 'designer', 'planner', 'student', 'other'];
           const job: JobId | '' = userData.job && validJobIds.includes(userData.job as JobId)
@@ -89,19 +77,22 @@ export function SignupView() {
             age: userData.age ? userData.age.toString() : '',
             job,
           });
+          
           setIsLoading(false);
-        })
-        .catch((error) => {
+        } catch (error) {
+          setIsLoading(false);
           console.error('사용자 정보 조회 실패:', error);
-          setIsLoading(false);
-          // 에러가 발생해도 회원가입은 계속 진행 가능
-        });
+          setErrors({ general: '사용자 정보를 불러오는데 실패했습니다. 다시 시도해주세요.' });
+        }
+      };
+
+      fetchUserInfo();
     }
-    // accessToken이 의존성에 포함되어 있으므로, 토큰이 설정되면 effect가 자동으로 다시 실행됨
-  }, [step, updateFormData, setIsLoading, accessToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, signupMethod]);
 
   const handleNext = async () => {
-    // 스텝 1: 이메일 회원가입인 경우 signup API 호출
+    // 스텝 1: 이메일 회원가입인 경우 login API 호출
     if (step === 1 && validateStep1()) {
       // OAuth 회원가입의 경우 OAuth 콜백에서 이미 처리되므로 스텝 2로 이동만
       if (signupMethod === 'oauth') {
@@ -109,25 +100,76 @@ export function SignupView() {
         return;
       }
       
-      // 이메일 회원가입인 경우 signup API 호출
+      // provider === 'local' (이메일, 비밀번호 회원가입)인 경우
       if (signupMethod === 'email') {
         setIsLoading(true);
         try {
-          // 백엔드는 email과 password만 받음 (에러 메시지에 따르면 2 known properties: "password", "email")
-          const signupData: Pick<SignupRequest, 'email' | 'password'> = {
+          // 1. auth/signup 호출 (email, password만 필요)
+          const signupData: SignupRequest = {
             email: formData.email,
             password: formData.password,
           };
 
-          const response = await authApi.signup(signupData);
+          await authApi.signup(signupData);
+
+          // 2. auth/login 호출
+          const loginData: LoginRequest = {
+            email: formData.email,
+            password: formData.password,
+          };
+
+          const response = await authApi.login(loginData);
           const tokenData = extractTokenData(response.data);
+          
+          // 3. 토큰 저장
+          if (!tokenData.access_token || !tokenData.refresh_token) {
+            throw new Error('토큰을 받지 못했습니다.');
+          }
+          
           setTokens(tokenData.access_token, tokenData.refresh_token);
+          
+          // 4. user/me 호출
+          const userResponse = await userApi.getMyInfo();
+          const userData = userResponse.data.data;
+          
+          // JobId 타입 검증
+          const validJobIds: JobId[] = ['developer', 'designer', 'planner', 'student', 'other'];
+          const job: JobId | '' = userData.job && validJobIds.includes(userData.job as JobId)
+            ? (userData.job as JobId)
+            : '';
+          
+          // API 응답 데이터를 formData에 업데이트
+          updateFormData({
+            nickname: userData.nickname || '',
+            age: userData.age ? userData.age.toString() : '',
+            job,
+          });
+          
           setIsLoading(false);
           setStep(2);
-        } catch (error) {
+        } catch (error: any) {
           setIsLoading(false);
-          console.error('회원가입 실패:', error);
-          setErrors({ general: '회원가입에 실패했습니다. 다시 시도해주세요.' });
+          console.error('회원가입/로그인 실패:', error);
+          
+          // 에러 상태 코드에 따라 다른 메시지 표시
+          let errorMessage = '회원가입에 실패했습니다. 다시 시도해주세요.';
+          
+          if (error?.response?.status === 409) {
+            errorMessage = '이미 사용 중인 이메일입니다.';
+          } else if (error?.response?.status === 401) {
+            errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
+          } else if (error?.response?.status === 400) {
+            const errorData = error?.response?.data;
+            if (errorData?.error?.message) {
+              errorMessage = errorData.error.message;
+            } else {
+              errorMessage = '입력 정보를 확인해주세요.';
+            }
+          } else if (error?.response?.data?.error?.message) {
+            errorMessage = error.response.data.error.message;
+          }
+          
+          setErrors({ general: errorMessage });
         }
         return;
       }
