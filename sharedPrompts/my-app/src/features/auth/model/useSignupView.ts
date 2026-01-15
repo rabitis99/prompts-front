@@ -84,15 +84,6 @@ export function useSignupView() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const reset = () => {
-    setStep(1);
-    setSignupMethod('');
-    setFormData(initialFormData);
-    setErrors({});
-    setShowPassword(false);
-    setIsLoading(false);
-  };
-
   return {
     step,
     setStep,
@@ -110,7 +101,6 @@ export function useSignupView() {
     validateStep1,
     validateStep2,
     validateStep3,
-    reset,
   };
 }
 

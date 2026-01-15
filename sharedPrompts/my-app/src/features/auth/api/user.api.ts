@@ -10,7 +10,7 @@ import type {
 
 // 기존 함수 (호환성 유지)
 export const fetchMe = async () => {
-  const response = await api.get<ApiResponse<User>>('/auth/me');
+  const response = await api.get<ApiResponse<User>>('/users/me');
   return response.data.data;
 };
 

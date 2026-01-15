@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { userApi } from "@/features/auth/api/user.api";
 
 export default function OAuthSuccessPage() {
   const [params] = useSearchParams();
@@ -33,19 +34,31 @@ export default function OAuthSuccessPage() {
 
     oauthCallback(key, state)
       .then(() => {
-        setLoadingMessage("로그인 성공! 이동 중...");
+        setLoadingMessage("사용자 정보 확인 중...");
 
         // URL 정리 (뒤로 가기 / 리렌더 재호출 방지)
         window.history.replaceState({}, "", "/");
 
-        // 회원가입에서 시작한 OAuth인지 확인
-        const isSignupFlow = localStorage.getItem('oauth_signup') === 'true';
-        if (isSignupFlow) {
-          localStorage.removeItem('oauth_signup');
-          navigate("/signup?step=2&oauth=true");
-        } else {
-          navigate("/auth/bootstrap");
-        }
+        // users/me를 통해 신규 가입인지 기존 가입인지 구분
+        // oauth_signup 플래그는 더 이상 사용하지 않음
+        localStorage.removeItem('oauth_signup');
+        
+        userApi.getMyInfo()
+          .then((response) => {
+            const userData = response.data.data;
+            // is_signup_completed가 false면 신규 가입 (회원가입 플로우)
+            // is_signup_completed가 true면 기존 가입 (로그인 완료)
+            if (userData.is_signup_completed === false) {
+              navigate("/signup?step=2&oauth=true");
+            } else {
+              navigate("/");
+            }
+          })
+          .catch((err) => {
+            console.error("사용자 정보 조회 실패", err);
+            // users/me 호출 실패 시 기본적으로 홈으로 이동
+            navigate("/");
+          });
       })
       .catch((err) => {
         console.error("oauthCallback 실패", err);

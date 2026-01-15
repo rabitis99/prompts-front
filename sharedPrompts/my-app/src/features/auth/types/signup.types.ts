@@ -39,10 +39,9 @@ export interface SignupRequest {
   age?: number;
   job?: JobId;
   provider?: 'LOCAL' | 'GOOGLE' | 'KAKAO';
-  user_terms: {
+  user_terms?: {
     required: boolean;
     privacy: boolean;
     marketing: boolean;
   };
 }
-
