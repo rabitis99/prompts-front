@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { ArrowLeft, ArrowRight, Shield, AlertCircle } from 'lucide-react';
 import type { SignupFormData, SignupErrors } from '@/features/auth/types/signup.types';
+import TermsModal from '@/shared/components/TermsModal';
 
 interface SignupStep3Props {
   formData: SignupFormData;
@@ -18,6 +20,8 @@ export function SignupStep3({
   onPrevious,
   onNext,
 }: SignupStep3Props) {
+  const [termsModalType, setTermsModalType] = useState<'terms' | 'privacy' | null>(null);
+
   return (
     <div className="space-y-6">
       <button
@@ -69,9 +73,16 @@ export function SignupStep3({
             <div className="flex-1">
               <span className="text-sm text-neutral-600 group-hover:text-neutral-900 transition-colors">
                 <span className="text-red-500 font-medium">*</span>{' '}
-                <a href="#" className="text-violet-600 hover:underline font-medium">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setTermsModalType('terms');
+                  }}
+                  className="text-violet-600 hover:underline font-medium"
+                >
                   이용약관
-                </a>
+                </button>
                 에 동의합니다
               </span>
             </div>
@@ -97,9 +108,16 @@ export function SignupStep3({
             <div className="flex-1">
               <span className="text-sm text-neutral-600 group-hover:text-neutral-900 transition-colors">
                 <span className="text-red-500 font-medium">*</span>{' '}
-                <a href="#" className="text-violet-600 hover:underline font-medium">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setTermsModalType('privacy');
+                  }}
+                  className="text-violet-600 hover:underline font-medium"
+                >
                   개인정보처리방침
-                </a>
+                </button>
                 에 동의합니다
               </span>
             </div>
@@ -137,6 +155,14 @@ export function SignupStep3({
       >
         다음 <ArrowRight className="w-5 h-5" />
       </button>
+
+      {termsModalType && (
+        <TermsModal
+          isOpen={!!termsModalType}
+          onClose={() => setTermsModalType(null)}
+          type={termsModalType}
+        />
+      )}
     </div>
   );
 }

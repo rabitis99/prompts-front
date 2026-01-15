@@ -1,8 +1,11 @@
 import { Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 import { useSignupView } from '@/features/auth/model/useSignupView';
 import { authApi } from '@/features/auth/api/auth.api';
+import { userApi } from '@/features/auth/api/user.api';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import type { JobId } from '@/features/auth/types/signup.types';
 import { SignupProgress } from '@/features/auth/ui/signup/SignupProgress';
 import { SignupStep1 } from '@/features/auth/ui/signup/SignupStep1';
 import { SignupStep2 } from '@/features/auth/ui/signup/SignupStep2';
@@ -12,6 +15,7 @@ import { SignupStep5 } from '@/features/auth/ui/signup/SignupStep5';
 
 export function SignupView() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { setTokens } = useAuthStore();
   const {
     step,
@@ -21,6 +25,7 @@ export function SignupView() {
     formData,
     updateFormData,
     errors,
+    setErrors,
     clearError,
     showPassword,
     setShowPassword,
@@ -31,40 +36,135 @@ export function SignupView() {
     validateStep3,
   } = useSignupView();
 
+  // URL 파라미터에서 step과 oauth 확인하여 초기화
+  useEffect(() => {
+    const stepParam = searchParams.get('step');
+    const oauthParam = searchParams.get('oauth');
+    
+    if (stepParam) {
+      const stepNum = parseInt(stepParam, 10);
+      if (stepNum >= 1 && stepNum <= 5) {
+        setStep(stepNum as typeof step);
+      }
+    }
+    
+    if (oauthParam === 'true') {
+      setSignupMethod('oauth');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 스텝 2일 때 user/me API 호출 (무조건 호출)
+  const hasFetchedUserInfo = useRef(false);
+  const { accessToken } = useAuthStore();
+  
+  useEffect(() => {
+    // 스텝이 2가 아닐 때 플래그 리셋
+    if (step !== 2) {
+      hasFetchedUserInfo.current = false;
+      return;
+    }
+    
+    // 스텝 2이고 아직 호출하지 않았으면 API 호출
+    // 토큰이 있을 때만 API 호출 (OAuth 콜백 후 토큰이 저장되기 전에 호출되는 것을 방지)
+    if (step === 2 && !hasFetchedUserInfo.current && accessToken) {
+      hasFetchedUserInfo.current = true;
+      setIsLoading(true);
+      
+      console.log('사용자 정보 조회 시작, accessToken:', accessToken ? '존재' : '없음');
+      
+      userApi.getMyInfo()
+        .then((response) => {
+          const userData = response.data.data;
+          // JobId 타입 검증
+          const validJobIds: JobId[] = ['developer', 'designer', 'planner', 'student', 'other'];
+          const job: JobId | '' = userData.job && validJobIds.includes(userData.job as JobId)
+            ? (userData.job as JobId)
+            : '';
+          
+          // API 응답 데이터를 formData에 업데이트
+          updateFormData({
+            nickname: userData.nickname || '',
+            age: userData.age ? userData.age.toString() : '',
+            job,
+          });
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          console.error('사용자 정보 조회 실패:', error);
+          console.error('에러 상세:', {
+            status: error.response?.status,
+            message: error.response?.data,
+            accessToken: accessToken ? '존재' : '없음',
+          });
+          setIsLoading(false);
+          // 에러가 발생해도 회원가입은 계속 진행 가능
+        });
+    } else if (step === 2 && !accessToken) {
+      // 토큰이 없으면 잠시 대기 후 재시도 (OAuth 콜백 후 토큰 저장 대기)
+      console.log('토큰이 없어 사용자 정보 조회 대기 중...');
+      const timer = setTimeout(() => {
+        hasFetchedUserInfo.current = false; // 재시도 허용
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [step, updateFormData, setIsLoading, accessToken]);
+
   const handleNext = async () => {
+    // 스텝 1: 이메일 회원가입인 경우 signup API 호출
     if (step === 1 && validateStep1()) {
-      setStep(2);
+      // OAuth 회원가입의 경우 OAuth 콜백에서 이미 처리되므로 스텝 2로 이동만
+      if (signupMethod === 'oauth') {
+        setStep(2);
+        return;
+      }
+      
+      // 이메일 회원가입인 경우 signup API 호출
+      if (signupMethod === 'email') {
+        setIsLoading(true);
+        try {
+          // 백엔드는 email과 password만 받음 (에러 메시지에 따르면 2 known properties: "password", "email")
+          const signupData = {
+            email: formData.email,
+            password: formData.password,
+          } as any; // 타입 단언: 백엔드가 실제로는 email, password만 받음
+
+          const response = await authApi.signup(signupData);
+          // 백엔드 응답 구조 확인: CustomResponse로 래핑되어 있을 수 있음
+          const tokenData = (response.data as any).data || response.data;
+          setTokens(tokenData.access_token, tokenData.refresh_token);
+          setIsLoading(false);
+          setStep(2);
+        } catch (error) {
+          setIsLoading(false);
+          console.error('회원가입 실패:', error);
+          setErrors({ general: '회원가입에 실패했습니다. 다시 시도해주세요.' });
+        }
+        return;
+      }
     } else if (step === 2 && validateStep2()) {
       setStep(3);
     } else if (step === 3 && validateStep3()) {
       setStep(4);
-    } else if (step === 4 && formData.job) {
+    } else if (step === 4) {
+      // 스텝 4: 직업 선택 후 user/me PATCH API 호출
       setIsLoading(true);
       try {
-        const signupData = {
-          ...(signupMethod === 'email' && {
-            email: formData.email,
-            password: formData.password,
-          }),
-          ...(formData.nickname && { nickname: formData.nickname }),
-          ...(formData.age && { age: parseInt(formData.age, 10) }),
-          ...(formData.job && { job: formData.job }),
-          ...(signupMethod === 'oauth' && { provider: 'KAKAO' as const }), // TODO: 실제 provider 값으로 변경 필요
-          user_terms: {
-            required: formData.agreeTerms,
-            privacy: formData.agreePrivacy,
-            marketing: formData.agreeMarketing,
-          },
-        };
+        const updateData: {
+          job?: string;
+        } = {};
+        
+        if (formData.job) {
+          updateData.job = formData.job;
+        }
 
-        const response = await authApi.signup(signupData);
-        setTokens(response.data.access_token, response.data.refresh_token);
+        await userApi.updateMyInfo(updateData);
         setIsLoading(false);
         setStep(5);
       } catch (error) {
         setIsLoading(false);
-        // TODO: 에러 처리
-        console.error('회원가입 실패:', error);
+        console.error('직업 업데이트 실패:', error);
+        setErrors({ general: '직업 정보 업데이트에 실패했습니다. 다시 시도해주세요.' });
       }
     }
   };
@@ -139,6 +239,7 @@ export function SignupView() {
           {step === 4 && (
             <SignupStep4
               formData={formData}
+              errors={errors}
               isLoading={isLoading}
               onUpdateFormData={updateFormData}
               onPrevious={handlePrevious}

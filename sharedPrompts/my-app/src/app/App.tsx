@@ -4,7 +4,7 @@ import PromptsHub from "@/pages/PromptsHub";
 import Login from "@/pages/auth/LoginPage";
 import SignupPage from "@/pages/auth/SignupPage";
 import OAuthSuccessPage from "@/pages/auth/OAuthSuccessPage";
-import BootstrapPage from "@/pages/auth/AuthBootstrapPage"
+import BootstrapPage from "@/pages/auth/AuthBootstrapPage";
 export default function App() {
   return (
     <BrowserRouter>

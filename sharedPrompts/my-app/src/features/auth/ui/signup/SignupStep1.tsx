@@ -35,6 +35,8 @@ export function SignupStep1({
 
   const handleOAuth = (provider: 'google' | 'kakao' | 'naver') => {
     onSetSignupMethod('oauth');
+    // 회원가입에서 시작한 OAuth임을 표시
+    localStorage.setItem('oauth_signup', 'true');
     oauthLogin(provider);
   };
 
