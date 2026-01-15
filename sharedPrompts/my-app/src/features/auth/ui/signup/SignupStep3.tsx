@@ -1,5 +1,7 @@
 import { ArrowLeft, ArrowRight, Shield, AlertCircle } from 'lucide-react';
 import type { SignupFormData, SignupErrors } from '@/features/auth/types/signup.types';
+import TermsModal from '@/shared/components/TermsModal';
+import { useTermsModal } from '@/shared/hooks/useTermsModal';
 
 interface SignupStep3Props {
   formData: SignupFormData;
@@ -18,6 +20,8 @@ export function SignupStep3({
   onPrevious,
   onNext,
 }: SignupStep3Props) {
+  const { termsModalType, openTermsModal, closeTermsModal } = useTermsModal();
+
   return (
     <div className="space-y-6">
       <button
@@ -69,9 +73,13 @@ export function SignupStep3({
             <div className="flex-1">
               <span className="text-sm text-neutral-600 group-hover:text-neutral-900 transition-colors">
                 <span className="text-red-500 font-medium">*</span>{' '}
-                <a href="#" className="text-violet-600 hover:underline font-medium">
+                <button
+                  type="button"
+                  onClick={() => openTermsModal('terms')}
+                  className="text-violet-600 hover:underline font-medium"
+                >
                   이용약관
-                </a>
+                </button>
                 에 동의합니다
               </span>
             </div>
@@ -97,9 +105,13 @@ export function SignupStep3({
             <div className="flex-1">
               <span className="text-sm text-neutral-600 group-hover:text-neutral-900 transition-colors">
                 <span className="text-red-500 font-medium">*</span>{' '}
-                <a href="#" className="text-violet-600 hover:underline font-medium">
+                <button
+                  type="button"
+                  onClick={() => openTermsModal('privacy')}
+                  className="text-violet-600 hover:underline font-medium"
+                >
                   개인정보처리방침
-                </a>
+                </button>
                 에 동의합니다
               </span>
             </div>
@@ -133,10 +145,19 @@ export function SignupStep3({
 
       <button
         onClick={onNext}
-        className="w-full py-3.5 bg-neutral-900 text-white rounded-xl font-medium hover:bg-neutral-800 transition-all flex items-center justify-center gap-2"
+        disabled={!formData.agreeTerms || !formData.agreePrivacy}
+        className="w-full py-3.5 bg-neutral-900 text-white rounded-xl font-medium hover:bg-neutral-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         다음 <ArrowRight className="w-5 h-5" />
       </button>
+
+      {termsModalType && (
+        <TermsModal
+          isOpen={true}
+          onClose={closeTermsModal}
+          type={termsModalType}
+        />
+      )}
     </div>
   );
 }

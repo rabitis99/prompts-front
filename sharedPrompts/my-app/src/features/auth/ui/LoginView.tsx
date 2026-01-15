@@ -6,7 +6,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { oauthLogin } from "@/features/auth/api/oauth";
-import { authApi } from "@/features/auth/api/auth.api";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 interface Props {
   onChangeView: (view: "login" | "forgot" | "verify") => void;
 }
@@ -17,6 +17,7 @@ export function LoginView({ onChangeView }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -28,7 +29,7 @@ export function LoginView({ onChangeView }: Props) {
       setIsLoading(true);
       setError("");
 
-      await authApi.login(email, password);
+      await login({ email, password });
 
       alert("로그인 성공 (임시)");
     } catch {
@@ -51,6 +52,13 @@ export function LoginView({ onChangeView }: Props) {
           className="w-full py-3 rounded-lg bg-[#FEE500] text-[#191919] font-medium hover:bg-[#FDD800]"
         >
           카카오로 계속하기
+        </button>
+
+        <button
+          onClick={() => oauthLogin("naver")}
+          className="w-full py-3 rounded-lg bg-[#03C75A] text-white font-medium hover:bg-[#02B350]"
+        >
+          네이버로 계속하기
         </button>
 
         <button

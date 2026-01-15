@@ -3,9 +3,12 @@ import { useAuthView } from "@/features/auth/model/useAuthView";
 import { LoginView } from "@/features/auth/ui/LoginView";
 import { ForgotPasswordView } from "@/features/auth/ui/ForgotPasswordView";
 import { VerifyEmailView } from "@/features/auth/ui/VerifyEmailView";
+import TermsModal from "@/shared/components/TermsModal";
+import { useTermsModal } from "@/shared/hooks/useTermsModal";
 
 export default function AuthPage() {
   const { currentView, setView } = useAuthView();
+  const { termsModalType, openTermsModal, closeTermsModal } = useTermsModal();
 
   const views = {
     login: <LoginView onChangeView={setView} />,
@@ -31,11 +34,31 @@ export default function AuthPage() {
         </div>
 
         <p className="text-center text-xs text-neutral-400 mt-6">
-          <a href="#" className="hover:text-neutral-600">이용약관</a>
+          <button
+            type="button"
+            onClick={() => openTermsModal('terms')}
+            className="hover:text-neutral-600 transition-colors"
+          >
+            이용약관
+          </button>
           {" · "}
-          <a href="#" className="hover:text-neutral-600">개인정보처리방침</a>
+          <button
+            type="button"
+            onClick={() => openTermsModal('privacy')}
+            className="hover:text-neutral-600 transition-colors"
+          >
+            개인정보처리방침
+          </button>
         </p>
       </div>
+
+      {termsModalType && (
+        <TermsModal
+          isOpen={true}
+          onClose={closeTermsModal}
+          type={termsModalType}
+        />
+      )}
     </div>
   );
 }

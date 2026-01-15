@@ -38,10 +38,19 @@ export default function OAuthSuccessPage() {
         // URL 정리 (뒤로 가기 / 리렌더 재호출 방지)
         window.history.replaceState({}, "", "/");
 
-        navigate("/auth/bootstrap");
+        // 회원가입에서 시작한 OAuth인지 확인
+        const isSignupFlow = localStorage.getItem('oauth_signup') === 'true';
+        if (isSignupFlow) {
+          localStorage.removeItem('oauth_signup');
+          navigate("/signup?step=2&oauth=true");
+        } else {
+          navigate("/auth/bootstrap");
+        }
       })
       .catch((err) => {
         console.error("oauthCallback 실패", err);
+        // OAuth 실패 시 oauth_signup 플래그 정리
+        localStorage.removeItem('oauth_signup');
         setErrorMessage("OAuth 인증 실패");
         navigate("/login?error=oauth");
       });

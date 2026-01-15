@@ -1,9 +1,10 @@
-import { ArrowLeft, Briefcase, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, Briefcase, Check, Loader2, AlertCircle } from 'lucide-react';
 import { SIGNUP_JOBS } from '@/features/auth/model/signup.constants';
-import type { SignupFormData } from '@/features/auth/types/signup.types';
+import type { SignupFormData, SignupErrors } from '@/features/auth/types/signup.types';
 
 interface SignupStep4Props {
   formData: SignupFormData;
+  errors: SignupErrors;
   isLoading: boolean;
   onUpdateFormData: (updates: Partial<SignupFormData>) => void;
   onPrevious: () => void;
@@ -12,6 +13,7 @@ interface SignupStep4Props {
 
 export function SignupStep4({
   formData,
+  errors,
   isLoading,
   onUpdateFormData,
   onPrevious,
@@ -59,9 +61,17 @@ export function SignupStep4({
         ))}
       </div>
 
+      {/* 에러 메시지 */}
+      {errors.general && (
+        <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg text-red-600 text-sm">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{errors.general}</span>
+        </div>
+      )}
+
       <button
         onClick={onNext}
-        disabled={!formData.job || isLoading}
+        disabled={isLoading}
         className="w-full py-3.5 bg-neutral-900 text-white rounded-xl font-medium hover:bg-neutral-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isLoading ? (
@@ -76,7 +86,7 @@ export function SignupStep4({
 
       <button
         onClick={() => {
-          onUpdateFormData({ job: 'other' });
+          onUpdateFormData({ job: '' });
           onNext();
         }}
         className="w-full text-center text-sm text-neutral-500 hover:text-neutral-700"
