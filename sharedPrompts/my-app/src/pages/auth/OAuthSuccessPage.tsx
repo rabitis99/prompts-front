@@ -51,13 +51,13 @@ export default function OAuthSuccessPage() {
             if (userData.is_signup_completed === false) {
               navigate("/signup?step=2&oauth=true");
             } else {
-              navigate("/");
+              navigate("/feed");
             }
           })
           .catch((err) => {
             console.error("사용자 정보 조회 실패", err);
-            // users/me 호출 실패 시 기본적으로 홈으로 이동
-            navigate("/");
+            // users/me 호출 실패 시 기본적으로 피드로 이동
+            navigate("/feed");
           });
       })
       .catch((err) => {
