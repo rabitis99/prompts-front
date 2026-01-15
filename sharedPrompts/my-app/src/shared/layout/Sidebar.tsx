@@ -40,8 +40,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           }}
         >
           <div className="flex items-center justify-between h-16 px-8 border-b border-[var(--color-border)]">
-            <h2 className="text-2xl font-bold text-[var(--color-primary)]">
-              Pventure
+            <h2 className="text-2xl font-bold text-violet-600">
+              PromptHub
             </h2>
             <button onClick={onClose} aria-label="닫기">
               <X className="w-7 h-7 text-[var(--color-text-sub)] hover:text-[var(--color-text-main)]" />
@@ -59,7 +59,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               OO님
             </p>
             <p className="text-[var(--color-text-sub)] text-sm mt-1">
-              Pventure ID: user123
+              PromptHub ID: user123
             </p>
           </div>
 
@@ -76,10 +76,16 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
               <Calendar className="w-6 h-6" /> 캘린더
             </button>
-            <button className="flex items-center gap-4 text-lg hover:text-[var(--color-primary)]">
+            <button
+              onClick={() => handleNav("/profile")}
+              className="flex items-center gap-4 text-lg hover:text-[var(--color-primary)]"
+            >
               <UserRound className="w-6 h-6" /> 내 정보
             </button>
-            <button className="flex items-center gap-4 text-lg hover:text-[var(--color-primary)]">
+            <button
+              onClick={() => handleNav("/settings")}
+              className="flex items-center gap-4 text-lg hover:text-[var(--color-primary)]"
+            >
               <Settings className="w-6 h-6" /> 설정
             </button>
           </nav>
