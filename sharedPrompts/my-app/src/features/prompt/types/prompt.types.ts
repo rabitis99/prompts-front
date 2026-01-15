@@ -20,6 +20,26 @@ export enum PromptCategory {
   ETC = 'ETC',
 }
 
+// PromptCategory displayName 매핑
+export const PROMPT_CATEGORY_DISPLAY_NAMES: Record<PromptCategory, string> = {
+  [PromptCategory.PRODUCTIVITY]: '생산성',
+  [PromptCategory.DEVELOPMENT]: '개발',
+  [PromptCategory.CODING]: '코딩',
+  [PromptCategory.PROGRAMMING]: '프로그래밍',
+  [PromptCategory.ANALYSIS]: '분석',
+  [PromptCategory.MARKETING]: '마케팅',
+  [PromptCategory.CONTENT]: '콘텐츠 제작',
+  [PromptCategory.CREATIVE]: '창작',
+  [PromptCategory.STUDY]: '학습',
+  [PromptCategory.EDUCATION]: '교육',
+  [PromptCategory.RESEARCH]: '연구',
+  [PromptCategory.BUSINESS]: '비즈니스',
+  [PromptCategory.DESIGN]: '디자인',
+  [PromptCategory.WRITING]: '글쓰기',
+  [PromptCategory.ETC]: '기타',
+};
+
+
 export enum SortType {
   LATEST = 'LATEST',
   POPULAR = 'POPULAR',
@@ -84,6 +104,8 @@ export interface PromptResponseDto {
   view_count: number;
   comment_count: number;
   like_count: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Prompt Request DTO
@@ -122,6 +144,6 @@ export interface PageResponse<T> {
   content: T[];
   page: number;
   size: number;
-  totalElements: number;
+  total_elements: number;
 }
 
