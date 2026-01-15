@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { ArrowLeft, ArrowRight, Shield, AlertCircle } from 'lucide-react';
 import type { SignupFormData, SignupErrors } from '@/features/auth/types/signup.types';
 import TermsModal from '@/shared/components/TermsModal';
+import { useTermsModal } from '@/shared/hooks/useTermsModal';
 
 interface SignupStep3Props {
   formData: SignupFormData;
@@ -20,7 +20,7 @@ export function SignupStep3({
   onPrevious,
   onNext,
 }: SignupStep3Props) {
-  const [termsModalType, setTermsModalType] = useState<'terms' | 'privacy' | null>(null);
+  const { termsModalType, openTermsModal, closeTermsModal } = useTermsModal();
 
   return (
     <div className="space-y-6">
@@ -75,10 +75,7 @@ export function SignupStep3({
                 <span className="text-red-500 font-medium">*</span>{' '}
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setTermsModalType('terms');
-                  }}
+                  onClick={() => openTermsModal('terms')}
                   className="text-violet-600 hover:underline font-medium"
                 >
                   이용약관
@@ -110,10 +107,7 @@ export function SignupStep3({
                 <span className="text-red-500 font-medium">*</span>{' '}
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setTermsModalType('privacy');
-                  }}
+                  onClick={() => openTermsModal('privacy')}
                   className="text-violet-600 hover:underline font-medium"
                 >
                   개인정보처리방침
@@ -151,15 +145,16 @@ export function SignupStep3({
 
       <button
         onClick={onNext}
-        className="w-full py-3.5 bg-neutral-900 text-white rounded-xl font-medium hover:bg-neutral-800 transition-all flex items-center justify-center gap-2"
+        disabled={!formData.agreeTerms || !formData.agreePrivacy}
+        className="w-full py-3.5 bg-neutral-900 text-white rounded-xl font-medium hover:bg-neutral-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         다음 <ArrowRight className="w-5 h-5" />
       </button>
 
       {termsModalType && (
         <TermsModal
-          isOpen={!!termsModalType}
-          onClose={() => setTermsModalType(null)}
+          isOpen={true}
+          onClose={closeTermsModal}
           type={termsModalType}
         />
       )}

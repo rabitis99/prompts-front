@@ -1,8 +1,8 @@
-import { useState } from 'react';
 import TermsModal from '@/shared/components/TermsModal';
+import { useTermsModal } from '@/shared/hooks/useTermsModal';
 
 export function LandingFooter() {
-  const [termsModalType, setTermsModalType] = useState<'terms' | 'privacy' | null>(null);
+  const { termsModalType, openTermsModal, closeTermsModal } = useTermsModal();
 
   return (
     <>
@@ -11,13 +11,15 @@ export function LandingFooter() {
           <div>© 2025 PromptHub</div>
           <div className="flex items-center gap-6">
             <button
-              onClick={() => setTermsModalType('terms')}
+              type="button"
+              onClick={() => openTermsModal('terms')}
               className="hover:text-neutral-900 transition-colors"
             >
               이용약관
             </button>
             <button
-              onClick={() => setTermsModalType('privacy')}
+              type="button"
+              onClick={() => openTermsModal('privacy')}
               className="hover:text-neutral-900 transition-colors"
             >
               개인정보처리방침
@@ -28,8 +30,8 @@ export function LandingFooter() {
 
       {termsModalType && (
         <TermsModal
-          isOpen={!!termsModalType}
-          onClose={() => setTermsModalType(null)}
+          isOpen={true}
+          onClose={closeTermsModal}
           type={termsModalType}
         />
       )}

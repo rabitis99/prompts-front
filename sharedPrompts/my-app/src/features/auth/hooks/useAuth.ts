@@ -1,6 +1,15 @@
 import { authApi } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import type { LoginRequest } from '@/features/auth/model/auth.types';
+import type { TokenResponse } from '@/features/auth/model/auth.types';
+
+/**
+ * 백엔드 응답에서 토큰 데이터를 추출하는 헬퍼 함수
+ * CustomResponse로 래핑되어 있을 수 있으므로 두 가지 경우를 모두 처리
+ */
+export const extractTokenData = (responseData: any): TokenResponse => {
+  return (responseData as any).data || responseData;
+};
 
 export const useAuth = () => {
   const setTokens = useAuthStore((s) => s.setTokens);
@@ -9,18 +18,13 @@ export const useAuth = () => {
 
   const login = async (data: LoginRequest) => {
     const response = await authApi.login(data);
-    // 백엔드 응답 구조 확인: CustomResponse로 래핑되어 있을 수 있음
-    const tokenData = (response.data as any).data || response.data;
+    const tokenData = extractTokenData(response.data);
     setTokens(tokenData.access_token, tokenData.refresh_token);
   };
 
   const oauthCallback = async (key: string, state: string) => {
     const response = await authApi.oauthCallback(key, state);
-    // 백엔드 응답 구조 확인: CustomResponse로 래핑되어 있을 수 있음
-    // response.data가 직접 TokenResponse인 경우와 CustomResponse<TokenResponse>인 경우 모두 처리
-    const tokenData = (response.data as any).data || response.data;
-    console.log('OAuth callback response:', response.data);
-    console.log('Extracted tokens:', { access_token: tokenData.access_token, refresh_token: tokenData.refresh_token });
+    const tokenData = extractTokenData(response.data);
     setTokens(tokenData.access_token, tokenData.refresh_token);
   };
 

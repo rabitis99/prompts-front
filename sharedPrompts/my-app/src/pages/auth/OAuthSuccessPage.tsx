@@ -49,6 +49,8 @@ export default function OAuthSuccessPage() {
       })
       .catch((err) => {
         console.error("oauthCallback 실패", err);
+        // OAuth 실패 시 oauth_signup 플래그 정리
+        localStorage.removeItem('oauth_signup');
         setErrorMessage("OAuth 인증 실패");
         navigate("/login?error=oauth");
       });

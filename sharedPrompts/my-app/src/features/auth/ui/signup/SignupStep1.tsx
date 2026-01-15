@@ -162,6 +162,7 @@ export function SignupStep1({
                 type="button"
                 onClick={() => onSetShowPassword(!showPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 표시'}
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -177,7 +178,7 @@ export function SignupStep1({
             {formData.password && (
               <div className="space-y-2">
                 <div className="flex gap-1">
-                  {[0, 1, 2, 3].map((i) => (
+                  {[0, 1, 2, 3, 4].map((i) => (
                     <div
                       key={i}
                       className={`h-1.5 flex-1 rounded-full transition-colors ${
@@ -192,6 +193,14 @@ export function SignupStep1({
               </div>
             )}
           </div>
+
+          {/* General Error */}
+          {errors.general && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{errors.general}</span>
+            </div>
+          )}
 
           {/* Next Button */}
           <button

@@ -5,7 +5,8 @@ import { useSignupView } from '@/features/auth/model/useSignupView';
 import { authApi } from '@/features/auth/api/auth.api';
 import { userApi } from '@/features/auth/api/user.api';
 import { useAuthStore } from '@/features/auth/store/auth.store';
-import type { JobId } from '@/features/auth/types/signup.types';
+import type { JobId, SignupRequest } from '@/features/auth/types/signup.types';
+import { extractTokenData } from '@/features/auth/hooks/useAuth';
 import { SignupProgress } from '@/features/auth/ui/signup/SignupProgress';
 import { SignupStep1 } from '@/features/auth/ui/signup/SignupStep1';
 import { SignupStep2 } from '@/features/auth/ui/signup/SignupStep2';
@@ -37,6 +38,8 @@ export function SignupView() {
   } = useSignupView();
 
   // URL 파라미터에서 step과 oauth 확인하여 초기화
+  // 의도적으로 빈 의존성 배열 사용: OAuth 리다이렉트 시 최초 1회만 실행되어야 함
+  // 같은 페이지 내에서 URL 파라미터가 변경되는 경우는 고려하지 않음
   useEffect(() => {
     const stepParam = searchParams.get('step');
     const oauthParam = searchParams.get('oauth');
@@ -71,8 +74,6 @@ export function SignupView() {
       hasFetchedUserInfo.current = true;
       setIsLoading(true);
       
-      console.log('사용자 정보 조회 시작, accessToken:', accessToken ? '존재' : '없음');
-      
       userApi.getMyInfo()
         .then((response) => {
           const userData = response.data.data;
@@ -92,22 +93,11 @@ export function SignupView() {
         })
         .catch((error) => {
           console.error('사용자 정보 조회 실패:', error);
-          console.error('에러 상세:', {
-            status: error.response?.status,
-            message: error.response?.data,
-            accessToken: accessToken ? '존재' : '없음',
-          });
           setIsLoading(false);
           // 에러가 발생해도 회원가입은 계속 진행 가능
         });
-    } else if (step === 2 && !accessToken) {
-      // 토큰이 없으면 잠시 대기 후 재시도 (OAuth 콜백 후 토큰 저장 대기)
-      console.log('토큰이 없어 사용자 정보 조회 대기 중...');
-      const timer = setTimeout(() => {
-        hasFetchedUserInfo.current = false; // 재시도 허용
-      }, 500);
-      return () => clearTimeout(timer);
     }
+    // accessToken이 의존성에 포함되어 있으므로, 토큰이 설정되면 effect가 자동으로 다시 실행됨
   }, [step, updateFormData, setIsLoading, accessToken]);
 
   const handleNext = async () => {
@@ -124,14 +114,13 @@ export function SignupView() {
         setIsLoading(true);
         try {
           // 백엔드는 email과 password만 받음 (에러 메시지에 따르면 2 known properties: "password", "email")
-          const signupData = {
+          const signupData: Pick<SignupRequest, 'email' | 'password'> = {
             email: formData.email,
             password: formData.password,
-          } as any; // 타입 단언: 백엔드가 실제로는 email, password만 받음
+          };
 
           const response = await authApi.signup(signupData);
-          // 백엔드 응답 구조 확인: CustomResponse로 래핑되어 있을 수 있음
-          const tokenData = (response.data as any).data || response.data;
+          const tokenData = extractTokenData(response.data);
           setTokens(tokenData.access_token, tokenData.refresh_token);
           setIsLoading(false);
           setStep(2);
