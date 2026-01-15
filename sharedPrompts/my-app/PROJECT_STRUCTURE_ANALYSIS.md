@@ -8,6 +8,10 @@
 - **라우팅**: React Router DOM 7.11.0
 - **스타일링**: Tailwind CSS
 - **HTTP 클라이언트**: Axios 1.13.2
+- **추가 라이브러리**: 
+  - `classnames`: 클래스명 조건부 적용
+  - `lucide-react`: 아이콘 라이브러리
+  - `pretendard`: 웹폰트
 
 ---
 
@@ -19,25 +23,41 @@
 src/
 ├── app/              # 앱 진입점 및 전역 스타일
 │   ├── App.tsx       # 라우팅 설정
+│   ├── App.css       # 앱 전역 CSS
 │   └── index.css     # 전역 CSS
+│
+├── assets/           # 정적 자산
+│   └── react.svg
 │
 ├── features/         # Feature-based 모듈 구조
 │   ├── auth/         # 인증 관련 기능
 │   ├── comment/      # 댓글 기능
-│   ├── landing/     # 랜딩 페이지 기능
-│   ├── like/        # 좋아요 기능
-│   └── prompt/      # 프롬프트 기능
+│   ├── landing/      # 랜딩 페이지 기능
+│   ├── like/         # 좋아요 기능
+│   ├── prompt/       # 프롬프트 기능
+│   └── settings/     # 설정 기능
 │
 ├── pages/            # 페이지 컴포넌트 (라우트 연결)
 │   ├── auth/         # 인증 관련 페이지
-│   └── PromptsHub.tsx # 랜딩 페이지
+│   │   ├── LoginPage.tsx
+│   │   ├── SignupPage.tsx
+│   │   ├── OAuthSuccessPage.tsx
+│   │   ├── OAuthFailurePage.tsx
+│   │   └── AuthBootstrapPage.tsx
+│   ├── PromptsHub.tsx        # 랜딩 페이지
+│   ├── HomeFeedPage.tsx      # 홈 피드 페이지
+│   ├── CreatePromptPage.tsx  # 프롬프트 생성 페이지
+│   ├── PromptDetailPage.tsx  # 프롬프트 상세 페이지
+│   ├── SettingsPage.tsx      # 설정 페이지
+│   └── NotificationsPage.tsx # 알림 페이지
 │
 ├── shared/           # 공통 모듈
 │   ├── api/          # API 인스턴스 (axios)
-│   ├── components/   # 공통 UI 컴포넌트
-│   ├── config/       # 설정 파일
-│   ├── layout/       # 레이아웃 컴포넌트
-│   └── types/        # 공통 타입
+│   ├── components/    # 공통 UI 컴포넌트
+│   ├── config/        # 설정 파일
+│   ├── hooks/         # 공통 커스텀 훅
+│   ├── layout/        # 레이아웃 컴포넌트
+│   └── types/         # 공통 타입
 │
 └── theme/            # 테마 설정
     └── colors.ts
@@ -61,7 +81,9 @@ features/{feature-name}/
 └── ui/               # 프레젠테이션 컴포넌트
 ```
 
-### 예시: `auth` feature
+### 구현된 Feature 모듈
+
+#### 1. `auth` - 인증 기능
 
 ```
 features/auth/
@@ -73,15 +95,129 @@ features/auth/
 │   └── useAuth.ts       # 인증 관련 커스텀 훅
 ├── model/
 │   ├── auth.types.ts    # 인증 관련 타입
-│   └── useAuthView.ts   # 로그인 페이지 내부 뷰 상태 관리
+│   ├── signup.constants.ts  # 회원가입 상수
+│   ├── signup.utils.ts      # 회원가입 유틸리티
+│   ├── useAuthView.ts   # 로그인 페이지 내부 뷰 상태 관리
+│   └── useSignupView.ts # 회원가입 페이지 상태 관리
 ├── store/
 │   └── auth.store.ts    # Zustand 인증 상태 스토어
 ├── types/
+│   ├── signup.types.ts  # 회원가입 타입
 │   └── user.ts          # 사용자 타입
 └── ui/
     ├── LoginView.tsx
+    ├── SignupView.tsx
     ├── ForgotPasswordView.tsx
-    └── VerifyEmailView.tsx
+    ├── VerifyEmailView.tsx
+    └── signup/          # 회원가입 단계별 컴포넌트
+        ├── SignupProgress.tsx
+        ├── SignupStep1.tsx
+        ├── SignupStep2.tsx
+        ├── SignupStep3.tsx
+        ├── SignupStep4.tsx
+        └── SignupStep5.tsx
+```
+
+#### 2. `landing` - 랜딩 페이지
+
+```
+features/landing/
+├── model/
+│   ├── useHeaderScroll.ts  # 헤더 스크롤 처리
+│   └── useLandingView.ts   # 랜딩 페이지 상태 관리
+├── types/
+│   └── landing.types.ts    # 랜딩 페이지 타입
+└── ui/
+    ├── LandingView.tsx      # 메인 랜딩 뷰
+    ├── LandingHeader.tsx    # 랜딩 헤더
+    ├── LandingHero.tsx     # 히어로 섹션
+    └── LandingFooter.tsx   # 랜딩 푸터
+```
+
+#### 3. `prompt` - 프롬프트 기능
+
+```
+features/prompt/
+├── api/
+│   ├── prompt.api.ts
+│   └── index.ts
+├── model/
+│   ├── createPrompt.constants.ts
+│   ├── enumDisplayNames.ts
+│   ├── enumGuidelines.ts
+│   ├── homeFeed.constants.ts
+│   ├── useComments.ts
+│   ├── useCreatePromptView.ts
+│   ├── useHomeFeedView.ts
+│   ├── usePromptActions.ts
+│   ├── usePromptDetail.ts
+│   ├── usePromptDetailView.ts
+│   └── useRelatedPrompts.ts
+├── types/
+│   ├── prompt.types.ts
+│   └── index.ts
+└── ui/
+    ├── AuthorCard.tsx
+    ├── CommentsSection.tsx
+    ├── CreatePromptView.tsx
+    ├── DeletePromptModal.tsx
+    ├── EditPromptModal.tsx
+    ├── HomeFeedView.tsx
+    ├── PromptDetailCard.tsx
+    ├── PromptDetailHeader.tsx
+    ├── PromptDetailView.tsx
+    ├── RelatedPrompts.tsx
+    ├── utils.ts
+    └── create/              # 프롬프트 생성 단계별 컴포넌트
+        ├── AdvancedOptionsStep.tsx
+        ├── BodyStep.tsx
+        ├── CreatePromptSuccess.tsx
+        ├── DomainStep.tsx
+        ├── InputStep.tsx
+        ├── PublicStep.tsx
+        ├── TagsStep.tsx
+        └── TitleStep.tsx
+```
+
+#### 4. `comment` - 댓글 기능
+
+```
+features/comment/
+├── api/
+│   ├── comment.api.ts
+│   └── index.ts
+└── types/
+    ├── comment.types.ts
+    └── index.ts
+```
+
+#### 5. `like` - 좋아요 기능
+
+```
+features/like/
+├── api/
+│   ├── like.api.ts
+│   └── index.ts
+```
+
+#### 6. `settings` - 설정 기능
+
+```
+features/settings/
+├── constants/
+│   └── settings.constants.ts
+├── model/
+│   └── useSettingsPage.ts
+├── types/
+│   └── settings.types.ts
+└── ui/
+    ├── SettingsView.tsx
+    ├── AppearanceTab.tsx
+    ├── DeleteUserModal.tsx
+    ├── LogoutModal.tsx
+    ├── NotificationsTab.tsx
+    ├── ProfileTab.tsx
+    └── SecurityTab.tsx
 ```
 
 ---
@@ -92,10 +228,10 @@ features/auth/
 
 **위치**: `src/shared/api/axios.ts`
 
-- **기능**:
-  - Base URL 설정
-  - Request Interceptor: accessToken 자동 첨부
-  - Response Interceptor: 401 에러 시 자동 토큰 갱신 및 재시도
+**기능**:
+- Base URL 설정
+- Request Interceptor: accessToken 자동 첨부
+- Response Interceptor: 401 에러 시 자동 토큰 갱신 및 재시도
 
 ### API 호출 패턴
 
@@ -119,7 +255,7 @@ export const {feature}Api = {
 - 비즈니스 로직 포함 금지
 - 데이터 변환은 최소화
 
-**현재 구현된 API 모듈**:
+**구현된 API 모듈**:
 - `auth.api.ts`: 인증 관련 API (login, logout 등)
 - `oauth.ts`: OAuth 로그인 URL 생성
 - `user.api.ts`: 사용자 정보 조회
@@ -135,7 +271,7 @@ export const {feature}Api = {
 
 **위치**: `src/features/{feature}/store/{feature}.store.ts`
 
-**현재 구현된 스토어**:
+**구현된 스토어**:
 - `auth.store.ts`: 인증 토큰 및 인증 상태 관리
 
 **패턴**:
@@ -145,14 +281,12 @@ import { create } from 'zustand';
 import type { StateType } from '@/features/{feature}/types/{feature}.types';
 
 interface State {
-  // 상태
   data: StateType | null;
   setData: (value: StateType) => void;
   clear: () => void;
 }
 
 export const useStore = create<State>((set) => ({
-  // 초기값
   data: null,
   setData: (value) => set({ data: value }),
   clear: () => set({ data: null }),
@@ -176,21 +310,31 @@ export const useStore = create<State>((set) => ({
 <Routes>
   <Route element={<AppLayout />}>
     <Route path="/" element={<PromptsHub />} />
-    <Route path="/login" element={<LoginPage />} />
+    <Route path="/feed" element={<HomeFeedPage />} />
+    <Route path="/login" element={<Login />} />
     <Route path="/signup" element={<SignupPage />} />
     <Route path="/auth/success" element={<OAuthSuccessPage />} />
-    <Route path="/auth/bootstrap" element={<AuthBootstrapPage />} />
+    <Route path="/auth/bootstrap" element={<BootstrapPage />} />
+    <Route path="/settings" element={<SettingsPage />} />
+    <Route path="/notifications" element={<NotificationsPage />} />
+    <Route path="/prompts/create" element={<CreatePromptPage />} />
+    <Route path="/prompts/:id" element={<PromptDetailPage />} />
   </Route>
 </Routes>
 ```
 
+**참고**: `OAuthFailurePage`는 현재 라우트에 등록되어 있지 않지만, OAuth 실패 시 리다이렉트를 위해 준비되어 있습니다.
+
 ### 페이지 UI 설정
 
-**위치**: `src/shared/config/pageConfig.ts`
+**위치**: `src/shared/config/`
 
-- `PAGE_UI_CONFIG`: 페이지별 헤더/푸터/플로팅 버튼 설정
-- `PAGE_TITLE_CONFIG`: 페이지별 타이틀 설정
-- `HEADER_CONFIG`: 헤더 상세 설정
+- `pageConfig.ts`: 
+  - `PAGE_UI_CONFIG`: 페이지별 헤더/푸터/플로팅 버튼 설정
+  - `HEADER_CONFIG`: 헤더 상세 설정
+  - `OAUTH2_CONFIG`: OAuth2 리다이렉트 URL 설정
+- `PAGE_TITLE_CONFIG.ts`: 페이지별 타이틀 설정 (별도 파일로 분리)
+- `env.ts`: 환경 변수 설정 (`VITE_*` 변수 관리)
 
 **사용처**: `AppLayout.tsx`에서 현재 경로에 맞는 설정을 동적으로 적용
 
@@ -221,26 +365,37 @@ export const useStore = create<State>((set) => ({
 
 **위치**: `src/pages/`
 
-**현재 페이지**:
-1. `PromptsHub.tsx` (랜딩 페이지)
-2. `auth/LoginPage.tsx` (로그인 페이지)
-3. `auth/SignupPage.tsx` (회원가입 페이지)
-4. `auth/OAuthSuccessPage.tsx` (OAuth 성공 처리)
-5. `auth/AuthBootstrapPage.tsx` (인증 후 부트스트랩)
+**구현된 페이지**:
+1. `PromptsHub.tsx` → `features/landing/ui/LandingView.tsx` (랜딩 페이지)
+2. `HomeFeedPage.tsx` → `features/prompt/ui/HomeFeedView.tsx` (홈 피드)
+3. `auth/LoginPage.tsx` → `features/auth/ui/LoginView.tsx` (로그인)
+4. `auth/SignupPage.tsx` → `features/auth/ui/SignupView.tsx` (회원가입)
+5. `auth/OAuthSuccessPage.tsx` (OAuth 성공 처리)
+6. `auth/OAuthFailurePage.tsx` (OAuth 실패 처리, 라우트 미등록)
+7. `auth/AuthBootstrapPage.tsx` (인증 후 부트스트랩)
+8. `CreatePromptPage.tsx` → `features/prompt/ui/CreatePromptView.tsx` (프롬프트 생성)
+9. `PromptDetailPage.tsx` → `features/prompt/ui/PromptDetailView.tsx` (프롬프트 상세)
+10. `SettingsPage.tsx` → `features/settings/ui/SettingsView.tsx` (설정)
+11. `NotificationsPage.tsx` (알림)
 
-### 페이지와 View 분리
+### 페이지와 View 분리 원칙
 
 - **페이지** (`pages/`): 라우트에 직접 연결되는 얇은 래퍼 컴포넌트
-  - 역할: 라우트 연결, View 컴포넌트 렌더링
-  - 패턴: 최소한의 로직만 포함, 대부분 View 컴포넌트로 위임
+  - 역할: 라우트 연결만 담당
+  - 패턴: View 컴포넌트를 import하여 렌더링
+  - 예시:
+    ```typescript
+    // pages/auth/LoginPage.tsx
+    import { LoginView } from '@/features/auth/ui/LoginView';
+    
+    export default function LoginPage() {
+      return <LoginView />;
+    }
+    ```
 
 - **View** (`features/{feature}/ui/`): 실제 UI 로직과 프레젠테이션을 담은 컴포넌트
-  - 역할: UI 렌더링, 사용자 인터랙션, 내부 상태 관리
-
-**예시**:
-- `pages/PromptsHub.tsx` → `features/landing/ui/LandingView.tsx` 사용
-- `pages/auth/LoginPage.tsx` → `features/auth/ui/LoginView.tsx` 사용
-- `pages/auth/SignupPage.tsx` → `features/auth/ui/SignupView.tsx` 사용
+  - 역할: UI 렌더링, 사용자 인터랙션 처리, 내부 상태 관리
+  - 패턴: API 호출은 feature의 `api/` 또는 `hooks/`에서 가져와 사용
 
 ---
 
@@ -248,9 +403,20 @@ export const useStore = create<State>((set) => ({
 
 **위치**: `src/shared/components/`
 
-**현재 구현된 컴포넌트**:
+**구현된 컴포넌트**:
 - `Button.tsx`: 공통 버튼 컴포넌트
 - `FloatingButton.tsx`: 플로팅 버튼 컴포넌트
+- `Modal.tsx`: 공통 모달 컴포넌트 (기본 모달)
+- `TermsModal.tsx`: 이용약관/개인정보처리방침 모달 컴포넌트
+
+---
+
+## 🪝 공통 훅
+
+**위치**: `src/shared/hooks/`
+
+**구현된 훅**:
+- `useTermsModal.ts`: 이용약관 모달 상태 관리 훅
 
 ---
 
@@ -264,8 +430,7 @@ export const useStore = create<State>((set) => ({
    - API: camelCase (예: `auth.api.ts`)
    - 훅: camelCase (예: `useAuth.ts`, `useAuthView.ts`)
 
-2. **폴더명**:
-   - 소문자 (예: `features/auth/api/`)
+2. **폴더명**: 소문자 (예: `features/auth/api/`)
 
 3. **컴포넌트 export**:
    - Named export (예: `export function LoginView()`)
@@ -273,35 +438,10 @@ export const useStore = create<State>((set) => ({
 
 ### 파일 분리 규칙
 
-프로젝트의 관심사 분리를 위해 다음과 같이 파일을 분리합니다:
-
 #### 1. 페이지(Pages) vs 뷰(View) 분리
 
 - **페이지** (`src/pages/`): 라우트에 직접 연결되는 얇은 래퍼 컴포넌트
-  - 역할: 라우트 연결만 담당
-  - 패턴: View 컴포넌트를 import하여 렌더링
-  - 예시:
-    ```typescript
-    // pages/auth/LoginPage.tsx
-    import { LoginView } from '@/features/auth/ui/LoginView';
-    
-    export default function LoginPage() {
-      return <LoginView />;
-    }
-    ```
-
 - **뷰** (`src/features/{feature}/ui/`): 실제 UI 로직과 프레젠테이션을 담은 컴포넌트
-  - 역할: UI 렌더링, 사용자 인터랙션 처리, 내부 상태 관리
-  - 패턴: API 호출은 feature의 `api/` 또는 `hooks/`에서 가져와 사용
-  - 예시:
-    ```typescript
-    // features/auth/ui/LoginView.tsx
-    import { authApi } from '@/features/auth/api/auth.api';
-    
-    export function LoginView() {
-      // UI 로직
-    }
-    ```
 
 #### 2. API 분리
 
@@ -311,16 +451,6 @@ export const useStore = create<State>((set) => ({
   - `shared/api/axios.ts`의 `api` 인스턴스를 사용
   - 비즈니스 로직 포함 금지
   - 데이터 변환 최소화
-- **예시**:
-  ```typescript
-  // features/auth/api/auth.api.ts
-  import { api } from '@/shared/api/axios';
-  
-  export const authApi = {
-    login: (email: string, password: string) => 
-      api.post('/auth/login', { email, password }),
-  };
-  ```
 
 #### 3. 훅(Hooks) vs 모델(Model) 분리
 
@@ -372,10 +502,6 @@ export const useStore = create<State>((set) => ({
   // features/auth/ui/signup/SignupStep1.tsx
   import { SignupStep2 } from './SignupStep2';
   
-  // ❌ 다른 폴더에서는 상대 경로 사용 금지
-  import { LoginView } from '../LoginView'; // ❌ 잘못된 사용
-  // ✅ 올바른 사용
-  import { LoginView } from '@/features/auth/ui/LoginView';
   ```
 
 #### @ 별칭 설정
@@ -422,6 +548,7 @@ export const useStore = create<State>((set) => ({
 5. **타입 정의**: 
    - 도메인 타입: `features/{feature}/types/`
    - 기능별 타입: `features/{feature}/model/`
+   - 공통 API 타입: `shared/types/api.ts`
 
 ### Import 예시
 
@@ -429,7 +556,6 @@ export const useStore = create<State>((set) => ({
 // ✅ 페이지 컴포넌트
 // pages/auth/LoginPage.tsx
 import { LoginView } from '@/features/auth/ui/LoginView';
-import { useAuthView } from '@/features/auth/model/useAuthView';
 
 // ✅ View 컴포넌트
 // features/auth/ui/LoginView.tsx
@@ -450,7 +576,7 @@ import { PAGE_UI_CONFIG } from '@/shared/config/pageConfig';
 
 ---
 
-## 🔄 현재 페이지 흐름
+## 🔄 페이지 흐름
 
 ### 인증 플로우
 
@@ -463,15 +589,22 @@ import { PAGE_UI_CONFIG } from '@/shared/config/pageConfig';
   ↓ (토큰 저장 후)
 /auth/bootstrap
   ↓ (사용자 정보 확인)
-/ (랜딩 페이지) 또는 /onboarding
+/ (랜딩 페이지) 또는 /feed
 ```
 
 ### 페이지 간 연결
 
-- **랜딩 페이지** (`/`): `PromptsHub.tsx`
-- **로그인 페이지** (`/login`): `LoginPage.tsx`
+- **랜딩 페이지** (`/`): `PromptsHub.tsx` → `features/landing/ui/LandingView.tsx`
+- **홈 피드** (`/feed`): `HomeFeedPage.tsx` → `features/prompt/ui/HomeFeedView.tsx`
+- **로그인 페이지** (`/login`): `LoginPage.tsx` → `features/auth/ui/LoginView.tsx`
+- **회원가입 페이지** (`/signup`): `SignupPage.tsx` → `features/auth/ui/SignupView.tsx`
 - **OAuth 성공** (`/auth/success`): `OAuthSuccessPage.tsx`
+- **OAuth 실패**: `OAuthFailurePage.tsx` (준비됨, 라우트 미등록)
 - **인증 부트스트랩** (`/auth/bootstrap`): `AuthBootstrapPage.tsx`
+- **프롬프트 생성** (`/prompts/create`): `CreatePromptPage.tsx` → `features/prompt/ui/CreatePromptView.tsx`
+- **프롬프트 상세** (`/prompts/:id`): `PromptDetailPage.tsx` → `features/prompt/ui/PromptDetailView.tsx`
+- **설정** (`/settings`): `SettingsPage.tsx` → `features/settings/ui/SettingsView.tsx`
+- **알림** (`/notifications`): `NotificationsPage.tsx`
 
 ---
 
@@ -484,12 +617,16 @@ import { PAGE_UI_CONFIG } from '@/shared/config/pageConfig';
 3. **관심사 분리**: API, UI, 상태 관리가 명확히 분리
 4. **타입 안정성**: TypeScript로 타입 정의
 5. **재사용 가능한 컴포넌트**: shared 폴더에 공통 컴포넌트
+6. **모듈화된 회원가입/프롬프트 생성**: 단계별 컴포넌트로 분리하여 유지보수성 향상
+7. **환경 변수 관리**: `env.ts`를 통한 중앙화된 환경 변수 관리
+8. **페이지-View 분리**: 라우트 연결과 UI 로직의 명확한 분리
 
 ### 🔍 개선 가능한 부분
 
 1. **에러 처리**: 일관된 에러 처리 패턴 부재
 2. **로딩 상태**: 로딩 상태 관리가 페이지별로 다름
 3. **타입 정의 위치**: `model/`과 `types/` 폴더의 사용 기준 명확화 필요
+4. **설정 파일 분리**: `PAGE_TITLE_CONFIG`가 `pageConfig.ts`와 별도 파일에 존재 (통합 고려)
 
 ---
 
@@ -502,5 +639,3 @@ import { PAGE_UI_CONFIG } from '@/shared/config/pageConfig';
 4. 개선 제안
 
 이 문서는 프로젝트 구조를 이해한 후, 특정 페이지 리팩토링 시 참고 자료로 사용됩니다.
-
-
