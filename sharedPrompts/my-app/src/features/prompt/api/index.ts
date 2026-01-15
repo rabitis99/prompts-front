@@ -1,2 +1,2 @@
-export * from './prompt.api';
+export * from '@/features/prompt/api/prompt.api';
 

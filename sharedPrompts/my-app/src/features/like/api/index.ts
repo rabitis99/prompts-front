@@ -1,2 +1,2 @@
-export * from './like.api';
+export * from '@/features/like/api/like.api';
 

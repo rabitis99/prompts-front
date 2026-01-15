@@ -1,2 +1,2 @@
-export * from './prompt.types';
+export * from '@/features/prompt/types/prompt.types';
 
