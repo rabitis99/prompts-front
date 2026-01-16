@@ -35,7 +35,7 @@ export function LoginView({ onChangeView }: Props) {
 
       await login({ email, password });
 
-      alert("로그인 성공 (임시)");
+      navigate("/feed");
     } catch {
       setError("로그인에 실패했습니다");
     } finally {

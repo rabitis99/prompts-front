@@ -211,7 +211,7 @@ export function SignupView() {
   };
 
   const handleNavigateToHome = () => {
-    navigate('/');
+    navigate('/feed');
   };
 
   return (
