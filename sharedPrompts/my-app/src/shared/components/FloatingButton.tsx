@@ -34,7 +34,7 @@ export default function FloatingButton({
       aria-label="floating action button"
       className="
         fixed bottom-5
-        right-[calc(50%-240px+24px)]
+        right-5
         w-14 h-14
         rounded-full
         shadow-lg
@@ -43,8 +43,8 @@ export default function FloatingButton({
         hover:scale-110
         text-white
         z-50
-        bg-[var(--color-primary)]
-        hover:bg-[var(--color-accent)]
+        bg-[var(--color-accent)]
+        hover:bg-violet-700
       "
       style={{ backdropFilter: "blur(4px)" }}
     >

@@ -38,7 +38,7 @@ export default function AppLayout() {
       <Sidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
       {config.header && (
-        <Header onMenuClick={() => setIsMenuOpen(true)} />
+        <Header />
       )}
 
       <main

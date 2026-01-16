@@ -28,17 +28,18 @@ export const PAGE_UI_CONFIG: Record<string, PageUIConfig> = {
   "/feed": {
     header: true,
     footer: false,
-    floatingButton: { icon: "plus", action: "/prompts/new" },
+    floatingButton: { icon: "plus", action: "/prompts/create" },
   },
 
   // Prompt
+  "/prompts/create": { header: false, footer: false },
   "/prompts/new": { header: true, footer: false },
-  "/prompts/:id": { header: true, footer: false },
+  "/prompts/:id": { header: false, footer: false },
   "/prompts/:id/edit": { header: true, footer: false },
   "/prompts/me": {
     header: true,
     footer: false,
-    floatingButton: { icon: "plus", action: "/prompts/new" },
+    floatingButton: { icon: "plus", action: "/prompts/create" },
   },
 
   // User
@@ -71,6 +72,7 @@ export const PAGE_TITLE_CONFIG: Record<string, string> = {
   "/auth/success": "OAuth 로그인 처리 중...", // 추가
 
   "/feed": "홈",
+  "/prompts/create": "프롬프트 만들기",
   "/prompts/new": "새 프롬프트",
   "/prompts/:id": "프롬프트 상세",
   "/prompts/:id/edit": "프롬프트 수정",
