@@ -7,6 +7,7 @@ import { RelatedPrompts } from './RelatedPrompts';
 import { formatDate, getAvatarGradient } from './utils';
 import { EditPromptModal } from './EditPromptModal';
 import { DeletePromptModal } from './DeletePromptModal';
+import { ReportModal } from '@/features/report/ui/ReportModal';
 
 export function PromptDetailView() {
   const {
@@ -51,6 +52,12 @@ export function PromptDetailView() {
     handleDeleteComment,
     isCommentOwner,
     allCommentsCount,
+    showReportModal,
+    reportTargetId,
+    reportType,
+    handleOpenReportModal,
+    handleOpenCommentReportModal,
+    handleCloseReportModal,
   } = usePromptDetailView();
 
   if (isLoading) {
@@ -88,6 +95,7 @@ export function PromptDetailView() {
         onToggleShowMore={() => setShowMore(!showMore)}
         onEdit={() => setShowEditModal(true)}
         onDelete={() => setShowDeleteModal(true)}
+        onReport={handleOpenReportModal}
       />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
@@ -127,6 +135,7 @@ export function PromptDetailView() {
               onDeleteComment={handleDeleteComment}
               onEditingTextChange={setEditingText}
               isCommentOwner={isCommentOwner}
+              onReportComment={handleOpenCommentReportModal}
             />
           </div>
 
@@ -157,6 +166,15 @@ export function PromptDetailView() {
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDeletePrompt}
       />
+
+      {showReportModal && reportTargetId && reportType && (
+        <ReportModal
+          isOpen={showReportModal}
+          onClose={handleCloseReportModal}
+          reportType={reportType}
+          targetId={reportTargetId}
+        />
+      )}
     </div>
   );
 }

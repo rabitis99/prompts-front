@@ -1,4 +1,4 @@
-import { MessageCircle, Send, Heart, ChevronDown, ChevronUp, Edit, Trash2, X, Check } from 'lucide-react';
+import { MessageCircle, Send, Heart, ChevronDown, ChevronUp, Edit, Trash2, X, Check, Flag } from 'lucide-react';
 import type { CommentResponseDto } from '@/features/comment/types/comment.types';
 import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
 
@@ -26,6 +26,7 @@ interface CommentsSectionProps {
   onDeleteComment: (commentId: number) => void;
   onEditingTextChange: (text: string) => void;
   isCommentOwner: (commentUserId: number) => boolean;
+  onReportComment?: (commentId: number) => void;
 }
 
 export function CommentsSection({
@@ -52,6 +53,7 @@ export function CommentsSection({
   onDeleteComment,
   onEditingTextChange,
   isCommentOwner,
+  onReportComment,
 }: CommentsSectionProps) {
   return (
     <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 sm:p-8">
@@ -99,23 +101,37 @@ export function CommentsSection({
                 <div className="flex items-center gap-2 mb-2">
                   <span className="font-semibold text-slate-900">{comment.user_response_dto.nickname}</span>
                   <span className="text-xs text-slate-400">{formatDate(comment.created_at)}</span>
-                  {isCommentOwner(comment.user_response_dto.id) && editingCommentId !== comment.id && (
+                  {editingCommentId !== comment.id && (
                     <div className="flex items-center gap-2 ml-auto">
-                      <button
-                        onClick={() => onStartEditComment(comment.id, comment.content)}
-                        className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
-                        title="수정"
-                      >
-                        <Edit className="w-3.5 h-3.5 text-slate-500" />
-                      </button>
-                      <button
-                        onClick={() => onDeleteComment(comment.id)}
-                        disabled={isDeletingComment}
-                        className="p-1.5 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                        title="삭제"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                      </button>
+                      {isCommentOwner(comment.user_response_dto.id) ? (
+                        <>
+                          <button
+                            onClick={() => onStartEditComment(comment.id, comment.content)}
+                            className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
+                            title="수정"
+                          >
+                            <Edit className="w-3.5 h-3.5 text-slate-500" />
+                          </button>
+                          <button
+                            onClick={() => onDeleteComment(comment.id)}
+                            disabled={isDeletingComment}
+                            className="p-1.5 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                            title="삭제"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                          </button>
+                        </>
+                      ) : (
+                        onReportComment && (
+                          <button
+                            onClick={() => onReportComment(comment.id)}
+                            className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                            title="신고"
+                          >
+                            <Flag className="w-3.5 h-3.5 text-red-500" />
+                          </button>
+                        )
+                      )}
                     </div>
                   )}
                 </div>
