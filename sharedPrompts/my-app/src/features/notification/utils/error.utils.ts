@@ -36,7 +36,7 @@ export function getNotificationErrorMessage(error: unknown): string {
   }
 
   // 일반 에러 메시지 (개발 환경에서만 로깅)
-  if (err.message && process.env.NODE_ENV === 'development') {
+  if (err.message && import.meta.env.DEV) {
     console.error('Notification error:', err.message);
   }
 

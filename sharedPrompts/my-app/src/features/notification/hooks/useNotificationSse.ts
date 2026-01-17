@@ -42,6 +42,7 @@ export function useNotificationSse(
   const [isConnected, setIsConnected] = useState(false);
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const optionsRef = useRef(options);
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   // 최신 콜백 참조 유지
   useEffect(() => {
@@ -57,8 +58,6 @@ export function useNotificationSse(
       return;
     }
 
-    const { accessToken } = useAuthStore.getState();
-
     if (!accessToken) {
       console.warn('Access token not found, cannot subscribe to SSE');
       return;
@@ -70,6 +69,11 @@ export function useNotificationSse(
       },
       onError: (error) => {
         setIsConnected(false);
+        if (unsubscribeRef.current) {
+          const unsubscribe = unsubscribeRef.current;
+          unsubscribeRef.current = null;
+          unsubscribe();
+        }
         optionsRef.current.onError?.(error);
       },
       onOpen: (event) => {
@@ -78,12 +82,13 @@ export function useNotificationSse(
       },
       onClose: () => {
         setIsConnected(false);
+        unsubscribeRef.current = null;
         optionsRef.current.onClose?.();
       },
     });
 
     unsubscribeRef.current = unsubscribe;
-  }, []);
+  }, [accessToken]);
 
   /**
    * SSE 구독 종료
@@ -98,16 +103,17 @@ export function useNotificationSse(
 
   // enabled 상태에 따라 자동 구독/구독 해제
   useEffect(() => {
-    if (enabled) {
-      start();
-    } else {
+    if (!enabled) {
       stop();
+      return;
     }
-
+    if (accessToken) {
+      start();
+    }
     return () => {
       stop();
     };
-  }, [enabled, start, stop]);
+  }, [enabled, accessToken, start, stop]);
 
   return {
     isConnected,

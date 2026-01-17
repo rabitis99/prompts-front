@@ -7,7 +7,7 @@ export function NotificationLoadingState() {
       role="status"
       aria-live="polite"
     >
-      <Loader2 className="w-8 h-8 text-violet-500 mx-auto mb-4 animate-spin" />
+      <Loader2 className="w-8 h-8 text-violet-500 mx-auto mb-4 animate-spin" aria-hidden="true" />
       <p className="text-sm text-neutral-500">알림을 불러오는 중...</p>
     </div>
   );
