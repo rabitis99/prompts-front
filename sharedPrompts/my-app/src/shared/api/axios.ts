@@ -6,6 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: false,
+  timeout: 30000, // 30초 타임아웃
 });
 
 /**
@@ -50,7 +51,7 @@ api.interceptors.response.use(
         }
 
         // refresh 요청
-        const res = await axios.post(`${API_BASE_URL}/api/auth/refresh`, { refresh_token: refreshToken });
+        const res = await axios.post(`${API_BASE_URL}/auth/refresh`, { refresh_token: refreshToken });
         const { access_token: newAccessToken, refresh_token: newRefreshToken } = res.data.data;
 
         // 토큰 갱신
