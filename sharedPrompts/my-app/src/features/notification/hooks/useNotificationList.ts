@@ -109,6 +109,7 @@ export function useNotificationList(
    */
   const loadMore = useCallback(() => {
     if (isLoadingMore || !hasMore) return;
+    setIsLoadingMore(true);
     setPage((prev) => prev + 1);
   }, [isLoadingMore, hasMore]);
 

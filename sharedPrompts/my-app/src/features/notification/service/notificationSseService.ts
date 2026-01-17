@@ -2,9 +2,9 @@
  * SSE (Server-Sent Events) 기반 실시간 알림 구독 서비스
  * 백엔드: NotificationSseService.subscribe()
  * 
- * EventSource API를 사용하여 실시간 알림을 수신합니다.
- * 인증 토큰은 Authorization 헤더를 통해 전달해야 하므로,
- * EventSource 대신 fetch API와 ReadableStream을 사용할 수도 있습니다.
+ * 토큰 기반 인증을 지원하기 위해 fetch API와 ReadableStream을 사용하여
+ * SSE를 구현합니다. EventSource는 Authorization 헤더를 지원하지 않으므로
+ * 사용하지 않습니다.
  */
 
 import type { NotificationResponseDto } from '../types/notification.types';
@@ -13,7 +13,7 @@ export type NotificationSseHandler = (notification: NotificationResponseDto) => 
 
 export interface NotificationSseOptions {
   onNotification?: NotificationSseHandler;
-  onError?: (error: Event) => void;
+  onError?: (error: Event | Error) => void;
   onOpen?: (event: Event) => void;
   onClose?: () => void;
 }
@@ -21,58 +21,25 @@ export interface NotificationSseOptions {
 /**
  * SSE 구독 시작
  * 
- * 주의: EventSource는 Authorization 헤더를 직접 설정할 수 없습니다.
- * 백엔드에서 쿠키 기반 인증을 사용하거나, 
- * fetch API와 ReadableStream을 사용하는 방식으로 구현해야 합니다.
- * 
- * @see fetch-based SSE implementation below
+ * fetch API와 ReadableStream을 사용하여 SSE를 구현합니다.
+ * Authorization 헤더를 통해 Bearer 토큰을 전달합니다.
  */
 export function subscribeNotificationSse(
   accessToken: string,
   options: NotificationSseOptions = {}
 ): () => void {
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  
-  // EventSource는 Authorization 헤더를 지원하지 않으므로,
-  // fetch API를 사용하여 SSE를 구현
   const controller = new AbortController();
-  let eventSource: EventSource | null = null;
+  const sharedState = { isClosed: false };
 
-  // 백엔드에서 쿠키 기반 인증을 사용하는 경우 EventSource 사용 가능
-  // 그렇지 않다면 fetch 기반 SSE 구현 필요
-  try {
-    // 방법 1: 쿠키 기반 인증 사용 시 (백엔드 설정 필요)
-    eventSource = new EventSource(`${API_BASE_URL}/notifications/subscribe`, {
-      withCredentials: true,
-    });
-
-    eventSource.onmessage = (event) => {
-      try {
-        const notification: NotificationResponseDto = JSON.parse(event.data);
-        options.onNotification?.(notification);
-      } catch (error) {
-        console.error('Failed to parse notification:', error);
-      }
-    };
-
-    eventSource.onerror = (error) => {
-      options.onError?.(error);
-      // 연결 오류 시 자동 재연결 시도
-    };
-
-    eventSource.onopen = (event) => {
-      options.onOpen?.(event);
-    };
-  } catch (error) {
-    console.error('Failed to create EventSource:', error);
-    // fetch 기반 SSE로 폴백
-    subscribeNotificationSseWithFetch(accessToken, options, controller);
-  }
+  subscribeNotificationSseWithFetch(accessToken, options, controller, sharedState);
 
   // 구독 해제 함수
   return () => {
-    eventSource?.close();
-    controller.abort();
+    if (!sharedState.isClosed) {
+      sharedState.isClosed = true;
+      options.onClose?.();
+      controller.abort();
+    }
   };
 }
 
@@ -85,7 +52,8 @@ export function subscribeNotificationSse(
 function subscribeNotificationSseWithFetch(
   accessToken: string,
   options: NotificationSseOptions,
-  controller: AbortController
+  controller: AbortController,
+  sharedState: { isClosed: boolean } = { isClosed: false }
 ): void {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -111,22 +79,47 @@ function subscribeNotificationSseWithFetch(
         throw new Error('Response body is not readable');
       }
 
+      let buffer = '';
+
       const readChunk = (): Promise<void> => {
         return reader
           .read()
           .then(({ done, value }) => {
             if (done) {
-              options.onClose?.();
+              // 스트림 종료 전 마지막 버퍼 처리
+              if (buffer.trim()) {
+                const messages = buffer.split('\n\n').filter((msg) => msg.trim());
+                for (const message of messages) {
+                  const dataLine = message.split('\n').find((line) => line.startsWith('data: '));
+                  if (dataLine) {
+                    try {
+                      const data = dataLine.slice(6); // 'data: ' 제거
+                      const notification: NotificationResponseDto = JSON.parse(data);
+                      options.onNotification?.(notification);
+                    } catch (error) {
+                      console.error('Failed to parse notification:', error);
+                    }
+                  }
+                }
+              }
+
+              if (!sharedState.isClosed) {
+                sharedState.isClosed = true;
+                options.onClose?.();
+              }
               return Promise.resolve();
             }
 
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n\n');
+            buffer += decoder.decode(value, { stream: true });
+            const messages = buffer.split('\n\n');
+            // 마지막 요소는 불완전할 수 있으므로 버퍼에 유지
+            buffer = messages.pop() || '';
 
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
+            for (const message of messages) {
+              const dataLine = message.split('\n').find((line) => line.startsWith('data: '));
+              if (dataLine) {
                 try {
-                  const data = line.slice(6); // 'data: ' 제거
+                  const data = dataLine.slice(6); // 'data: ' 제거
                   const notification: NotificationResponseDto = JSON.parse(data);
                   options.onNotification?.(notification);
                 } catch (error) {
@@ -139,6 +132,10 @@ function subscribeNotificationSseWithFetch(
           })
           .catch((error) => {
             if (error.name !== 'AbortError') {
+              if (!sharedState.isClosed) {
+                sharedState.isClosed = true;
+                options.onClose?.();
+              }
               options.onError?.(error);
             }
           });
@@ -148,6 +145,10 @@ function subscribeNotificationSseWithFetch(
     })
     .catch((error) => {
       if (error.name !== 'AbortError') {
+        if (!sharedState.isClosed) {
+          sharedState.isClosed = true;
+          options.onClose?.();
+        }
         options.onError?.(error);
       }
     });

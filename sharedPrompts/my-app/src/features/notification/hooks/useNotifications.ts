@@ -5,8 +5,6 @@ import { useNotificationMark } from './useNotificationMark';
 import type { NotificationResponseDto } from '../types/notification.types';
 
 export interface UseNotificationsOptions {
-  /** SSE 구독 활성화 여부 */
-  enableSse?: boolean;
   /** 읽지 않은 개수 주기적 갱신 간격 (밀리초) */
   unreadCountRefreshInterval?: number;
 }
@@ -123,7 +121,7 @@ export function useNotifications(
 
   // 에러 우선순위: 목록 에러 > 읽지 않은 개수 에러 > 읽음 처리 에러
   const error =
-    notificationList.error || notificationMark.error || unreadCount.error || null;
+    notificationList.error || unreadCount.error || notificationMark.error || null;
 
   return {
     notifications: notificationList.notifications,

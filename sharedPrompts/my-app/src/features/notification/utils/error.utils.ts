@@ -2,6 +2,14 @@
  * 알림 관련 에러 처리 유틸리티
  */
 
+import { AxiosError } from 'axios';
+
+interface ApiErrorResponse {
+  error?: {
+    message?: string;
+  };
+}
+
 /**
  * API 에러를 사용자 친화적인 메시지로 변환
  */
@@ -10,7 +18,7 @@ export function getNotificationErrorMessage(error: unknown): string {
     return '알림을 불러오는데 실패했습니다.';
   }
 
-  const err = error as any;
+  const err = error as AxiosError<ApiErrorResponse>;
 
   // 타임아웃 에러
   if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
@@ -27,9 +35,9 @@ export function getNotificationErrorMessage(error: unknown): string {
     return err.response.data.error.message;
   }
 
-  // 일반 에러 메시지
-  if (err.message) {
-    return err.message;
+  // 일반 에러 메시지 (개발 환경에서만 로깅)
+  if (err.message && process.env.NODE_ENV === 'development') {
+    console.error('Notification error:', err.message);
   }
 
   return '알림을 불러오는데 실패했습니다.';

@@ -3,6 +3,11 @@
  * 상대 시간 표현 (예: "2분 전", "1시간 전")
  */
 
+const SECONDS_IN_MINUTE = 60;
+const SECONDS_IN_HOUR = 3600;
+const SECONDS_IN_DAY = 86400;
+const SECONDS_IN_MONTH = 2592000;
+
 /**
  * 날짜 문자열을 상대 시간으로 포맷팅
  * 예: "방금 전", "2분 전", "1시간 전", "3일 전"
@@ -13,19 +18,22 @@
 export function formatRelativeTime(dateString: string): string {
   try {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return dateString;
+    }
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     
-    if (diffInSeconds < 60) {
+    if (diffInSeconds < SECONDS_IN_MINUTE) {
       return '방금 전';
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
+    } else if (diffInSeconds < SECONDS_IN_HOUR) {
+      const minutes = Math.floor(diffInSeconds / SECONDS_IN_MINUTE);
       return `${minutes}분 전`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
+    } else if (diffInSeconds < SECONDS_IN_DAY) {
+      const hours = Math.floor(diffInSeconds / SECONDS_IN_HOUR);
       return `${hours}시간 전`;
-    } else if (diffInSeconds < 2592000) {
-      const days = Math.floor(diffInSeconds / 86400);
+    } else if (diffInSeconds < SECONDS_IN_MONTH) {
+      const days = Math.floor(diffInSeconds / SECONDS_IN_DAY);
       return `${days}일 전`;
     } else {
       return date.toLocaleDateString('ko-KR', {

@@ -51,7 +51,7 @@ api.interceptors.response.use(
         }
 
         // refresh 요청
-        const res = await axios.post(`${API_BASE_URL}/api/auth/refresh`, { refresh_token: refreshToken });
+        const res = await axios.post(`${API_BASE_URL}/auth/refresh`, { refresh_token: refreshToken });
         const { access_token: newAccessToken, refresh_token: newRefreshToken } = res.data.data;
 
         // 토큰 갱신

@@ -32,6 +32,7 @@ export function NotificationList({
       {hasMore && (
         <div className="mt-6 text-center">
           <button
+            type="button"
             onClick={onLoadMore}
             disabled={isLoadingMore}
             className="px-4 py-2 text-sm text-violet-600 hover:text-violet-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"

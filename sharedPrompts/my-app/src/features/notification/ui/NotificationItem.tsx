@@ -47,6 +47,7 @@ export function NotificationItem({
         <div className="flex items-center gap-2 flex-shrink-0">
           {!notification.is_read && (
             <button
+              type="button"
               onClick={() => onMarkAsRead(notification.id)}
               className="p-1.5 hover:bg-neutral-100 rounded-lg transition-colors"
               aria-label="읽음 처리"

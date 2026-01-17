@@ -7,7 +7,7 @@ export interface UseNotificationSseOptions {
   /** 새 알림 수신 시 호출될 콜백 */
   onNotification?: (notification: NotificationResponseDto) => void;
   /** SSE 연결 오류 시 호출될 콜백 */
-  onError?: (error: Event) => void;
+  onError?: (error: Event | Error) => void;
   /** SSE 연결 성공 시 호출될 콜백 */
   onOpen?: (event: Event) => void;
   /** SSE 연결 종료 시 호출될 콜백 */

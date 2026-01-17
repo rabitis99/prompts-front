@@ -1,2 +1,2 @@
-export { notificationApi, getNotificationSubscribeUrl } from './notification.api';
+export { notificationApi } from './notification.api';
 

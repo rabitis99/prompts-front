@@ -13,6 +13,7 @@ export function NotificationHeader({
         <h1 className="text-xl font-bold text-neutral-900">알림</h1>
         {unreadCount > 0 && (
           <button
+            type="button"
             onClick={onMarkAllAsRead}
             className="text-sm text-violet-600 hover:text-violet-700 font-medium"
           >

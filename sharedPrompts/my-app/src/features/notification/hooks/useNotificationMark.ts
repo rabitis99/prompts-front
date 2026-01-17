@@ -3,9 +3,7 @@ import { notificationApi } from '../api/notification.api';
 import type { NotificationResponseDto } from '../types/notification.types';
 import { getNotificationErrorMessage } from '../utils/error.utils';
 
-export interface UseNotificationMarkOptions {
-  // 옵션이 필요하면 여기에 추가
-}
+export type UseNotificationMarkOptions = Record<string, never>;
 
 export interface UseNotificationMarkReturn {
   /** 특정 알림 읽음 처리 중인지 여부 */
