@@ -17,10 +17,10 @@ export function ReportReasonSelector({
 }: ReportReasonSelectorProps) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-slate-900 mb-3">
+      <label id="report-reason-label" className="block text-sm font-semibold text-slate-900 mb-3">
         신고 사유 <span className="text-red-500">*</span>
       </label>
-      <div role="radiogroup" className="space-y-2">
+      <div role="radiogroup" aria-labelledby="report-reason-label" className="space-y-2">
         {(Object.keys(REPORT_REASON_DISPLAY_NAMES) as ReportReason[]).map((reason) => (
           <button
             key={reason}

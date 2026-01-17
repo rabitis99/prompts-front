@@ -19,7 +19,7 @@ export function ReportDescriptionInput({
         aria-describedby="report-description-help report-description-count"
         value={description}
         onChange={(e) => onDescriptionChange(e.target.value)}
-        placeholder="신고 사유에 대한 자세한 설명을 입력해주세요. (최대 1000자)"
+        placeholder={`신고 사유에 대한 자세한 설명을 입력해주세요. (최대 ${REPORT_CONSTANTS.MAX_DESCRIPTION_LENGTH}자)`}
         rows={4}
         maxLength={REPORT_CONSTANTS.MAX_DESCRIPTION_LENGTH}
         className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none resize-none transition-all text-sm"
