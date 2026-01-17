@@ -59,6 +59,10 @@ export function ReportsTab() {
           ))}
         </div>
 
+        {error && (
+          <p className="mt-4 text-sm text-red-600">{error}</p>
+        )}
+
         {hasMore && (
           <div className="mt-6 flex justify-center">
             <button

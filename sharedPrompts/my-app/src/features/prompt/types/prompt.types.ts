@@ -1,6 +1,6 @@
 // Prompt 관련 타입 정의
 
-import type { UserResponseDto, CustomResponse } from '@/features/auth/types/user';
+import type { UserResponseDto } from '@/features/auth/types/user';
 
 export enum PromptCategory {
   PRODUCTIVITY = 'PRODUCTIVITY',
@@ -139,11 +139,4 @@ export interface PromptSearchCondition {
   prompt_category?: PromptCategory;
 }
 
-// Page Response
-export interface PageResponse<T> {
-  content: T[];
-  page: number;
-  size: number;
-  total_elements: number;
-}
 

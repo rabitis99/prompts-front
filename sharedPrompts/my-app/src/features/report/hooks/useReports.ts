@@ -48,7 +48,6 @@ export function useReports() {
 
   const reload = useCallback(() => {
     setPage(0);
-    setReports([]);
     loadReports(0, true);
   }, [loadReports]);
 

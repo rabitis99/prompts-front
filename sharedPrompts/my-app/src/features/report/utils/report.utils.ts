@@ -14,8 +14,10 @@ export function getReportStatusIcon(status: ReportStatus) {
       return CheckCircle2;
     case 'REJECTED':
       return XCircle;
-    default:
+    default: {
+      const _exhaustiveCheck: never = status;
       return AlertCircle;
+    }
   }
 }
 
@@ -32,8 +34,10 @@ export function getReportStatusIconColor(status: ReportStatus): string {
       return 'text-green-600';
     case 'REJECTED':
       return 'text-red-600';
-    default:
+    default: {
+      const _exhaustiveCheck: never = status;
       return 'text-slate-400';
+    }
   }
 }
 
@@ -50,8 +54,10 @@ export function getReportStatusColorClasses(status: ReportStatus): string {
       return 'bg-green-50 text-green-700 border-green-200';
     case 'REJECTED':
       return 'bg-red-50 text-red-700 border-red-200';
-    default:
+    default: {
+      const _exhaustiveCheck: never = status;
       return 'bg-slate-50 text-slate-700 border-slate-200';
+    }
   }
 }
 
@@ -60,6 +66,9 @@ export function getReportStatusColorClasses(status: ReportStatus): string {
  */
 export function formatReportDate(dateString: string): string {
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return dateString; // 유효하지 않은 날짜 문자열은 그대로 반환
+  }
   return date.toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',

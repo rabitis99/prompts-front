@@ -127,6 +127,7 @@ export function CommentsSection({
                             onClick={() => onReportComment(comment.id)}
                             className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
                             title="신고"
+                            aria-label="댓글 신고"
                           >
                             <Flag className="w-3.5 h-3.5 text-red-500" />
                           </button>

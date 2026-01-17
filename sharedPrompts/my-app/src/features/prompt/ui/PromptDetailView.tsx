@@ -173,6 +173,9 @@ export function PromptDetailView() {
           onClose={handleCloseReportModal}
           reportType={reportType}
           targetId={reportTargetId}
+          onSuccess={() => {
+            // 신고 성공 시 추가 처리 (필요시)
+          }}
         />
       )}
     </div>

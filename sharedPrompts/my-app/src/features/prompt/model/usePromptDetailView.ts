@@ -8,7 +8,7 @@ import { promptApi } from '@/features/prompt/api/prompt.api';
 import { userApi } from '@/features/auth/api/user.api';
 import type { PromptUpdateDto } from '@/features/prompt/types/prompt.types';
 import { PromptCategory } from '@/features/prompt/types/prompt.types';
-import { ReportType } from '@/features/report/types/report.types';
+import type { ReportType } from '@/features/report/types/report.types';
 
 export function usePromptDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -135,7 +135,7 @@ export function usePromptDetailView() {
   const handleOpenReportModal = () => {
     if (promptId) {
       setReportTargetId(promptId);
-      setReportType(ReportType.PROMPT);
+      setReportType('PROMPT');
       setShowReportModal(true);
       setShowMore(false);
     }
@@ -144,7 +144,7 @@ export function usePromptDetailView() {
   // 신고 모달 열기 (댓글)
   const handleOpenCommentReportModal = (commentId: number) => {
     setReportTargetId(commentId);
-    setReportType(ReportType.COMMENT);
+    setReportType('COMMENT');
     setShowReportModal(true);
   };
 

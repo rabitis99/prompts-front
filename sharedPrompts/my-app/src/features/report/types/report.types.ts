@@ -1,7 +1,6 @@
 // Report 관련 타입 정의
 
-import type { CustomResponse } from '@/features/auth/types/user';
-import type { PageResponse } from '@/shared/types/api';
+import type { CustomResponse, PageResponse } from '@/shared/types/api';
 
 /**
  * 신고 타입

@@ -28,6 +28,7 @@ export function useReportModal({
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
     if (!reason) {
       setError('신고 사유를 선택해주세요.');
       return;

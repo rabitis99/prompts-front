@@ -1,5 +1,5 @@
 import { api } from '@/shared/api/axios';
-import type { CustomResponse } from '@/features/auth/types/user';
+import type { CustomResponse } from '@/shared/types/api';
 
 export const likeApi = {
   // 프롬프트 좋아요
