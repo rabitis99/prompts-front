@@ -4,9 +4,8 @@ import type {
   PromptRequestDto,
   PromptUpdateDto,
   PromptSearchCondition,
-  PageResponse,
 } from '@/features/prompt/types/prompt.types';
-import type { CustomResponse } from '@/features/auth/types/user';
+import type { CustomResponse, PageResponse } from '@/shared/types/api';
 
 export const promptApi = {
   // 프롬프트 생성

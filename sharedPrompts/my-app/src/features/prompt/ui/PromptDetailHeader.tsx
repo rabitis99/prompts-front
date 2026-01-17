@@ -9,6 +9,7 @@ interface PromptDetailHeaderProps {
   onToggleShowMore: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onReport: () => void;
 }
 
 export function PromptDetailHeader({
@@ -20,6 +21,7 @@ export function PromptDetailHeader({
   onToggleShowMore,
   onEdit,
   onDelete,
+  onReport,
 }: PromptDetailHeaderProps) {
   return (
     <header className="bg-white/70 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50">
@@ -71,7 +73,10 @@ export function PromptDetailHeader({
                     </button>
                   </>
                 ) : (
-                  <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                  <button
+                    onClick={onReport}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
                     <Flag className="w-4 h-4" /> 신고하기
                   </button>
                 )}

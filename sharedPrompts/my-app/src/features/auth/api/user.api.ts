@@ -1,11 +1,10 @@
 import { api } from '@/shared/api/axios';
-import type { ApiResponse } from '@/shared/types/api';
+import type { ApiResponse, CustomResponse } from '@/shared/types/api';
 import type {
   User,
   UserResponseDto,
   UserUpdateRequestDto,
   PasswordChangeRequestDto,
-  CustomResponse,
 } from '@/features/auth/types/user';
 
 // 기존 함수 (호환성 유지)

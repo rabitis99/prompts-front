@@ -4,7 +4,7 @@ import type {
   CommentRequestDto,
   CommentUpdateDto,
 } from '@/features/comment/types/comment.types';
-import type { CustomResponse } from '@/features/auth/types/user';
+import type { CustomResponse } from '@/shared/types/api';
 
 export const commentApi = {
   // 댓글 생성

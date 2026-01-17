@@ -1,7 +1,6 @@
 // Comment 관련 타입 정의
 
 import type { UserResponseDto } from '@/features/auth/types/user';
-import type { CustomResponse } from '@/features/auth/types/user';
 
 // Comment Response DTO
 export interface CommentResponseDto {

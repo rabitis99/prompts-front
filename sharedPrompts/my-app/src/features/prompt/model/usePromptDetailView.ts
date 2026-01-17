@@ -8,6 +8,7 @@ import { promptApi } from '@/features/prompt/api/prompt.api';
 import { userApi } from '@/features/auth/api/user.api';
 import type { PromptUpdateDto } from '@/features/prompt/types/prompt.types';
 import { PromptCategory } from '@/features/prompt/types/prompt.types';
+import type { ReportType } from '@/features/report/types/report.types';
 
 export function usePromptDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,9 @@ export function usePromptDetailView() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportTargetId, setReportTargetId] = useState<number | null>(null);
+  const [reportType, setReportType] = useState<ReportType | null>(null);
 
   // 프롬프트 상세 조회
   const { prompt, setPrompt, isLoading, error } = usePromptDetail(promptId);
@@ -127,6 +131,30 @@ export function usePromptDetailView() {
   // 작성자 본인 확인
   const isOwner = prompt && currentUserId ? prompt.user_response_dto.id === currentUserId : false;
 
+  // 신고 모달 열기 (프롬프트)
+  const handleOpenReportModal = () => {
+    if (promptId) {
+      setReportTargetId(promptId);
+      setReportType('PROMPT');
+      setShowReportModal(true);
+      setShowMore(false);
+    }
+  };
+
+  // 신고 모달 열기 (댓글)
+  const handleOpenCommentReportModal = (commentId: number) => {
+    setReportTargetId(commentId);
+    setReportType('COMMENT');
+    setShowReportModal(true);
+  };
+
+  // 신고 모달 닫기
+  const handleCloseReportModal = () => {
+    setShowReportModal(false);
+    setReportTargetId(null);
+    setReportType(null);
+  };
+
   return {
     prompt,
     comments,
@@ -169,6 +197,12 @@ export function usePromptDetailView() {
     saveEditComment,
     handleDeleteComment,
     isCommentOwner,
+    showReportModal,
+    reportTargetId,
+    reportType,
+    handleOpenReportModal,
+    handleOpenCommentReportModal,
+    handleCloseReportModal,
   };
 }
 
