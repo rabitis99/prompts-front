@@ -4,7 +4,7 @@
  * 백엔드 NotificationType enum과 매칭
  * 백엔드: org.example.sharedprompts.domain.notification.enums.NotificationType
  */
-export type NotificationType = 'COMMENT' | 'LIKE';
+export type NotificationType = 'COMMENT' | 'LIKE' | 'FAVORITE' | 'FOLLOW';
 
 /**
  * 백엔드 NotificationResponseDto와 매칭

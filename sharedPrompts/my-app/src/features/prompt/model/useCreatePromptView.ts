@@ -112,7 +112,7 @@ export function useCreatePromptView() {
   };
 
   const handleBack = () => {
-    navigate(-1);
+    navigate('/feed');
   };
 
   const canGoNext = (): boolean => {

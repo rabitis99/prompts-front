@@ -1,11 +1,14 @@
 import { Heart, MessageCircle, Copy, Check, ExternalLink, Clock, Eye, Sparkles } from 'lucide-react';
 import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
 import { PROMPT_CATEGORY_DISPLAY_NAMES } from '@/features/prompt/types/prompt.types';
+import { AuthorInfo } from './components/AuthorInfo';
+import type { UserResponseDto } from '@/features/auth/types/user';
 
 interface PromptDetailCardProps {
   prompt: PromptResponseDto;
   liked: boolean;
   copied: boolean;
+  currentUserId?: number | null;
   onToggleLike: () => void;
   onCopy: () => void;
   formatDate: (dateString: string) => string;
@@ -15,6 +18,7 @@ export function PromptDetailCard({
   prompt,
   liked,
   copied,
+  currentUserId,
   onToggleLike,
   onCopy,
   formatDate,
@@ -37,6 +41,9 @@ export function PromptDetailCard({
               {formatDate(prompt.created_at)}
             </div>
           )}
+          
+          {/* 작성자 정보 - 메타 정보 우측에 배치 */}
+          <AuthorInfo author={prompt.user_response_dto} currentUserId={currentUserId} />
         </div>
 
         {/* Title & Description */}

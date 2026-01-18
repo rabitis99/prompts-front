@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { useSettingsPage } from '../model/useSettingsPage';
 import { TABS } from '../constants/settings.constants';
@@ -8,8 +8,11 @@ import { NotificationsTab } from './NotificationsTab';
 import { AppearanceTab } from './AppearanceTab';
 import { FavoritesTab } from './FavoritesTab';
 import { ReportsTab } from './ReportsTab';
+import { FollowTab } from './FollowTab';
+import { FollowActionModal } from './FollowActionModal';
 import { DeleteUserModal } from './DeleteUserModal';
 import { LogoutModal } from './LogoutModal';
+import type { UserResponseDto } from '@/features/auth/types/user';
 
 export function SettingsView() {
   const {
@@ -29,6 +32,7 @@ export function SettingsView() {
     notifications,
     appearance,
     stats,
+    followCount,
     setActiveTab,
     setIsEditing,
     setShowPassword,
@@ -44,6 +48,10 @@ export function SettingsView() {
     handleDeleteUser,
     handleLogout,
   } = useSettingsPage();
+
+  const [followModalUser, setFollowModalUser] = useState<UserResponseDto | null>(null);
+  const [followModalActionType, setFollowModalActionType] = useState<'follow' | 'follower' | null>(null);
+  const [showFollowModal, setShowFollowModal] = useState(false);
 
   const tabContent: Record<string, React.ReactElement> = {
     profile: (
@@ -84,6 +92,18 @@ export function SettingsView() {
       />
     ),
     favorites: <FavoritesTab />,
+    follows: (
+      <FollowTab
+        followCount={followCount}
+        onUserClick={(user, actionType) => {
+          console.log('onUserClick called', { user, actionType });
+          setFollowModalUser(user);
+          setFollowModalActionType(actionType);
+          setShowFollowModal(true);
+          console.log('Modal should open now');
+        }}
+      />
+    ),
     reports: <ReportsTab />,
   };
 
@@ -156,6 +176,22 @@ export function SettingsView() {
         isDeleting={isDeleting}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDeleteUser}
+      />
+
+      <FollowActionModal
+        isOpen={showFollowModal}
+        user={followModalUser}
+        actionType={followModalActionType}
+        onClose={() => {
+          console.log('Modal close called');
+          setShowFollowModal(false);
+          setFollowModalUser(null);
+          setFollowModalActionType(null);
+        }}
+        onSuccess={() => {
+          // 팔로우 수 갱신 필요 시 여기서 처리
+          console.log('Follow action success');
+        }}
       />
 
       <LogoutModal

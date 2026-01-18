@@ -1,0 +1,32 @@
+import { UserPlus } from 'lucide-react';
+import type { UserResponseDto } from '@/features/auth/types/user';
+
+interface UserListItemProps {
+  user: UserResponseDto;
+  onClick?: () => void;
+}
+
+export function UserListItem({ user, onClick }: UserListItemProps) {
+  const handleClick = () => {
+    console.log('UserListItem clicked', { userId: user.id, nickname: user.nickname });
+    onClick?.();
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-neutral-50 transition-colors text-left"
+      type="button"
+    >
+      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+        {user.nickname[0].toUpperCase()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold text-neutral-900 truncate">{user.nickname}</div>
+        {user.job && <div className="text-sm text-neutral-500 truncate">{user.job}</div>}
+      </div>
+      <UserPlus className="w-5 h-5 text-neutral-400" />
+    </button>
+  );
+}
+

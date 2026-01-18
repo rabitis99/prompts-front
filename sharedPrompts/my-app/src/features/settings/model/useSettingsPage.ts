@@ -1,16 +1,34 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { userApi } from '@/features/auth/api/user.api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { statisticsApi } from '@/features/statistics/api/statistics.api';
+import { followApi } from '@/features/follow/api/follow.api';
 import type { UserUpdateRequestDto, PasswordChangeRequestDto } from '@/features/auth/types/user';
 import type { ProfileData, PasswordData, NotificationSettings, AppearanceSettings } from '../types/settings.types';
 
 export function useSettingsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { logout } = useAuth();
   
-  const [activeTab, setActiveTab] = useState('profile');
+  // URL 쿼리 파라미터에서 tab 읽기 (없으면 'profile' 기본값)
+  const tabFromUrl = searchParams.get('tab') || 'profile';
+  const [activeTab, setActiveTab] = useState(tabFromUrl);
+
+  // URL 쿼리 파라미터와 동기화
+  useEffect(() => {
+    const currentTab = searchParams.get('tab') || 'profile';
+    if (currentTab !== activeTab) {
+      setActiveTab(currentTab);
+    }
+  }, [searchParams, activeTab]);
+
+  // activeTab 변경 시 URL 업데이트
+  const handleSetActiveTab = (tab: string) => {
+    setActiveTab(tab);
+    setSearchParams({ tab }, { replace: true });
+  };
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +60,10 @@ export function useSettingsPage() {
   });
   const [appearance, setAppearance] = useState<AppearanceSettings>({ theme: 'light', language: 'ko' });
   const [stats, setStats] = useState<{ prompts: number; likes: number }>({ prompts: 0, likes: 0 });
+  const [followCount, setFollowCount] = useState<{ followersCount: number; followingCount: number }>({
+    followersCount: 0,
+    followingCount: 0,
+  });
 
   // 사용자 정보 및 통계 로드
   useEffect(() => {
@@ -49,10 +71,11 @@ export function useSettingsPage() {
       setIsLoading(true);
       setError(null);
       try {
-        // 사용자 정보와 통계를 병렬로 가져오기
-        const [userResponse, statsResponse] = await Promise.all([
+        // 사용자 정보, 통계, 팔로우 수를 병렬로 가져오기
+        const [userResponse, statsResponse, followCountResponse] = await Promise.all([
           userApi.getMyInfo(),
           statisticsApi.getMyStatistics(),
+          followApi.getFollowCount(),
         ]);
         
         const userData = userResponse.data.data;
@@ -70,6 +93,12 @@ export function useSettingsPage() {
         setStats({
           prompts: statsData.my_prompts_count,
           likes: statsData.total_likes_received,
+        });
+
+        const followCountData = followCountResponse.data.data;
+        setFollowCount({
+          followersCount: followCountData.followers_count,
+          followingCount: followCountData.following_count,
         });
       } catch (err) {
         console.error('Failed to fetch user info:', err);
@@ -202,9 +231,10 @@ export function useSettingsPage() {
     notifications,
     appearance,
     stats,
+    followCount,
     
     // Setters
-    setActiveTab,
+    setActiveTab: handleSetActiveTab,
     setIsEditing,
     setShowPassword,
     setShowDeleteModal,
