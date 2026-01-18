@@ -18,7 +18,7 @@ export function usePromptFavorite({ promptId, prompt, setPrompt }: UsePromptFavo
     const checkFavoriteStatus = async () => {
       try {
         const response = await favoriteApi.checkFavorite(promptId);
-        setIsFavorite(response.data.data.isFavorite);
+        setIsFavorite(response.data.data.is_favorite);
       } catch (err) {
         console.error('Failed to check prompt favorite status:', err);
         setIsFavorite(false);
@@ -33,13 +33,16 @@ export function usePromptFavorite({ promptId, prompt, setPrompt }: UsePromptFavo
     if (!promptId || !prompt) return;
 
     const wasFavorite = isFavorite;
-    const currentFavoriteCount = prompt.favorite_count || 0;
 
     // 낙관적 업데이트
     setIsFavorite(!isFavorite);
-    setPrompt({
-      ...prompt,
-      favorite_count: wasFavorite ? currentFavoriteCount - 1 : currentFavoriteCount + 1,
+    setPrompt((prev) => {
+      if (!prev) return prev;
+      const count = prev.favorite_count ?? 0;
+      return {
+        ...prev,
+        favorite_count: wasFavorite ? Math.max(0, count - 1) : count + 1,
+      };
     });
 
     try {
@@ -51,9 +54,13 @@ export function usePromptFavorite({ promptId, prompt, setPrompt }: UsePromptFavo
     } catch (error) {
       // 에러 발생 시 롤백
       setIsFavorite(wasFavorite);
-      setPrompt({
-        ...prompt,
-        favorite_count: wasFavorite ? currentFavoriteCount + 1 : currentFavoriteCount - 1,
+      setPrompt((prev) => {
+        if (!prev) return prev;
+        const count = prev.favorite_count ?? 0;
+        return {
+          ...prev,
+          favorite_count: wasFavorite ? count + 1 : Math.max(0, count - 1),
+        };
       });
       console.error('Failed to toggle favorite:', error);
     }

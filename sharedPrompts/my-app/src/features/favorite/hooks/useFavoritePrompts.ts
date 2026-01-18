@@ -39,12 +39,13 @@ export function useFavoritePrompts({ pageSize = 20 }: UseFavoritePromptsOptions 
   );
 
   const loadMore = useCallback(() => {
-    if (!isLoading && hasMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
+    if (isLoading || !hasMore) return;
+    setPage((prev) => {
+      const nextPage = prev + 1;
       fetchFavorites(nextPage, true);
-    }
-  }, [isLoading, hasMore, page, fetchFavorites]);
+      return nextPage;
+    });
+  }, [isLoading, hasMore, fetchFavorites]);
 
   const refresh = useCallback(() => {
     setPage(0);

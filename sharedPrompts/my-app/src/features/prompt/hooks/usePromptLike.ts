@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { likeApi } from '@/features/like/api/like.api';
 import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
 
@@ -29,7 +29,7 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
   }, [promptId]);
 
   // 좋아요 토글
-  const toggleLike = async () => {
+  const toggleLike = useCallback(async () => {
     if (!promptId || !prompt) return;
 
     const wasLiked = liked;
@@ -56,7 +56,7 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
       });
       console.error('Failed to toggle like:', error);
     }
-  };
+  }, [promptId, prompt, liked, setPrompt]);
 
   return {
     liked,

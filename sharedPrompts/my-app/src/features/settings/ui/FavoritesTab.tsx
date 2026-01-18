@@ -9,10 +9,14 @@ export function FavoritesTab() {
   const { prompts, isLoading, error, hasMore, loadMore, refresh } = useFavoritePrompts();
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
-  const handleCopy = (id: number, content: string) => {
-    navigator.clipboard.writeText(content);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+  const handleCopy = async (id: number, content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy prompt:', err);
+    }
   };
 
   if (isLoading && prompts.length === 0) {

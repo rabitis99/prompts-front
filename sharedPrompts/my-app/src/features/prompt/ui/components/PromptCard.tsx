@@ -42,15 +42,25 @@ export function PromptCard({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleCardClick();
+    }
+  };
+
   const isCompact = variant === 'compact';
   const categoryDisplayName = PROMPT_CATEGORY_DISPLAY_NAMES[prompt.prompt_category] || prompt.prompt_category;
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className={`bg-white border border-slate-200 rounded-xl p-6 hover:border-violet-300 hover:shadow-md transition-all cursor-pointer ${
         isCompact ? 'p-4' : ''
       }`}
       onClick={handleCardClick}
+      onKeyDown={handleKeyDown}
     >
       {/* Domain Badge */}
       {showCategoryBadge && (
@@ -117,6 +127,7 @@ export function PromptCard({
         {onCopy && (
           <button
             onClick={handleCopyClick}
+            aria-label="프롬프트 복사"
             className={`p-2 rounded-lg transition-colors ${
               isCopied
                 ? 'bg-green-50 text-green-600'
