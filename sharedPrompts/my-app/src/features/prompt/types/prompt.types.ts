@@ -104,6 +104,7 @@ export interface PromptResponseDto {
   view_count: number;
   comment_count: number;
   like_count: number;
+  favorite_count?: number;
   created_at?: string;
   updated_at?: string;
 }
