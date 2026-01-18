@@ -80,8 +80,73 @@ export function useHomeFeedView() {
         if (page === 0) {
           setPrompts(newPrompts);
           setTotalCount(totalElements);
+          
+          // 각 프롬프트의 좋아요 상태 확인
+          const checkPromptsLikes = async () => {
+            try {
+              const likeStatuses = await Promise.allSettled(
+                newPrompts.map((prompt) =>
+                  likeApi.checkPromptLike(prompt.id).then((res) => ({
+                    promptId: prompt.id,
+                    isLiked: res.data.data.isLiked,
+                  }))
+                )
+              );
+
+              const likedIds = likeStatuses
+                .filter((result) => result.status === 'fulfilled')
+                .map((result) => {
+                  if (result.status === 'fulfilled') {
+                    return result.value;
+                  }
+                  return null;
+                })
+                .filter((item): item is { promptId: number; isLiked: boolean } => item !== null)
+                .filter((item) => item.isLiked)
+                .map((item) => item.promptId);
+
+              setLikedIds(likedIds);
+            } catch (err) {
+              console.error('Failed to check prompts like statuses:', err);
+              setLikedIds([]);
+            }
+          };
+
+          checkPromptsLikes();
         } else {
           setPrompts((prev) => [...prev, ...newPrompts]);
+          
+          // 새로 추가된 프롬프트의 좋아요 상태 확인
+          const checkNewPromptsLikes = async () => {
+            try {
+              const likeStatuses = await Promise.allSettled(
+                newPrompts.map((prompt) =>
+                  likeApi.checkPromptLike(prompt.id).then((res) => ({
+                    promptId: prompt.id,
+                    isLiked: res.data.data.isLiked,
+                  }))
+                )
+              );
+
+              const likedIds = likeStatuses
+                .filter((result) => result.status === 'fulfilled')
+                .map((result) => {
+                  if (result.status === 'fulfilled') {
+                    return result.value;
+                  }
+                  return null;
+                })
+                .filter((item): item is { promptId: number; isLiked: boolean } => item !== null)
+                .filter((item) => item.isLiked)
+                .map((item) => item.promptId);
+
+              setLikedIds((prev) => [...prev, ...likedIds]);
+            } catch (err) {
+              console.error('Failed to check new prompts like statuses:', err);
+            }
+          };
+
+          checkNewPromptsLikes();
         }
         
         setHasMore(newPrompts.length === PAGE_SIZE);

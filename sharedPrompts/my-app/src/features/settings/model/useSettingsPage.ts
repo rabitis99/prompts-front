@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userApi } from '@/features/auth/api/user.api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { statisticsApi } from '@/features/statistics/api/statistics.api';
 import type { UserUpdateRequestDto, PasswordChangeRequestDto } from '@/features/auth/types/user';
 import type { ProfileData, PasswordData, NotificationSettings, AppearanceSettings } from '../types/settings.types';
 
@@ -40,15 +41,21 @@ export function useSettingsPage() {
     newsletter: true,
   });
   const [appearance, setAppearance] = useState<AppearanceSettings>({ theme: 'light', language: 'ko' });
+  const [stats, setStats] = useState<{ prompts: number; likes: number }>({ prompts: 0, likes: 0 });
 
-  // 사용자 정보 로드
+  // 사용자 정보 및 통계 로드
   useEffect(() => {
     const fetchUserInfo = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await userApi.getMyInfo();
-        const userData = response.data.data;
+        // 사용자 정보와 통계를 병렬로 가져오기
+        const [userResponse, statsResponse] = await Promise.all([
+          userApi.getMyInfo(),
+          statisticsApi.getMyStatistics(),
+        ]);
+        
+        const userData = userResponse.data.data;
         setProfile({
           id: userData.id,
           nickname: userData.nickname,
@@ -57,6 +64,12 @@ export function useSettingsPage() {
           age: userData.age,
           bio: undefined,
           provider: userData.provider,
+        });
+
+        const statsData = statsResponse.data.data;
+        setStats({
+          prompts: statsData.my_prompts_count,
+          likes: statsData.total_likes_received,
         });
       } catch (err) {
         console.error('Failed to fetch user info:', err);
@@ -188,6 +201,7 @@ export function useSettingsPage() {
     passwords,
     notifications,
     appearance,
+    stats,
     
     // Setters
     setActiveTab,

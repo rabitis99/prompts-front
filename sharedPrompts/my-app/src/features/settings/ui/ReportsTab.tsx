@@ -1,9 +1,16 @@
+import { useMemo } from 'react';
 import { Flag, AlertCircle, Loader2 } from 'lucide-react';
 import { useReports } from '@/features/report/hooks/useReports';
 import { ReportItem } from '@/features/report/ui/ReportItem';
 
 export function ReportsTab() {
   const { reports, isLoading, error, hasMore, loadMore, reload } = useReports();
+  
+  // 신고 목록을 메모이제이션하여 불필요한 재렌더링 방지
+  const reportsList = useMemo(
+    () => reports.map((report) => <ReportItem key={report.id} report={report} />),
+    [reports]
+  );
 
   if (isLoading && reports.length === 0) {
     return (
@@ -54,9 +61,7 @@ export function ReportsTab() {
         </div>
 
         <div className="space-y-4">
-          {reports.map((report) => (
-            <ReportItem key={report.id} report={report} />
-          ))}
+          {reportsList}
         </div>
 
         {error && (

@@ -15,6 +15,7 @@ export function useComments(promptId: number | null) {
   const [editingText, setEditingText] = useState('');
   const [isUpdatingComment, setIsUpdatingComment] = useState(false);
   const [isDeletingComment, setIsDeletingComment] = useState(false);
+  const [togglingLikeIds, setTogglingLikeIds] = useState<Set<number>>(new Set());
 
   // 현재 사용자 정보 가져오기
   useEffect(() => {
@@ -56,6 +57,44 @@ export function useComments(promptId: number | null) {
         }));
         
         setComments(structuredComments);
+        
+        // 각 댓글의 좋아요 상태 확인
+        const checkCommentLikes = async () => {
+          try {
+            const allCommentIds = [
+              ...mainComments.map((c) => c.id),
+              ...commentsData.filter((c) => c.parent_id).map((c) => c.id),
+            ];
+
+            const likeStatuses = await Promise.allSettled(
+              allCommentIds.map((commentId) =>
+                likeApi.checkCommentLike(commentId).then((res) => ({
+                  commentId,
+                  isLiked: res.data.data.isLiked,
+                }))
+              )
+            );
+
+            const likedIds = likeStatuses
+              .filter((result) => result.status === 'fulfilled')
+              .map((result) => {
+                if (result.status === 'fulfilled') {
+                  return result.value;
+                }
+                return null;
+              })
+              .filter((item): item is { commentId: number; isLiked: boolean } => item !== null)
+              .filter((item) => item.isLiked)
+              .map((item) => item.commentId);
+
+            setLikedComments(likedIds);
+          } catch (err) {
+            console.error('Failed to check comment like statuses:', err);
+            setLikedComments([]);
+          }
+        };
+
+        checkCommentLikes();
       } catch (err) {
         console.error('Failed to fetch comments:', err);
       }
@@ -93,7 +132,15 @@ export function useComments(promptId: number | null) {
 
   // 댓글 좋아요 토글
   const toggleCommentLike = async (commentId: number) => {
+    // 중복 요청 방지
+    if (togglingLikeIds.has(commentId)) {
+      return;
+    }
+
     const wasLiked = likedComments.includes(commentId);
+
+    // 처리 중 플래그 설정
+    setTogglingLikeIds((prev) => new Set(prev).add(commentId));
 
     // 낙관적 업데이트
     setLikedComments((prev) =>
@@ -133,8 +180,18 @@ export function useComments(promptId: number | null) {
       } else {
         await likeApi.likeComment(commentId);
       }
-    } catch (error) {
-      // 에러 발생 시 롤백
+    } catch (error: any) {
+      const status = error.response?.status;
+      
+      // 409 Conflict: 이미 좋아요를 눌렀거나 취소한 상태 - 현재 상태 유지 (에러 무시)
+      // 404 Not Found: 좋아요가 이미 존재하지 않거나 취소된 상태 - 현재 상태 유지 (에러 무시)
+      if (status === 409 || status === 404) {
+        // 이미 처리된 상태이므로 롤백하지 않음
+        console.warn('Comment like already processed or not found:', commentId, status);
+        return;
+      }
+
+      // 400 Bad Request 등 다른 에러: 롤백
       setLikedComments((prev) =>
         wasLiked ? [...prev, commentId] : prev.filter((id) => id !== commentId)
       );
@@ -163,6 +220,13 @@ export function useComments(promptId: number | null) {
         })
       );
       console.error('Failed to toggle comment like:', error);
+    } finally {
+      // 처리 중 플래그 해제
+      setTogglingLikeIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(commentId);
+        return newSet;
+      });
     }
   };
 

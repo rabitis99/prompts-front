@@ -33,11 +33,27 @@ export function useReports() {
       
       // 최신 요청인지 확인하고, 컴포넌트가 마운트되어 있는지 확인
       if (currentRequestId !== requestIdRef.current || !isMountedRef.current) {
+        setIsLoading(false);
         return;
       }
 
-      const newReports = response.data.data.content || [];
+      // 디버깅: API 응답 확인
+      console.log('Reports API Response:', response);
+
+      // API 응답 형식 확인
+      if (!response?.data?.data) {
+        console.error('Invalid API response format:', response);
+        setError('신고 내역을 불러오는데 실패했습니다.');
+        setIsLoading(false);
+        return;
+      }
+
+      const pageData = response.data.data;
+      const newReports = pageData.content || [];
       
+      console.log('Parsed reports:', newReports);
+      console.log('Reports count:', newReports.length);
+
       if (reset) {
         setReports(newReports);
       } else {
@@ -45,16 +61,19 @@ export function useReports() {
       }
 
       // last 필드가 없으면 content 길이로 판단
-      const isLast = response.data.data.last ?? newReports.length < REPORT_CONSTANTS.PAGE_SIZE;
+      const isLast = pageData.last ?? newReports.length < REPORT_CONSTANTS.PAGE_SIZE;
       setHasMore(!isLast);
     } catch (err: any) {
+      console.error('Failed to load reports:', err);
+      
       // 최신 요청인지 확인하고, 컴포넌트가 마운트되어 있는지 확인
       if (currentRequestId !== requestIdRef.current || !isMountedRef.current) {
+        setIsLoading(false);
         return;
       }
-      console.error('Failed to load reports:', err);
+      
       setError(
-        err.response?.data?.message || '신고 내역을 불러오는데 실패했습니다.'
+        err.response?.data?.message || err.message || '신고 내역을 불러오는데 실패했습니다.'
       );
     } finally {
       // 최신 요청인지 확인하고, 컴포넌트가 마운트되어 있는지 확인
@@ -79,14 +98,16 @@ export function useReports() {
   // 초기 로드
   useEffect(() => {
     loadReports(0, true);
-  }, [loadReports]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 페이지 변경 시 추가 로드
   useEffect(() => {
     if (page > 0) {
       loadReports(page, false);
     }
-  }, [page, loadReports]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   return {
     reports,

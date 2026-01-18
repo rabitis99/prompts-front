@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { ReportResponseDto } from '../types/report.types';
 import {
   REPORT_TYPE_DISPLAY_NAMES,
@@ -10,7 +11,7 @@ interface ReportItemProps {
   report: ReportResponseDto;
 }
 
-export function ReportItem({ report }: ReportItemProps) {
+export const ReportItem = memo(function ReportItem({ report }: ReportItemProps) {
   return (
     <div className="p-4 border border-neutral-200 rounded-xl hover:border-neutral-300 transition-colors">
       <div className="flex items-start justify-between gap-4 mb-3">
@@ -41,5 +42,4 @@ export function ReportItem({ report }: ReportItemProps) {
       </div>
     </div>
   );
-}
-
+});

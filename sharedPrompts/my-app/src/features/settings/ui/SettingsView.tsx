@@ -6,10 +6,9 @@ import { ProfileTab } from './ProfileTab';
 import { SecurityTab } from './SecurityTab';
 import { NotificationsTab } from './NotificationsTab';
 import { AppearanceTab } from './AppearanceTab';
+import { ReportsTab } from './ReportsTab';
 import { DeleteUserModal } from './DeleteUserModal';
 import { LogoutModal } from './LogoutModal';
-
-const stats = { prompts: 23, likes: 2847 };
 
 export function SettingsView() {
   const {
@@ -28,6 +27,7 @@ export function SettingsView() {
     passwords,
     notifications,
     appearance,
+    stats,
     setActiveTab,
     setIsEditing,
     setShowPassword,
@@ -82,6 +82,7 @@ export function SettingsView() {
         onAppearanceChange={setAppearance}
       />
     ),
+    reports: <ReportsTab />,
   };
 
   return (

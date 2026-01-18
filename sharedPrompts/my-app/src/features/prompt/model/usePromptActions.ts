@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { likeApi } from '@/features/like/api/like.api';
 import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
 
@@ -10,6 +10,24 @@ export function usePromptActions(
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // 프롬프트 로드 시 좋아요 상태 확인
+  useEffect(() => {
+    if (!promptId || !prompt) return;
+
+    const checkLikeStatus = async () => {
+      try {
+        const response = await likeApi.checkPromptLike(promptId);
+        setLiked(response.data.data.isLiked);
+      } catch (err) {
+        // 에러 발생 시 기본값 false로 설정
+        console.error('Failed to check prompt like status:', err);
+        setLiked(false);
+      }
+    };
+
+    checkLikeStatus();
+  }, [promptId, prompt]);
 
   // 좋아요 토글
   const toggleLike = async () => {
