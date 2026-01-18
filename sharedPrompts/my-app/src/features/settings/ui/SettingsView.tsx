@@ -6,6 +6,7 @@ import { ProfileTab } from './ProfileTab';
 import { SecurityTab } from './SecurityTab';
 import { NotificationsTab } from './NotificationsTab';
 import { AppearanceTab } from './AppearanceTab';
+import { FavoritesTab } from './FavoritesTab';
 import { ReportsTab } from './ReportsTab';
 import { DeleteUserModal } from './DeleteUserModal';
 import { LogoutModal } from './LogoutModal';
@@ -82,6 +83,7 @@ export function SettingsView() {
         onAppearanceChange={setAppearance}
       />
     ),
+    favorites: <FavoritesTab />,
     reports: <ReportsTab />,
   };
 

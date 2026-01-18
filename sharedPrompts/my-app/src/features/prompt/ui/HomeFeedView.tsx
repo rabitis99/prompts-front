@@ -1,19 +1,14 @@
 import {
   Search,
-  Heart,
-  MessageCircle,
-  Copy,
-  Check,
   X,
   Filter,
   ChevronDown,
 } from 'lucide-react';
 import { useHomeFeedView } from '@/features/prompt/model/useHomeFeedView';
 import { DOMAIN_OPTIONS, SORT_OPTIONS } from '@/features/prompt/model/homeFeed.constants';
-import { useNavigate } from 'react-router-dom';
+import { PromptCard } from './components/PromptCard';
 
 export function HomeFeedView() {
-  const navigate = useNavigate();
   const {
     searchQuery,
     setSearchQuery,
@@ -180,84 +175,17 @@ export function HomeFeedView() {
         {/* Prompt Grid */}
         {!isLoading || filteredPrompts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredPrompts.map((prompt) => {
-            const isLiked = likedIds.includes(prompt.id);
-            const isCopied = copiedId === prompt.id;
-
-            return (
-              <div
+            {filteredPrompts.map((prompt) => (
+              <PromptCard
                 key={prompt.id}
-                className="bg-white border border-slate-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
-                onClick={() => navigate(`/prompts/${prompt.id}`)}
-              >
-                {/* Domain Badge */}
-                <div className="mb-4">
-                  <span className="inline-block px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg border border-blue-100">
-                    {prompt.prompt_category}
-                  </span>
-                </div>
-
-                {/* Title */}
-                <h3 className="font-bold text-slate-900 text-lg mb-3 leading-tight">
-                  {prompt.title}
-                </h3>
-
-                {/* Description */}
-                <p className="text-slate-600 text-sm leading-relaxed mb-5">
-                  {prompt.description}
-                </p>
-
-                {/* Tags */}
-                <div className="flex items-center gap-2 mb-5 flex-wrap pb-5 border-b border-slate-100">
-                  {prompt.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2.5 py-1 bg-slate-50 text-slate-600 text-xs font-medium rounded-md"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Footer */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-sm">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleLike(prompt.id);
-                      }}
-                      className={`flex items-center gap-1.5 transition-colors ${
-                        isLiked ? 'text-red-500' : 'text-slate-400 hover:text-red-500'
-                      }`}
-                    >
-                      <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500' : ''}`} />
-                      <span className="text-xs font-semibold">
-                        {isLiked ? prompt.like_count + 1 : prompt.like_count}
-                      </span>
-                    </button>
-                    <span className="flex items-center gap-1.5 text-slate-400">
-                      <MessageCircle className="w-4 h-4" />
-                      <span className="text-xs font-semibold">{prompt.comment_count}</span>
-                    </span>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCopy(prompt.id);
-                    }}
-                    className={`p-2 rounded-lg transition-colors ${
-                      isCopied
-                        ? 'bg-green-50 text-green-600'
-                        : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
-                    }`}
-                  >
-                    {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+                prompt={prompt}
+                isLiked={likedIds.includes(prompt.id)}
+                isCopied={copiedId === prompt.id}
+                onToggleLike={toggleLike}
+                onCopy={(id, content) => handleCopy(id)}
+                showCategoryBadge={true}
+              />
+            ))}
           </div>
         ) : null}
 

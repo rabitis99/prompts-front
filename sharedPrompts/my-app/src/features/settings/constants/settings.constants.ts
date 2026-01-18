@@ -1,4 +1,4 @@
-import { User, Shield, Bell, Palette, Flag } from 'lucide-react';
+import { User, Shield, Bell, Palette, Flag, Bookmark } from 'lucide-react';
 import type { TabConfig, JobOption } from '../types/settings.types';
 
 export const JOBS: JobOption[] = [
@@ -14,6 +14,7 @@ export const TABS: TabConfig[] = [
   { id: 'security', label: '보안', icon: Shield },
   { id: 'notifications', label: '알림', icon: Bell },
   { id: 'appearance', label: '화면', icon: Palette },
+  { id: 'favorites', label: '즐겨찾기', icon: Bookmark },
   { id: 'reports', label: '내신고보기', icon: Flag },
 ];
 
