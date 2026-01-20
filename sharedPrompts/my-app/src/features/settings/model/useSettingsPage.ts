@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { userApi } from '@/features/auth/api/user.api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -22,7 +22,7 @@ export function useSettingsPage() {
     if (currentTab !== activeTab) {
       setActiveTab(currentTab);
     }
-  }, [searchParams, activeTab]);
+  }, [searchParams]);
 
   // activeTab 변경 시 URL 업데이트
   const handleSetActiveTab = (tab: string) => {
@@ -65,6 +65,19 @@ export function useSettingsPage() {
     followingCount: 0,
   });
 
+  const refreshFollowCount = useCallback(async () => {
+    try {
+      const followCountResponse = await followApi.getFollowCount();
+      const followCountData = followCountResponse.data.data;
+      setFollowCount({
+        followersCount: followCountData.followers_count,
+        followingCount: followCountData.following_count,
+      });
+    } catch (followErr) {
+      console.warn('Failed to fetch follow count:', followErr);
+    }
+  }, []);
+
   // 사용자 정보 및 통계 로드
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -95,16 +108,7 @@ export function useSettingsPage() {
         });
 
         // 팔로우 카운트는 실패해도 다른 데이터 표시에 영향 없음
-        try {
-          const followCountResponse = await followApi.getFollowCount();
-          const followCountData = followCountResponse.data.data;
-          setFollowCount({
-            followersCount: followCountData.followers_count,
-            followingCount: followCountData.following_count,
-          });
-        } catch (followErr) {
-          console.warn('Failed to fetch follow count:', followErr);
-        }
+        await refreshFollowCount();
       } catch (err) {
         console.error('Failed to fetch user info:', err);
         setError('사용자 정보를 불러오는데 실패했습니다.');
@@ -114,7 +118,7 @@ export function useSettingsPage() {
     };
 
     fetchUserInfo();
-  }, []);
+  }, [refreshFollowCount]);
 
   const handleSaveProfile = async () => {
     if (!profile.nickname.trim()) {
@@ -255,6 +259,7 @@ export function useSettingsPage() {
     handleChangePassword,
     handleDeleteUser,
     handleLogout,
+    refreshFollowCount,
   };
 }
 

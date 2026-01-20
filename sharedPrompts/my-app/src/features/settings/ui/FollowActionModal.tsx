@@ -119,10 +119,10 @@ export function FollowActionModal({
         {/* 사용자 정보 */}
         <div className="flex items-center gap-4 mb-6 p-4 bg-neutral-50 rounded-xl">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
-            {user.nickname[0].toUpperCase()}
+            {((user.nickname && user.nickname.trim()[0]) || '?').toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-neutral-900 truncate">{user.nickname}</div>
+            <div className="font-semibold text-neutral-900 truncate">{user.nickname || '알 수 없음'}</div>
             {user.job && <div className="text-sm text-neutral-500 truncate">{user.job}</div>}
           </div>
         </div>

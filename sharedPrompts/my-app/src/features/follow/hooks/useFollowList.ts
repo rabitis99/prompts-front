@@ -82,14 +82,14 @@ export function useFollowList({
     loadUsers(nextPage, false);
   }, [isLoading, hasMore, page, loadUsers]);
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async () => {
     setPage(0);
     setUsers([]);
     setHasMore(true);
     setError(null);
     // 직접 호출하여 useEffect의 의존성 체인을 피함
     requestIdRef.current += 1;
-    loadUsers(0, true);
+    await loadUsers(0, true);
   }, [loadUsers]);
 
   useEffect(() => {

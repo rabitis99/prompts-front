@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { followApi } from '../api/follow.api';
 import { useFollowStatus } from './useFollowStatus';
 import { extractErrorMessage } from '../utils/error.utils';
@@ -30,10 +30,19 @@ export function useFollowActions({
 
   // 통합 에러 상태 (상태 확인 에러 또는 액션 에러)
   const error = statusError || actionError;
-  const setError = useCallback((err: string | null) => {
-    setActionError(err);
-    setStatusError(err);
-  }, [setStatusError]);
+  const setError = useCallback(
+    (err: string | null) => {
+      setActionError(err);
+      setStatusError(err);
+    },
+    [setStatusError],
+  );
+
+  // userId 변경 시 에러 상태 초기화
+  useEffect(() => {
+    setActionError(null);
+    setStatusError(null);
+  }, [userId, setStatusError]);
 
   /**
    * 팔로우 액션을 실행하고 상태를 업데이트하는 공통 로직

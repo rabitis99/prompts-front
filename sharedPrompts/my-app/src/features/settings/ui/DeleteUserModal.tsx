@@ -1,4 +1,5 @@
-import React, { AlertTriangle, Loader2 } from 'lucide-react';
+import React from 'react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 
 interface DeleteUserModalProps {
   isOpen: boolean;

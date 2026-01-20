@@ -25,12 +25,12 @@ interface FollowerTabButtonsProps {
  * getFollowStatus는 viewer → target 방향만 반환하므로, 상대가 나를 팔로우하고 있지만
  * 내가 상대를 팔로우하지 않는 경우 followStatus가 null일 수 있습니다.
  * 
- * 상태별 동작:
- * - FOLLOWING: 내가 상대를 팔로우하고 있음 → 팔로우 요청 버튼과 차단 버튼 표시
+ * 상태별 동작(실제 UI 기준):
+ * - FOLLOWING: 내가 상대를 팔로우하고 있음 → 언팔로우, 차단, 삭제 버튼 표시
  * - BLOCKED: 차단 해제 버튼 표시
  * - REJECTED/CANCELLED: 처리 완료 후 → 팔로우 요청 버튼 표시
- * - PENDING: 내가 상대에게 보낸 요청 (대기 중) → 요청 취소/차단 버튼 표시 (이 경우는 팔로워 탭에서 드뭄)
- * - null: 상대가 나를 팔로우하고 있지만 내가 상대를 팔로우하지 않음 → 팔로우 요청 버튼과 차단 버튼 표시
+ * - PENDING: 내가 상대에게 보낸 요청 (대기 중) 또는 상대가 나에게 보낸 요청 → 요청 취소/수락/거절/차단 버튼 표시
+ * - null: 상대가 나를 팔로우하고 있지만 내가 상대를 팔로우하지 않음 → 팔로우 요청, 차단, 삭제 버튼 표시
  */
 export function FollowerTabButtons({
   followStatus,

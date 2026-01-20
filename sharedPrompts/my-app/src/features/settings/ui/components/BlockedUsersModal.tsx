@@ -89,8 +89,8 @@ export function BlockedUsersModal({ isOpen, onClose, onSuccess }: BlockedUsersMo
                   <BlockedUserItem
                     key={user.id}
                     user={user}
-                    onUnblock={() => {
-                      blockedUsers.refresh();
+                    onUnblock={async () => {
+                      await blockedUsers.refresh();
                       onSuccess?.();
                     }}
                     isLoading={blockedUsers.isLoading}

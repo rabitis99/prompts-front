@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import type { MouseEvent } from 'react';
 import { Bell, Heart, MessageCircle, CheckCircle, UserPlus, Star } from 'lucide-react';
 import type { NotificationResponseDto } from '../types/notification.types';
 import { formatRelativeTime } from '@/shared/utils/date';
@@ -58,7 +59,7 @@ export function NotificationItem({
     }
   };
 
-  const handleMarkAsReadClick = (e: React.MouseEvent) => {
+  const handleMarkAsReadClick = (e: MouseEvent) => {
     e.stopPropagation();
     onMarkAsRead(notification.id);
   };

@@ -48,6 +48,7 @@ export function SettingsView() {
     handleChangePassword,
     handleDeleteUser,
     handleLogout,
+    refreshFollowCount,
   } = useSettingsPage();
 
   const [followModalUser, setFollowModalUser] = useState<FollowUserResponseDto | null>(null);
@@ -189,7 +190,7 @@ export function SettingsView() {
           setFollowModalActionType(null);
         }}
         onSuccess={() => {
-          // 팔로우 수 갱신 필요 시 여기서 처리
+          refreshFollowCount();
         }}
       />
 
@@ -197,7 +198,7 @@ export function SettingsView() {
         isOpen={showBlockedUsersModal}
         onClose={() => setShowBlockedUsersModal(false)}
         onSuccess={() => {
-          // 팔로우 수 갱신 필요 시 여기서 처리
+          refreshFollowCount();
         }}
       />
 

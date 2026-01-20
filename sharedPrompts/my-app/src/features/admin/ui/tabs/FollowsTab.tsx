@@ -39,11 +39,10 @@ export function FollowsTab() {
 
   const loadFollows = useCallback(
     async (targetPage: number, reset = false) => {
-      const currentRequestId = ++requestIdRef.current;
+      const isReset = reset || targetPage === 0;
+      const currentRequestId = isReset ? ++requestIdRef.current : requestIdRef.current;
 
-      if (targetPage === 0) {
-        setIsLoading(true);
-      }
+      setIsLoading(true);
       setError(null);
 
       try {
@@ -101,6 +100,7 @@ export function FollowsTab() {
 
   const handleApplyFilters = () => {
     setPage(0);
+    loadFollows(0, true);
   };
 
   const relationLabelMap: Record<RelationFilter, string> = {
