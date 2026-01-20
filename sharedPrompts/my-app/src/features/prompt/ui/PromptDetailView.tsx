@@ -2,7 +2,6 @@ import { usePromptDetailView } from '@/features/prompt/model/usePromptDetailView
 import { PromptDetailHeader } from './PromptDetailHeader';
 import { PromptDetailCard } from './PromptDetailCard';
 import { CommentsSection } from './CommentsSection';
-import { AuthorCard } from './AuthorCard';
 import { RelatedPrompts } from './RelatedPrompts';
 import { formatDate, getAvatarGradient } from './utils';
 import { EditPromptModal } from './EditPromptModal';
@@ -25,6 +24,7 @@ export function PromptDetailView() {
     likedComments,
     isSubmittingComment,
     isOwner,
+    currentUserId,
     showEditModal,
     showDeleteModal,
     isDeleting,
@@ -106,6 +106,7 @@ export function PromptDetailView() {
               prompt={prompt}
               liked={liked}
               copied={copied}
+              currentUserId={currentUserId}
               onToggleLike={toggleLike}
               onCopy={handleCopy}
               formatDate={formatDate}
@@ -141,13 +142,6 @@ export function PromptDetailView() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <AuthorCard
-              authorId={prompt.user_response_dto.id}
-              authorName={prompt.user_response_dto.nickname}
-              authorJob={prompt.user_response_dto.job}
-              getAvatarGradient={getAvatarGradient}
-            />
-
             <RelatedPrompts relatedPrompts={relatedPrompts} />
           </div>
         </div>

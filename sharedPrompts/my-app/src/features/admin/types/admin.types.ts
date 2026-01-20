@@ -5,6 +5,7 @@
 
 import type { PromptCategory } from '@/features/prompt/types/prompt.types';
 import type { UserResponseDto } from '@/features/auth/types/user';
+import type { FollowStatus } from '@/features/follow/types/follow.types';
 
 /**
  * 사용자 역할 (백엔드 enum과 일치)
@@ -38,6 +39,25 @@ export interface AdminUserResponseDto extends UserResponseDto {
   reports_count: number;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * 관리자용 팔로우 관계 응답 DTO
+ * 백엔드 AdminController.getFollows에서 Page<UserResponseDto>를 반환하지만,
+ * 프론트에서는 추가 메타 정보(팔로우 방향, 상태)를 함께 다루기 위해 별도 타입을 둔다.
+ */
+export interface AdminFollowUserDto extends UserResponseDto {
+  /**
+   * 팔로우 상태 (백엔드 FollowStatus enum과 일치)
+   */
+  follow_status: FollowStatus;
+
+  /**
+   * 조회 기준
+   * - follower: 해당 유저가 follower로서 목록에 노출
+   * - following: 해당 유저가 following으로서 목록에 노출
+   */
+  relation_type: 'follower' | 'following';
 }
 
 /**

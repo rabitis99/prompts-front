@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { useSettingsPage } from '../model/useSettingsPage';
 import { TABS } from '../constants/settings.constants';
@@ -8,8 +8,12 @@ import { NotificationsTab } from './NotificationsTab';
 import { AppearanceTab } from './AppearanceTab';
 import { FavoritesTab } from './FavoritesTab';
 import { ReportsTab } from './ReportsTab';
+import { FollowTab } from './FollowTab';
+import { FollowActionModal } from './FollowActionModal';
+import { BlockedUsersModal } from './components/BlockedUsersModal';
 import { DeleteUserModal } from './DeleteUserModal';
 import { LogoutModal } from './LogoutModal';
+import type { FollowUserResponseDto } from '@/features/follow/types/follow.types';
 
 export function SettingsView() {
   const {
@@ -29,6 +33,7 @@ export function SettingsView() {
     notifications,
     appearance,
     stats,
+    followCount,
     setActiveTab,
     setIsEditing,
     setShowPassword,
@@ -43,7 +48,13 @@ export function SettingsView() {
     handleChangePassword,
     handleDeleteUser,
     handleLogout,
+    refreshFollowCount,
   } = useSettingsPage();
+
+  const [followModalUser, setFollowModalUser] = useState<FollowUserResponseDto | null>(null);
+  const [followModalActionType, setFollowModalActionType] = useState<'follow' | 'follower' | null>(null);
+  const [showFollowModal, setShowFollowModal] = useState(false);
+  const [showBlockedUsersModal, setShowBlockedUsersModal] = useState(false);
 
   const tabContent: Record<string, React.ReactElement> = {
     profile: (
@@ -84,6 +95,17 @@ export function SettingsView() {
       />
     ),
     favorites: <FavoritesTab />,
+    follows: (
+      <FollowTab
+        followCount={followCount}
+        onUserClick={(user, actionType) => {
+          setFollowModalUser(user);
+          setFollowModalActionType(actionType);
+          setShowFollowModal(true);
+        }}
+        onShowBlockedUsers={() => setShowBlockedUsersModal(true)}
+      />
+    ),
     reports: <ReportsTab />,
   };
 
@@ -156,6 +178,28 @@ export function SettingsView() {
         isDeleting={isDeleting}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDeleteUser}
+      />
+
+      <FollowActionModal
+        isOpen={showFollowModal}
+        user={followModalUser}
+        actionType={followModalActionType}
+        onClose={() => {
+          setShowFollowModal(false);
+          setFollowModalUser(null);
+          setFollowModalActionType(null);
+        }}
+        onSuccess={() => {
+          refreshFollowCount();
+        }}
+      />
+
+      <BlockedUsersModal
+        isOpen={showBlockedUsersModal}
+        onClose={() => setShowBlockedUsersModal(false)}
+        onSuccess={() => {
+          refreshFollowCount();
+        }}
       />
 
       <LogoutModal

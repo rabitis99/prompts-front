@@ -6,6 +6,7 @@ import { UsersTab } from './tabs/UsersTab/UsersTab';
 import { PromptsTab } from './tabs/PromptsTab/PromptsTab';
 import { ReportsTab } from './tabs/ReportsTab';
 import { AuditLogsTab } from './tabs/AuditLogsTab';
+import { FollowsTab } from './tabs/FollowsTab';
 
 export function AdminView() {
   const { activeTab, setActiveTab } = useAdminView();
@@ -13,6 +14,7 @@ export function AdminView() {
   const tabContent: Record<string, React.ReactElement> = {
     dashboard: <DashboardTab />,
     users: <UsersTab />,
+    follows: <FollowsTab />,
     prompts: <PromptsTab />,
     reports: <ReportsTab />,
     'audit-logs': <AuditLogsTab />,

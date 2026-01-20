@@ -1,3 +1,4 @@
+import React from 'react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 
 interface DeleteUserModalProps {
@@ -13,11 +14,40 @@ export function DeleteUserModal({
   onClose,
   onConfirm,
 }: DeleteUserModalProps) {
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isDeleting) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, isDeleting, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in">
-      <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl animate-in zoom-in-95">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in"
+      onClick={() => {
+        if (!isDeleting) {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-modal-title"
+    >
+      <div
+        className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl animate-in zoom-in-95"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
           <AlertTriangle className="w-6 h-6 text-red-600" />
         </div>

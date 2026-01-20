@@ -87,7 +87,7 @@ export function usePromptDetailView() {
 
   // 뒤로가기
   const handleBack = () => {
-    navigate(-1);
+    navigate('/feed');
   };
 
   // 프롬프트 삭제
@@ -180,6 +180,7 @@ export function usePromptDetailView() {
     handleBack,
     allCommentsCount,
     isOwner,
+    currentUserId,
     showEditModal,
     showDeleteModal,
     isDeleting,

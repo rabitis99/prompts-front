@@ -15,9 +15,12 @@ export default function Header() {
           <Menu className="w-6 h-6" />
         </button>
 
-        <h1 className="text-xl font-bold text-violet-600 select-none">
+        <button
+          onClick={() => navigate("/feed")}
+          className="text-xl font-bold text-violet-600 hover:opacity-80 transition-opacity"
+        >
           PromptHub
-        </h1>
+        </button>
 
         <button
           onClick={() => navigate("/notifications")}

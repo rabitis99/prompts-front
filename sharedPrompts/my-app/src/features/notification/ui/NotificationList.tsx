@@ -8,6 +8,7 @@ interface NotificationListProps {
   isLoadingMore: boolean;
   onMarkAsRead: (id: number) => void;
   onLoadMore: () => void;
+  onNotificationClick?: (notification: NotificationResponseDto) => void;
 }
 
 export function NotificationList({
@@ -16,6 +17,7 @@ export function NotificationList({
   isLoadingMore,
   onMarkAsRead,
   onLoadMore,
+  onNotificationClick,
 }: NotificationListProps) {
   return (
     <>
@@ -25,6 +27,7 @@ export function NotificationList({
             key={notification.id}
             notification={notification}
             onMarkAsRead={onMarkAsRead}
+            onClick={onNotificationClick}
           />
         ))}
       </div>

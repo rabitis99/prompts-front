@@ -1,85 +1,91 @@
-import React from 'react';
-import { LogOut, Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { Loader2, UserMinus } from 'lucide-react';
 
-interface LogoutModalProps {
+interface UnfollowConfirmModalProps {
   isOpen: boolean;
-  isLoggingOut: boolean;
+  isLoading: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
 
-export function LogoutModal({
+export function UnfollowConfirmModal({
   isOpen,
-  isLoggingOut,
+  isLoading,
   onClose,
   onConfirm,
-}: LogoutModalProps) {
-  React.useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !isLoggingOut) {
+}: UnfollowConfirmModalProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isLoading) {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('keydown', handleKeyDown);
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, isLoggingOut, onClose]);
+  }, [isOpen, isLoading, onClose]);
 
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 animate-in fade-in"
       onClick={() => {
-        if (!isLoggingOut) {
+        if (!isLoading) {
           onClose();
         }
       }}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="logout-modal-title"
+      aria-labelledby="unfollow-confirm-title"
+      aria-describedby="unfollow-confirm-description"
     >
       <div
         className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl animate-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4">
-          <LogOut className="w-6 h-6 text-neutral-600" />
+          <UserMinus className="w-6 h-6 text-neutral-600" />
         </div>
         <h3
-          id="logout-modal-title"
+          id="unfollow-confirm-title"
           className="text-lg font-semibold text-neutral-900 text-center mb-2"
         >
-          로그아웃
+          팔로우를 취소하시겠습니까?
         </h3>
-        <p className="text-sm text-neutral-500 text-center mb-6">
-          정말 로그아웃 하시겠습니까?
+        <p
+          id="unfollow-confirm-description"
+          className="text-sm text-neutral-500 text-center mb-6"
+        >
+          이 사용자의 추가 프롬프트를 팔로우할 수 없게 됩니다.
         </p>
         <div className="flex gap-3">
-          <button 
-            onClick={onClose} 
-            disabled={isLoggingOut}
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isLoading}
             className="flex-1 py-3 bg-neutral-100 text-neutral-700 rounded-xl font-medium hover:bg-neutral-200 transition-colors disabled:opacity-50"
           >
             취소
           </button>
-          <button 
+          <button
+            type="button"
             onClick={onConfirm}
-            disabled={isLoggingOut}
+            disabled={isLoading}
             className="flex-1 py-3 bg-neutral-900 text-white rounded-xl font-medium hover:bg-neutral-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            {isLoggingOut ? (
+            {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 처리 중...
               </>
             ) : (
-              '로그아웃'
+              '언팔로우'
             )}
           </button>
         </div>
@@ -87,4 +93,5 @@ export function LogoutModal({
     </div>
   );
 }
+
 
