@@ -5,6 +5,7 @@ import type {
   UserBlockRequestDto,
   UserRoleChangeRequestDto,
   PromptVisibilityRequestDto,
+  AdminFollowUserDto,
 } from '../types/admin.types';
 import type { PageResponse, CustomResponse } from '@/shared/types/api';
 import type {
@@ -131,6 +132,28 @@ export const adminApi = {
     size?: number;
   }) =>
     api.get<CustomResponse<PageResponse<import('../types/admin.types').AuditLogResponseDto>>>('/admin/audit-logs', {
+      params,
+    }),
+
+  // ======================
+  //      팔로우 관리
+  // ======================
+
+  /**
+   * 팔로우 관계 조회 (관리자용)
+   * 백엔드: GET /admin/follows
+   *
+   * - followerId, followingId는 선택적
+   * - status는 필수
+   */
+  getFollows: (params: {
+    status: string;
+    followerId?: number;
+    followingId?: number;
+    page?: number;
+    size?: number;
+  }) =>
+    api.get<CustomResponse<PageResponse<AdminFollowUserDto>>>('/admin/follows', {
       params,
     }),
 };

@@ -1,40 +1,32 @@
-import { UserMinus, Ban } from 'lucide-react';
+import { UserMinus } from 'lucide-react';
 import { FollowActionButton } from './FollowActionButton';
-
-interface FollowingStateButtonsProps {
-  actionType: 'follow' | 'follower' | null;
-  isLoading: boolean;
-  onUnfollow: () => void;
-  onBlock: () => void;
-}
+import { ICON_SIZE, FOLLOW_BUTTON_TEXT } from './constants';
+import type { FollowingStateButtonsProps } from './types';
 
 export function FollowingStateButtons({
   actionType,
   isLoading,
   onUnfollow,
-  onBlock,
 }: FollowingStateButtonsProps) {
-  // FOLLOWING 상태: 팔로우 확정 상태
-  // 팔로워 목록이든 팔로잉 목록이든 동일하게 언팔로우/차단 가능
+  const handleClick = () => {
+    const confirmed = window.confirm(
+      '팔로우를 취소하시겠습니까?\n\n이 사용자의 추가 프롬프트를 팔로우할 수 없게 됩니다.'
+    );
+
+    if (!confirmed) return;
+
+    onUnfollow?.();
+  };
+
   return (
-    <div className="flex gap-3">
-      <FollowActionButton
-        onClick={onUnfollow}
-        isLoading={isLoading}
-        variant="secondary"
-        icon={<UserMinus className="w-5 h-5" />}
-      >
-        언팔로우
-      </FollowActionButton>
-      <FollowActionButton
-        onClick={onBlock}
-        isLoading={isLoading}
-        variant="danger"
-        icon={<Ban className="w-5 h-5" />}
-      >
-        차단
-      </FollowActionButton>
-    </div>
+    <FollowActionButton
+      onClick={handleClick}
+      isLoading={isLoading}
+      variant="secondary"
+      icon={<UserMinus className={ICON_SIZE.MEDIUM} />}
+    >
+      {FOLLOW_BUTTON_TEXT.FOLLOWING}
+    </FollowActionButton>
   );
 }
 

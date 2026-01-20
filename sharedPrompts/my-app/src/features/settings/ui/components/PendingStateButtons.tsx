@@ -1,14 +1,9 @@
-import { UserCheck, UserX, Loader2, Ban } from 'lucide-react';
+import { UserCheck, UserX, Ban } from 'lucide-react';
 import { FollowActionButton } from './FollowActionButton';
-
-interface PendingStateButtonsProps {
-  actionType: 'follow' | 'follower' | null;
-  isLoading: boolean;
-  onAcceptFollow: () => void;
-  onRejectFollow: () => void;
-  onUnfollow: () => void;
-  onBlock: () => void;
-}
+import { ButtonGroup } from './ButtonGroup';
+import { StatusIndicator } from './StatusIndicator';
+import { ICON_SIZE, FOLLOW_BUTTON_TEXT } from './constants';
+import type { PendingStateButtonsProps } from './types';
 
 export function PendingStateButtons({
   actionType,
@@ -18,57 +13,68 @@ export function PendingStateButtons({
   onUnfollow,
   onBlock,
 }: PendingStateButtonsProps) {
+  // actionType='follower'인 경우: 상대가 나에게 요청한 상태 → 수락/거절/차단
   if (actionType === 'follower') {
-    // 팔로워 목록: 상대방이 나에게 팔로우 요청을 보냄 (PENDING 상태)
-    // 수락/거절/차단 가능
-    // 주의: 거절은 PENDING 상태일 때만 가능
     return (
-      <div className="flex gap-3">
-        <FollowActionButton
-          onClick={onAcceptFollow}
-          isLoading={isLoading}
-          variant="primary"
-          icon={<UserCheck className="w-5 h-5" />}
-        >
-          팔로우 수락
-        </FollowActionButton>
-        <FollowActionButton
-          onClick={onRejectFollow}
-          isLoading={isLoading}
-          variant="secondary"
-          icon={<UserX className="w-5 h-5" />}
-        >
-          거절
-        </FollowActionButton>
-        <FollowActionButton
-          onClick={onBlock}
-          isLoading={isLoading}
-          variant="danger"
-          icon={<Ban className="w-5 h-5" />}
-        >
-          차단
-        </FollowActionButton>
-      </div>
+      <ButtonGroup>
+        {onAcceptFollow && (
+          <FollowActionButton
+            onClick={onAcceptFollow}
+            isLoading={isLoading}
+            variant="primary"
+            icon={<UserCheck className={ICON_SIZE.MEDIUM} />}
+          >
+            {FOLLOW_BUTTON_TEXT.ACCEPT}
+          </FollowActionButton>
+        )}
+        {onRejectFollow && (
+          <FollowActionButton
+            onClick={onRejectFollow}
+            isLoading={isLoading}
+            variant="secondary"
+            icon={<UserX className={ICON_SIZE.MEDIUM} />}
+          >
+            {FOLLOW_BUTTON_TEXT.REJECT}
+          </FollowActionButton>
+        )}
+        {onBlock && (
+          <FollowActionButton
+            onClick={onBlock}
+            isLoading={isLoading}
+            variant="danger"
+            icon={<Ban className={ICON_SIZE.MEDIUM} />}
+          >
+            {FOLLOW_BUTTON_TEXT.BLOCK}
+          </FollowActionButton>
+        )}
+      </ButtonGroup>
     );
   }
 
-  // 팔로잉 목록: 내가 상대방에게 팔로우 요청을 보냄
-  // 대기 중 상태, 요청 취소만 가능
-  return (
-    <div className="flex gap-3 items-center">
-      <div className="flex-1 py-3 bg-neutral-100 text-neutral-600 rounded-xl font-medium flex items-center justify-center gap-2">
-        <Loader2 className="w-5 h-5 animate-spin" />
-        대기 중
-      </div>
+  // actionType='follow'인 경우: 팔로잉 탭에서 내가 보낸 요청 → 요청 취소 버튼
+  if (actionType === 'follow') {
+    return (
       <FollowActionButton
         onClick={onUnfollow}
         isLoading={isLoading}
         variant="secondary"
-        icon={<UserX className="w-5 h-5" />}
+        icon={<UserX className={ICON_SIZE.MEDIUM} />}
       >
-        요청 취소
+        {FOLLOW_BUTTON_TEXT.CANCEL_REQUEST}
       </FollowActionButton>
-    </div>
+    );
+  }
+
+  // actionType=null인 경우(기타 컨텍스트): 단순 상태 표시용 비활성 "요청됨"
+  return (
+    <FollowActionButton
+      onClick={() => {}}
+      isLoading={false}
+      disabled
+      variant="secondary"
+    >
+      {FOLLOW_BUTTON_TEXT.WAITING}
+    </FollowActionButton>
   );
 }
 

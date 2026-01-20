@@ -25,32 +25,27 @@ export function useFollowActions({
     setError(null);
     try {
       const response = await followApi.getFollowStatus(userId);
-      console.log('Follow status API response:', response);
+      const statusValue = response?.data?.data?.status;
       
-      // 응답 구조 확인
-      const status = response?.data?.data?.status as FollowStatus;
-      console.log('Extracted followStatus:', status);
+      // 서버는 항상 명확한 상태를 내려줌 (404 없음)
+      const validStatuses: FollowStatus[] = ['PENDING', 'FOLLOWING', 'REJECTED', 'CANCELLED', 'BLOCKED'];
+      const normalizedStatus = typeof statusValue === 'string' 
+        ? statusValue.toUpperCase().trim() as FollowStatus
+        : null;
       
-      if (status) {
-        setFollowStatus(status);
-      } else {
-        // 상태가 없으면 null로 설정 (팔로우 관계 없음)
-        setFollowStatus(null);
-      }
+      const status: FollowStatus | null = validStatuses.includes(normalizedStatus as FollowStatus)
+        ? normalizedStatus
+        : null;
+      
+      setFollowStatus(status);
     } catch (err: any) {
-      console.error('Failed to check follow status:', err);
-      console.error('Error details:', {
-        message: err.message,
-        response: err.response,
-        data: err.response?.data,
-      });
+      // 서버는 항상 상태를 내려주므로, 에러 발생 시에만 처리
       setError('팔로우 상태를 확인하는데 실패했습니다.');
-      // 에러 발생 시 null로 설정 (팔로우 관계 없음)
       setFollowStatus(null);
     } finally {
       setIsChecking(false);
     }
-  }, [userId]);
+  }, [userId, actionType]);
 
   const executeAction = useCallback(
     async (
@@ -64,18 +59,17 @@ export function useFollowActions({
       setError(null);
       try {
         await action();
-        // 액션 성공 후 상태를 서버에서 다시 확인하여 정확한 상태 반영
         if (successStatus !== null) {
           setFollowStatus(successStatus);
         }
-        // 상태 확인을 다시 수행하여 최신 상태 반영
         setTimeout(() => {
           checkFollowStatus();
         }, 100);
         onSuccess?.();
       } catch (err: any) {
-        console.error(`Failed to execute action:`, err);
-        setError(err.response?.data?.error?.message || errorMessage);
+        console.error('Failed to execute action:', err);
+        const errorMsg = err.response?.data?.error?.message || errorMessage;
+        setError(errorMsg);
       } finally {
         setIsLoading(false);
       }
@@ -84,36 +78,46 @@ export function useFollowActions({
   );
 
   const requestFollow = useCallback(
-    () => executeAction(() => followApi.requestFollow(userId!), 'PENDING', '팔로우 요청에 실패했습니다.'),
+    () => {
+      return executeAction(() => followApi.requestFollow(userId!), 'PENDING', '팔로우 요청에 실패했습니다.');
+    },
     [userId, executeAction]
   );
 
   const acceptFollow = useCallback(
-    () => executeAction(() => followApi.acceptFollow(userId!), 'FOLLOWING', '팔로우 수락에 실패했습니다.'),
+    () => {
+      return executeAction(() => followApi.acceptFollow(userId!), 'FOLLOWING', '팔로우 수락에 실패했습니다.');
+    },
     [userId, executeAction]
   );
 
   const rejectFollow = useCallback(async () => {
-    // 거절은 PENDING 상태일 때만 가능
     if (followStatus !== 'PENDING') {
       setError('대기 상태가 아닌 관계는 거부할 수 없습니다.');
       return;
     }
-    return executeAction(() => followApi.rejectFollow(userId!), null as any, '팔로우 거절에 실패했습니다.');
+    return executeAction(() => followApi.rejectFollow(userId!), 'REJECTED', '팔로우 거절에 실패했습니다.');
   }, [userId, followStatus, executeAction]);
 
   const unfollow = useCallback(
-    () => executeAction(() => followApi.unfollow(userId!), null as any, '언팔로우에 실패했습니다.'),
+    () => {
+      return executeAction(() => followApi.unfollow(userId!), 'CANCELLED', '언팔로우에 실패했습니다.');
+    },
     [userId, executeAction]
   );
 
   const block = useCallback(
-    () => executeAction(() => followApi.blockFollow(userId!), 'BLOCKED', '차단에 실패했습니다.'),
+    () => {
+      return executeAction(() => followApi.blockFollow(userId!), 'BLOCKED', '차단에 실패했습니다.');
+    },
     [userId, executeAction]
   );
 
   const unblock = useCallback(
-    () => executeAction(() => followApi.unblockFollow(userId!), null as any, '차단 해제에 실패했습니다.'),
+    () => {
+      // 차단 해제 후 상태는 CANCELLED
+      return executeAction(() => followApi.unblockFollow(userId!), 'CANCELLED', '차단 해제에 실패했습니다.');
+    },
     [userId, executeAction]
   );
 

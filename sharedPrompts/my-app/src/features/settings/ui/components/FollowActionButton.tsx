@@ -1,11 +1,15 @@
+// features/settings/ui/components/FollowActionButton.tsx
+
 import { Loader2 } from 'lucide-react';
 import { ReactNode } from 'react';
+import { ICON_SIZE, FOLLOW_BUTTON_TEXT } from './constants';
+import type { ButtonVariant } from './types';
 
 interface FollowActionButtonProps {
   onClick: () => void;
   disabled?: boolean;
   isLoading?: boolean;
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: ButtonVariant;
   icon?: ReactNode;
   children: ReactNode;
 }
@@ -34,8 +38,8 @@ export function FollowActionButton({
     >
       {isLoading ? (
         <>
-          <Loader2 className="w-5 h-5 animate-spin" />
-          처리 중...
+          <Loader2 className={`${ICON_SIZE.MEDIUM} animate-spin`} />
+          {FOLLOW_BUTTON_TEXT.PROCESSING}
         </>
       ) : (
         <>

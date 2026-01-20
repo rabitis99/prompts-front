@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { X } from 'lucide-react';
+import { X, Info } from 'lucide-react';
 import { useFollowActions } from '@/features/follow/hooks/useFollowActions';
 import { FollowActionButtons } from './components/FollowActionButtons';
 import type { UserResponseDto } from '@/features/auth/types/user';
@@ -54,9 +54,46 @@ export function FollowActionModal({
 
   if (!isOpen || !user) return null;
 
+  const renderViewerRelationInfo = () => {
+    // viewer ← target (상대가 나를 향한 관계)
+    // 이 방향은 정보 표시용이며, 버튼 상태의 최종 결정 기준은 항상 viewer → target 이다.
+    if (actionType !== 'follower') return null;
+
+    let message: string | null = null;
+
+    switch (followStatus) {
+      case 'FOLLOWING':
+        message = '나를 팔로우하고 있습니다.';
+        break;
+      case 'PENDING':
+        message = '팔로우 요청을 보냈습니다.';
+        break;
+      case 'BLOCKED':
+        message = '이 사용자는 현재 접근할 수 없습니다.';
+        break;
+      default:
+        message = null;
+    }
+
+    if (!message) return null;
+
+    return (
+      <div className="mb-4 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl flex items-start gap-2 text-xs text-neutral-600">
+        <Info className="w-4 h-4 mt-0.5 text-neutral-400" />
+        <p>{message}</p>
+      </div>
+    );
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in">
-      <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl animate-in zoom-in-95">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl animate-in zoom-in-95"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-neutral-900">팔로우 관리</h3>
           <button
@@ -78,6 +115,9 @@ export function FollowActionModal({
             {user.job && <div className="text-sm text-neutral-500 truncate">{user.job}</div>}
           </div>
         </div>
+
+        {/* viewer ← target 방향 안내 문구 */}
+        {renderViewerRelationInfo()}
 
         {/* 에러 메시지 */}
         {error && (

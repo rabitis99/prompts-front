@@ -42,8 +42,8 @@ export function AuthorInfo({ author, currentUserId }: AuthorInfoProps) {
     if (isLoading || isChecking) return;
     
     try {
-      // followStatus가 null이면 팔로우 요청
-      if (!followStatus) {
+      // followStatus가 null이거나 REJECTED, CANCELLED 상태면 팔로우 요청/재요청
+      if (!followStatus || followStatus === 'REJECTED' || followStatus === 'CANCELLED') {
         await requestFollow();
       } else if (followStatus === 'FOLLOWING' || followStatus === 'PENDING') {
         await unfollow();

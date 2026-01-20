@@ -1,13 +1,12 @@
 import { UserPlus } from 'lucide-react';
 import { FollowActionButton } from './FollowActionButton';
 import { ICON_SIZE, FOLLOW_BUTTON_TEXT } from './constants';
-import type { NoneStateButtonsProps } from './types';
+import type { RetryRequestButtonsProps } from './types';
 
-export function NoneStateButtons({
-  actionType,
+export function RetryRequestButtons({
   isLoading,
   onRequestFollow,
-}: NoneStateButtonsProps) {
+}: RetryRequestButtonsProps) {
   return (
     <FollowActionButton
       onClick={onRequestFollow}
@@ -15,7 +14,7 @@ export function NoneStateButtons({
       variant="primary"
       icon={<UserPlus className={ICON_SIZE.MEDIUM} />}
     >
-      {FOLLOW_BUTTON_TEXT.REQUEST}
+      {FOLLOW_BUTTON_TEXT.RETRY_REQUEST}
     </FollowActionButton>
   );
 }

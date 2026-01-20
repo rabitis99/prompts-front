@@ -4,19 +4,9 @@ import { NoneStateButtons } from './NoneStateButtons';
 import { PendingStateButtons } from './PendingStateButtons';
 import { FollowingStateButtons } from './FollowingStateButtons';
 import { BlockedStateButtons } from './BlockedStateButtons';
-
-interface FollowActionButtonsProps {
-  followStatus: FollowStatus | null;
-  actionType: 'follow' | 'follower' | null;
-  isLoading: boolean;
-  isChecking: boolean;
-  onRequestFollow: () => void;
-  onAcceptFollow: () => void;
-  onRejectFollow: () => void;
-  onUnfollow: () => void;
-  onBlock: () => void;
-  onUnblock: () => void;
-}
+import { RejectedStateButtons } from './RejectedStateButtons';
+import { CancelledStateButtons } from './CancelledStateButtons';
+import type { FollowActionButtonsProps } from './types';
 
 export function FollowActionButtons({
   followStatus,
@@ -34,6 +24,7 @@ export function FollowActionButtons({
     return <CheckingState />;
   }
 
+  // followStatus가 null인 경우 (에러 또는 초기 상태) - 기본 팔로우 요청 버튼 표시
   if (!followStatus) {
     return (
       <NoneStateButtons
@@ -44,7 +35,28 @@ export function FollowActionButtons({
     );
   }
 
-  switch (followStatus) {
+  return renderStatusButtons(
+    followStatus,
+    {
+      actionType,
+      isLoading,
+      onRequestFollow,
+      onAcceptFollow,
+      onRejectFollow,
+      onUnfollow,
+      onBlock,
+      onUnblock,
+    }
+  );
+}
+
+function renderStatusButtons(
+  status: FollowStatus,
+  handlers: Omit<FollowActionButtonsProps, 'followStatus' | 'isChecking'>
+) {
+  const { actionType, isLoading, onRequestFollow, onAcceptFollow, onRejectFollow, onUnfollow, onBlock, onUnblock } = handlers;
+
+  switch (status) {
     case 'PENDING':
       return (
         <PendingStateButtons
@@ -64,6 +76,22 @@ export function FollowActionButtons({
           isLoading={isLoading}
           onUnfollow={onUnfollow}
           onBlock={onBlock}
+        />
+      );
+
+    case 'REJECTED':
+      return (
+        <RejectedStateButtons
+          isLoading={isLoading}
+          onRequestFollow={onRequestFollow}
+        />
+      );
+
+    case 'CANCELLED':
+      return (
+        <CancelledStateButtons
+          isLoading={isLoading}
+          onRequestFollow={onRequestFollow}
         />
       );
 

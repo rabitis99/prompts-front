@@ -6,8 +6,25 @@ import type { CustomResponse, PageResponse } from '@/shared/types/api';
 /**
  * 팔로우 상태
  * 백엔드 FollowStatus enum과 일치
+ * 
+ * ⚠️ 중요: 모든 상태는 cursor → target 관계 기준
+ * ⚠️ MUTUAL 상태 없음
+ * 
+ * 상태 정의:
+ * - PENDING: 내가 상대에게 팔로우 요청 보냄
+ * - FOLLOWING: 내가 상대를 팔로우 중
+ * - REJECTED: 내 요청이 거절됨
+ * - CANCELLED: 내가 요청/팔로우를 취소함
+ * - BLOCKED: 내가 상대를 차단함
+ * 
+ * 상태 전환:
+ * - PENDING → CANCELLED(요청 취소)
+ * - FOLLOWING → CANCELLED(언팔로우), BLOCKED(차단)
+ * - REJECTED → PENDING(재요청)
+ * - CANCELLED → PENDING(재요청)
+ * - BLOCKED → CANCELLED(차단 해제)
  */
-export type FollowStatus = 'PENDING' | 'FOLLOWING' | 'BLOCKED';
+export type FollowStatus = 'PENDING' | 'FOLLOWING' | 'REJECTED' | 'CANCELLED' | 'BLOCKED';
 
 /**
  * 팔로우 상태 응답 DTO
