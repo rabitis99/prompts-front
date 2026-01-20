@@ -28,11 +28,6 @@ export function FollowTab({ followCount, onUserClick, onShowBlockedUsers }: Foll
 
   const handleTabChange = (tab: 'followers' | 'following') => {
     setActiveSubTab(tab);
-    if (tab === 'followers' && followers.users.length === 0) {
-      followers.refresh();
-    } else if (tab === 'following' && following.users.length === 0) {
-      following.refresh();
-    }
   };
 
   return (

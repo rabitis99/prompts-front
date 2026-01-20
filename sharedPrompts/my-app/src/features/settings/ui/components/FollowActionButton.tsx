@@ -12,6 +12,7 @@ interface FollowActionButtonProps {
   variant?: ButtonVariant;
   icon?: ReactNode;
   children: ReactNode;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 export function FollowActionButton({
@@ -21,6 +22,7 @@ export function FollowActionButton({
   variant = 'primary',
   icon,
   children,
+  type = 'button',
 }: FollowActionButtonProps) {
   const baseClass = 'w-full py-3 rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2';
   
@@ -32,6 +34,7 @@ export function FollowActionButton({
 
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled || isLoading}
       className={`${baseClass} ${variantClasses[variant]}`}

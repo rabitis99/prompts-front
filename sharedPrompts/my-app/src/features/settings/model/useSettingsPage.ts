@@ -71,13 +71,12 @@ export function useSettingsPage() {
       setIsLoading(true);
       setError(null);
       try {
-        // 사용자 정보, 통계, 팔로우 수를 병렬로 가져오기
-        const [userResponse, statsResponse, followCountResponse] = await Promise.all([
+        // 사용자 정보, 통계는 필수 데이터이므로 함께 병렬로 가져오기
+        const [userResponse, statsResponse] = await Promise.all([
           userApi.getMyInfo(),
           statisticsApi.getMyStatistics(),
-          followApi.getFollowCount(),
         ]);
-        
+
         const userData = userResponse.data.data;
         setProfile({
           id: userData.id,
@@ -95,11 +94,17 @@ export function useSettingsPage() {
           likes: statsData.total_likes_received,
         });
 
-        const followCountData = followCountResponse.data.data;
-        setFollowCount({
-          followersCount: followCountData.followers_count,
-          followingCount: followCountData.following_count,
-        });
+        // 팔로우 카운트는 실패해도 다른 데이터 표시에 영향 없음
+        try {
+          const followCountResponse = await followApi.getFollowCount();
+          const followCountData = followCountResponse.data.data;
+          setFollowCount({
+            followersCount: followCountData.followers_count,
+            followingCount: followCountData.following_count,
+          });
+        } catch (followErr) {
+          console.warn('Failed to fetch follow count:', followErr);
+        }
       } catch (err) {
         console.error('Failed to fetch user info:', err);
         setError('사용자 정보를 불러오는데 실패했습니다.');

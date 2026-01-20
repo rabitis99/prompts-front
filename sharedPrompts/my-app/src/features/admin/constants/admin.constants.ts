@@ -1,4 +1,4 @@
-import { BarChart3, Users, FileText, AlertTriangle, History, TrendingUp, UserCircle2 } from 'lucide-react';
+import { Users, FileText, AlertTriangle, History, TrendingUp, UserCircle2 } from 'lucide-react';
 
 export const ADMIN_TABS = [
   { id: 'dashboard', label: '대시보드', icon: TrendingUp },

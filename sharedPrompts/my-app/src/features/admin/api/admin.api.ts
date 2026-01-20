@@ -14,6 +14,7 @@ import type {
   ReportProcessRequestDto,
 } from '@/features/report/types/report.types';
 import type { ReportStatus } from '@/features/report/types/report.types';
+import type { FollowStatus } from '@/features/follow/types/follow.types';
 
 /**
  * 관리자 API
@@ -147,7 +148,7 @@ export const adminApi = {
    * - status는 필수
    */
   getFollows: (params: {
-    status: string;
+    status: FollowStatus;
     followerId?: number;
     followingId?: number;
     page?: number;

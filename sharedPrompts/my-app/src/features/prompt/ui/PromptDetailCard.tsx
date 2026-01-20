@@ -2,7 +2,6 @@ import { Heart, MessageCircle, Copy, Check, ExternalLink, Clock, Eye, Sparkles }
 import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
 import { PROMPT_CATEGORY_DISPLAY_NAMES } from '@/features/prompt/types/prompt.types';
 import { AuthorInfo } from './components/AuthorInfo';
-import type { UserResponseDto } from '@/features/auth/types/user';
 
 interface PromptDetailCardProps {
   prompt: PromptResponseDto;

@@ -98,11 +98,9 @@ export function SettingsView() {
       <FollowTab
         followCount={followCount}
         onUserClick={(user, actionType) => {
-          console.log('onUserClick called', { user, actionType });
           setFollowModalUser(user);
           setFollowModalActionType(actionType);
           setShowFollowModal(true);
-          console.log('Modal should open now');
         }}
         onShowBlockedUsers={() => setShowBlockedUsersModal(true)}
       />
@@ -186,14 +184,12 @@ export function SettingsView() {
         user={followModalUser}
         actionType={followModalActionType}
         onClose={() => {
-          console.log('Modal close called');
           setShowFollowModal(false);
           setFollowModalUser(null);
           setFollowModalActionType(null);
         }}
         onSuccess={() => {
           // 팔로우 수 갱신 필요 시 여기서 처리
-          console.log('Follow action success');
         }}
       />
 
@@ -202,7 +198,6 @@ export function SettingsView() {
         onClose={() => setShowBlockedUsersModal(false)}
         onSuccess={() => {
           // 팔로우 수 갱신 필요 시 여기서 처리
-          console.log('Blocked users updated');
         }}
       />
 

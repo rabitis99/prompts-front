@@ -45,7 +45,6 @@ function ReverseRelationInfo({ user, actionType, followStatus }: { user: FollowU
   if (actionType !== 'follower') return null;
 
   const reverseStatus = user.reverse_follow_status;
-  const isBlockedByTarget = user.is_blocked_by_target;
   const normalizedPendingDirection = normalizePendingDirection(user.pending_direction);
 
   // 맞팔 상태 확인
@@ -53,9 +52,7 @@ function ReverseRelationInfo({ user, actionType, followStatus }: { user: FollowU
 
   let message: string | null = null;
 
-  if (isBlockedByTarget) {
-    message = '이 사용자는 현재 접근할 수 없습니다.';
-  } else if (isMutualFollow) {
+  if (isMutualFollow) {
     message = '서로 팔로우하고 있습니다.';
   } else if (reverseStatus === 'FOLLOWING') {
     message = '나를 팔로우하고 있습니다.';

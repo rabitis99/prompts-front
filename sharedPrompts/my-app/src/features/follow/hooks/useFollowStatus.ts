@@ -44,13 +44,14 @@ export function useFollowStatus({ userId }: UseFollowStatusOptions) {
       // 서버는 항상 명확한 상태를 내려줌 (404 없음)
       const validStatuses: FollowStatus[] = ['PENDING', 'FOLLOWING', 'REJECTED', 'CANCELLED', 'BLOCKED'];
       const statusValue = responseData.status;
-      const normalizedStatus = typeof statusValue === 'string' 
-        ? statusValue.toUpperCase().trim() as FollowStatus
+      const normalizedStatus = typeof statusValue === 'string'
+        ? statusValue.toUpperCase().trim()
         : null;
-      
-      const status: FollowStatus | null = validStatuses.includes(normalizedStatus as FollowStatus)
-        ? normalizedStatus
-        : null;
+
+      const status: FollowStatus | null =
+        normalizedStatus && validStatuses.includes(normalizedStatus as FollowStatus)
+          ? (normalizedStatus as FollowStatus)
+          : null;
       
       setFollowStatus(status);
       setFollowData(responseData); // 전체 응답 데이터 저장

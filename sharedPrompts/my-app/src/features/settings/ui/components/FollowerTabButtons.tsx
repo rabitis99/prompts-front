@@ -56,18 +56,6 @@ export function FollowerTabButtons({
   // 맞팔 상태 확인: 서로 팔로우하고 있는 경우
   const isMutualFollow = followStatus === 'FOLLOWING' && user?.reverse_follow_status === 'FOLLOWING';
 
-  console.log('[FollowerTabButtons] 상태 확인:', {
-    userId: user?.id,
-    followStatus,
-    reverse_follow_status: user?.reverse_follow_status,
-    pending_direction: user?.pending_direction,
-    normalizedPendingDirection,
-    hasIncomingRequest,
-    hasOutgoingRequest,
-    isMutualFollow,
-    user,
-  });
-
   // 1. BLOCKED 상태: 차단 해제 버튼 표시 (가장 우선 처리)
   if (followStatus === 'BLOCKED') {
     return (

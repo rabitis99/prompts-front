@@ -32,6 +32,10 @@ export function NotificationItem({
   };
 
   const handleClick = () => {
+    if (!notification.is_read) {
+      onMarkAsRead(notification.id);
+    }
+
     if (onClick) {
       onClick(notification);
       return;

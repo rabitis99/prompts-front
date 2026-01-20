@@ -88,7 +88,7 @@ export function AuthorInfo({ author, currentUserId }: AuthorInfoProps) {
             author.id
           )} shadow-sm flex items-center justify-center text-white text-sm font-bold flex-shrink-0`}
         >
-          {author.nickname[0]}
+          {author.nickname?.[0] || '?'}
         </div>
         <div className="flex flex-col min-w-0">
           <span className="text-sm font-medium text-slate-900 truncate">{author.nickname}</span>

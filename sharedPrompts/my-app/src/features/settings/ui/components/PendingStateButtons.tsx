@@ -58,6 +58,10 @@ export function PendingStateButtons({
   }
 
   // actionType='follow' 또는 null인 경우: 내가 상대에게 보낸 요청 → 요청 취소/차단 버튼
+  if (!onUnfollow && !onBlock) {
+    return null;
+  }
+
   return (
     <ButtonGroup>
       {onUnfollow && (

@@ -17,6 +17,12 @@ const FOLLOW_STATUS_OPTIONS: { value: FollowStatus; label: string }[] = [
   { value: 'BLOCKED', label: '차단(BLOCKED)' },
 ];
 
+function parseNumericId(value: string): number | undefined {
+  if (!value) return undefined;
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? undefined : parsed;
+}
+
 export function FollowsTab() {
   const [items, setItems] = useState<AdminFollowUserDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,17 +48,9 @@ export function FollowsTab() {
 
       try {
         const followerId =
-          relationFilter === 'following'
-            ? undefined
-            : followerIdQuery
-            ? Number(followerIdQuery)
-            : undefined;
+          relationFilter === 'following' ? undefined : parseNumericId(followerIdQuery);
         const followingId =
-          relationFilter === 'follower'
-            ? undefined
-            : followingIdQuery
-            ? Number(followingIdQuery)
-            : undefined;
+          relationFilter === 'follower' ? undefined : parseNumericId(followingIdQuery);
 
         const response = await adminApi.getFollows({
           status,

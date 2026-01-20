@@ -117,7 +117,7 @@ export function useFollowActions({
       () => followApi.rejectFollow(userId),
       FOLLOW_ERROR_MESSAGES.REJECT_FAILED
     );
-  }, [userId, followStatus, executeAction, setActionError]);
+  }, [userId, followStatus, executeAction]);
 
   const unfollow = useCallback(() => {
     if (!userId) return;

@@ -82,33 +82,31 @@ export function FollowActionModal({
 
   const displayFollowStatus = followStatus ?? user?.follow_status ?? null;
 
-  // 디버깅: displayUser 정보 확인
-  console.log('[FollowActionModal] displayUser 정보:', {
-    userId: user?.id,
-    actionType,
-    originalUser: user,
-    followData,
-    rawPendingDirection,
-    normalizedPendingDirection,
-    displayUser,
-    displayFollowStatus,
-    hasIncomingRequest: displayUser?.reverse_follow_status === 'PENDING' && normalizedPendingDirection === 'TO_ME',
-    hasOutgoingRequest: displayFollowStatus === 'PENDING' && normalizedPendingDirection === 'FROM_ME',
-  });
-
   if (!isOpen || !user) return null;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in"
-      onClick={onClose}
+      onClick={() => {
+        if (!isLoading) {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="follow-action-modal-title"
     >
       <div
         className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl animate-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-neutral-900">팔로우 관리</h3>
+          <h3
+            id="follow-action-modal-title"
+            className="text-lg font-semibold text-neutral-900"
+          >
+            팔로우 관리
+          </h3>
           <button
             onClick={onClose}
             disabled={isLoading}

@@ -1,3 +1,4 @@
+import React from 'react';
 import { LogOut, Loader2 } from 'lucide-react';
 
 interface LogoutModalProps {
@@ -13,12 +14,35 @@ export function LogoutModal({
   onClose,
   onConfirm,
 }: LogoutModalProps) {
+  React.useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isLoggingOut) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, isLoggingOut, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in"
-      onClick={onClose}
+      onClick={() => {
+        if (!isLoggingOut) {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="logout-modal-title"
     >
       <div
         className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl animate-in zoom-in-95"
@@ -27,7 +51,10 @@ export function LogoutModal({
         <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4">
           <LogOut className="w-6 h-6 text-neutral-600" />
         </div>
-        <h3 className="text-lg font-semibold text-neutral-900 text-center mb-2">
+        <h3
+          id="logout-modal-title"
+          className="text-lg font-semibold text-neutral-900 text-center mb-2"
+        >
           로그아웃
         </h3>
         <p className="text-sm text-neutral-500 text-center mb-6">
