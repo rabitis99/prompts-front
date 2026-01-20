@@ -26,7 +26,6 @@ export function AuthorCard({
     unfollow,
   } = useFollowActions({
     userId: authorId,
-    actionType: null,
   });
 
   // 작성자 정보 로드 시 팔로우 상태 확인

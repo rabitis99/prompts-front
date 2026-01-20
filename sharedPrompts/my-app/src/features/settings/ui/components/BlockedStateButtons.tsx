@@ -7,19 +7,19 @@ export function BlockedStateButtons({
   isLoading,
   onUnblock,
 }: BlockedStateButtonsProps) {
-  // BLOCKED: 차단 상태
-  // UX 스펙:
-  // - 버튼 텍스트: "차단됨"
-  // - 비활성 (해제 불가, 별도 관리 화면에서만 해제)
+  // BLOCKED: 차단 상태 → 차단 해제 버튼 표시
+  if (!onUnblock) {
+    return null;
+  }
+
   return (
     <FollowActionButton
-      onClick={() => {}}
+      onClick={onUnblock}
       isLoading={isLoading}
-      disabled
       variant="secondary"
       icon={<Ban className={ICON_SIZE.MEDIUM} />}
     >
-      {FOLLOW_BUTTON_TEXT.BLOCK}
+      {FOLLOW_BUTTON_TEXT.UNBLOCK}
     </FollowActionButton>
   );
 }

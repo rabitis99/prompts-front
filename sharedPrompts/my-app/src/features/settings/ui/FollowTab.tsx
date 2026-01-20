@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { Users, Loader2 } from 'lucide-react';
+import { Users, Loader2, Ban } from 'lucide-react';
 import { useFollowList } from '@/features/follow/hooks/useFollowList';
 import { UserListItem } from './components/UserListItem';
-import type { UserResponseDto } from '@/features/auth/types/user';
+import type { FollowUserResponseDto } from '@/features/follow/types/follow.types';
 
 interface FollowTabProps {
   followCount: { followersCount: number; followingCount: number };
-  onUserClick: (user: UserResponseDto, actionType: 'follow' | 'follower') => void;
+  onUserClick: (user: FollowUserResponseDto, actionType: 'follow' | 'follower') => void;
+  onShowBlockedUsers?: () => void;
 }
 
-export function FollowTab({ followCount, onUserClick }: FollowTabProps) {
+export function FollowTab({ followCount, onUserClick, onShowBlockedUsers }: FollowTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<'followers' | 'following'>('followers');
 
   const followers = useFollowList({
@@ -38,7 +39,18 @@ export function FollowTab({ followCount, onUserClick }: FollowTabProps) {
     <div className="space-y-4">
       {/* 통계 카드 */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-6">
-        <h2 className="text-xl font-bold text-neutral-900 mb-4">팔로우 관리</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-neutral-900">팔로우 관리</h2>
+          {onShowBlockedUsers && (
+            <button
+              onClick={onShowBlockedUsers}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 rounded-xl transition-colors"
+            >
+              <Ban className="w-4 h-4" />
+              차단 관리
+            </button>
+          )}
+        </div>
         <div className="flex items-center gap-6">
           <div className="text-center">
             <div className="text-3xl font-bold text-neutral-900">{followCount.followersCount}</div>

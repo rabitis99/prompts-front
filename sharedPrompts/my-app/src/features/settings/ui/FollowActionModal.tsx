@@ -1,12 +1,15 @@
-import { useEffect, useCallback } from 'react';
-import { X, Info } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X } from 'lucide-react';
 import { useFollowActions } from '@/features/follow/hooks/useFollowActions';
 import { FollowActionButtons } from './components/FollowActionButtons';
-import type { UserResponseDto } from '@/features/auth/types/user';
+import { FollowRelationInfo } from './components/FollowRelationInfo';
+import type { FollowUserResponseDto } from '@/features/follow/types/follow.types';
+import type { FollowStatus } from '@/features/follow/types/follow.types';
+import { normalizePendingDirection } from '@/features/follow/types/follow.types';
 
 interface FollowActionModalProps {
   isOpen: boolean;
-  user: UserResponseDto | null;
+  user: FollowUserResponseDto | null;
   actionType: 'follow' | 'follower' | null;
   onClose: () => void;
   onSuccess?: () => void;
@@ -19,10 +22,15 @@ export function FollowActionModal({
   onClose,
   onSuccess,
 }: FollowActionModalProps) {
+  // 목록에서 받은 초기 관계 정보 사용 (N+1 방지)
+  const [initialUser, setInitialUser] = useState<FollowUserResponseDto | null>(null);
+  
   const {
     followStatus,
+    followData,
     isLoading,
     isChecking,
+    hasChecked,
     error,
     checkFollowStatus,
     requestFollow,
@@ -31,6 +39,7 @@ export function FollowActionModal({
     unfollow,
     block,
     unblock,
+    removeFollower,
     setError,
   } = useFollowActions({
     userId: user?.id ?? null,
@@ -43,47 +52,51 @@ export function FollowActionModal({
         }, 300);
       }
       onSuccess?.();
+      // 액션 성공 후 모달 닫기
+      onClose();
     },
   });
 
+  // 모달이 열릴 때 목록에서 받은 관계 정보를 초기 상태로 설정
   useEffect(() => {
     if (isOpen && user) {
+      // 목록에서 받은 관계 정보를 초기 상태로 사용
+      setInitialUser(user);
+      // 최신 상태 확인 (목록 정보는 캐시될 수 있으므로)
       checkFollowStatus();
     }
   }, [isOpen, user, checkFollowStatus]);
 
+  // API 응답의 최신 정보를 사용하여 user 정보 업데이트
+  const rawPendingDirection = followData?.pending_direction ?? user?.pending_direction;
+  const normalizedPendingDirection = normalizePendingDirection(rawPendingDirection);
+  
+  const displayUser: FollowUserResponseDto | null = user ? {
+    ...user,
+    follow_status: followStatus ?? user.follow_status,
+    reverse_follow_status: followData?.reverse_status ?? user.reverse_follow_status,
+    pending_direction: normalizedPendingDirection ?? (rawPendingDirection as any),
+    is_blocked_by_me: followData?.is_blocked_by_me ?? user.is_blocked_by_me,
+    is_blocked_by_target: followData?.is_blocked_by_target ?? user.is_blocked_by_target,
+  } : null;
+
+  const displayFollowStatus = followStatus ?? user?.follow_status ?? null;
+
+  // 디버깅: displayUser 정보 확인
+  console.log('[FollowActionModal] displayUser 정보:', {
+    userId: user?.id,
+    actionType,
+    originalUser: user,
+    followData,
+    rawPendingDirection,
+    normalizedPendingDirection,
+    displayUser,
+    displayFollowStatus,
+    hasIncomingRequest: displayUser?.reverse_follow_status === 'PENDING' && normalizedPendingDirection === 'TO_ME',
+    hasOutgoingRequest: displayFollowStatus === 'PENDING' && normalizedPendingDirection === 'FROM_ME',
+  });
+
   if (!isOpen || !user) return null;
-
-  const renderViewerRelationInfo = () => {
-    // viewer ← target (상대가 나를 향한 관계)
-    // 이 방향은 정보 표시용이며, 버튼 상태의 최종 결정 기준은 항상 viewer → target 이다.
-    if (actionType !== 'follower') return null;
-
-    let message: string | null = null;
-
-    switch (followStatus) {
-      case 'FOLLOWING':
-        message = '나를 팔로우하고 있습니다.';
-        break;
-      case 'PENDING':
-        message = '팔로우 요청을 보냈습니다.';
-        break;
-      case 'BLOCKED':
-        message = '이 사용자는 현재 접근할 수 없습니다.';
-        break;
-      default:
-        message = null;
-    }
-
-    if (!message) return null;
-
-    return (
-      <div className="mb-4 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl flex items-start gap-2 text-xs text-neutral-600">
-        <Info className="w-4 h-4 mt-0.5 text-neutral-400" />
-        <p>{message}</p>
-      </div>
-    );
-  };
 
   return (
     <div
@@ -116,8 +129,14 @@ export function FollowActionModal({
           </div>
         </div>
 
-        {/* viewer ← target 방향 안내 문구 */}
-        {renderViewerRelationInfo()}
+        {/* 관계 정보 표시 */}
+        {displayUser && (
+          <FollowRelationInfo
+            user={displayUser}
+            actionType={actionType}
+            followStatus={displayFollowStatus}
+          />
+        )}
 
         {/* 에러 메시지 */}
         {error && (
@@ -127,18 +146,23 @@ export function FollowActionModal({
         )}
 
         {/* 액션 버튼 */}
-        <FollowActionButtons
-          followStatus={followStatus}
-          actionType={actionType}
-          isLoading={isLoading}
-          isChecking={isChecking}
-          onRequestFollow={requestFollow}
-          onAcceptFollow={acceptFollow}
-          onRejectFollow={rejectFollow}
-          onUnfollow={unfollow}
-          onBlock={block}
-          onUnblock={unblock}
-        />
+        {displayUser && (
+          <FollowActionButtons
+            followStatus={displayFollowStatus}
+            actionType={actionType}
+            isLoading={isLoading}
+            isChecking={isChecking}
+            hasChecked={hasChecked}
+            user={displayUser}
+            onRequestFollow={requestFollow}
+            onAcceptFollow={acceptFollow}
+            onRejectFollow={rejectFollow}
+            onUnfollow={unfollow}
+            onBlock={block}
+            onUnblock={unblock}
+            onRemoveFollower={removeFollower}
+          />
+        )}
       </div>
     </div>
   );

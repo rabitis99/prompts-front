@@ -1,4 +1,4 @@
-import type { FollowStatus } from '@/features/follow/types/follow.types';
+import type { FollowStatus, FollowUserResponseDto } from '@/features/follow/types/follow.types';
 
 export type FollowActionType = 'follow' | 'follower' | null;
 
@@ -15,6 +15,7 @@ export interface FollowActionHandlers {
   onUnfollow: () => void;
   onBlock: () => void;
   onUnblock: () => void;
+  onRemoveFollower?: () => void;
 }
 
 export interface FollowActionButtonsProps extends FollowActionHandlers {
@@ -22,22 +23,28 @@ export interface FollowActionButtonsProps extends FollowActionHandlers {
   actionType: FollowActionType;
   isLoading: boolean;
   isChecking: boolean;
+  hasChecked: boolean;
+  user?: FollowUserResponseDto | null;
 }
 
 export interface PendingStateButtonsProps extends BaseButtonStateProps {
   actionType: FollowActionType;
   onAcceptFollow?: () => void;
   onRejectFollow?: () => void;
-  onUnfollow: () => void;
+  onUnfollow?: () => void;
   onBlock?: () => void;
 }
 
 export interface FollowingStateButtonsProps extends BaseButtonStateProps {
   actionType: FollowActionType;
-  onUnfollow: () => void;
+  onUnfollow?: () => void;
+  onRequestFollow?: () => void;
+  onBlock?: () => void;
+  onRemoveFollower?: () => void;
 }
 
 export interface BlockedStateButtonsProps extends BaseButtonStateProps {
+  onUnblock?: () => void;
 }
 
 export interface RetryRequestButtonsProps extends BaseButtonStateProps {

@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
 import { followApi } from '../api/follow.api';
-import type { FollowStatus } from '../types/follow.types';
+import { useFollowStatus } from './useFollowStatus';
+import { extractErrorMessage } from '../utils/error.utils';
+import { FOLLOW_ERROR_MESSAGES } from '../constants/follow.constants';
 
 interface UseFollowActionsOptions {
   userId: number | null;
-  actionType: 'follow' | 'follower' | null;
+  actionType?: 'follow' | 'follower' | null;
   onSuccess?: () => void;
 }
 
@@ -13,63 +15,46 @@ export function useFollowActions({
   actionType,
   onSuccess,
 }: UseFollowActionsOptions) {
-  const [followStatus, setFollowStatus] = useState<FollowStatus | null>(null);
+  const {
+    followStatus,
+    followData,
+    isChecking,
+    hasChecked,
+    error: statusError,
+    checkFollowStatus,
+    setError: setStatusError,
+  } = useFollowStatus({ userId });
+
   const [isLoading, setIsLoading] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const checkFollowStatus = useCallback(async () => {
-    if (!userId) return;
+  // 통합 에러 상태 (상태 확인 에러 또는 액션 에러)
+  const error = statusError || actionError;
+  const setError = useCallback((err: string | null) => {
+    setActionError(err);
+    setStatusError(err);
+  }, [setStatusError]);
 
-    setIsChecking(true);
-    setError(null);
-    try {
-      const response = await followApi.getFollowStatus(userId);
-      const statusValue = response?.data?.data?.status;
-      
-      // 서버는 항상 명확한 상태를 내려줌 (404 없음)
-      const validStatuses: FollowStatus[] = ['PENDING', 'FOLLOWING', 'REJECTED', 'CANCELLED', 'BLOCKED'];
-      const normalizedStatus = typeof statusValue === 'string' 
-        ? statusValue.toUpperCase().trim() as FollowStatus
-        : null;
-      
-      const status: FollowStatus | null = validStatuses.includes(normalizedStatus as FollowStatus)
-        ? normalizedStatus
-        : null;
-      
-      setFollowStatus(status);
-    } catch (err: any) {
-      // 서버는 항상 상태를 내려주므로, 에러 발생 시에만 처리
-      setError('팔로우 상태를 확인하는데 실패했습니다.');
-      setFollowStatus(null);
-    } finally {
-      setIsChecking(false);
-    }
-  }, [userId, actionType]);
-
+  /**
+   * 팔로우 액션을 실행하고 상태를 업데이트하는 공통 로직
+   */
   const executeAction = useCallback(
-    async (
-      action: () => Promise<any>,
-      successStatus: FollowStatus | null,
+    async <T,>(
+      action: () => Promise<T>,
       errorMessage: string
-    ) => {
+    ): Promise<void> => {
       if (!userId) return;
 
       setIsLoading(true);
-      setError(null);
+      setActionError(null);
       try {
         await action();
-        if (successStatus !== null) {
-          setFollowStatus(successStatus);
-        }
-        setTimeout(() => {
-          checkFollowStatus();
-        }, 100);
+        await checkFollowStatus();
         onSuccess?.();
-      } catch (err: any) {
+      } catch (err) {
         console.error('Failed to execute action:', err);
-        const errorMsg = err.response?.data?.error?.message || errorMessage;
-        setError(errorMsg);
+        const errorMsg = extractErrorMessage(err, errorMessage);
+        setActionError(errorMsg);
       } finally {
         setIsLoading(false);
       }
@@ -77,54 +62,122 @@ export function useFollowActions({
     [userId, onSuccess, checkFollowStatus]
   );
 
-  const requestFollow = useCallback(
-    () => {
-      return executeAction(() => followApi.requestFollow(userId!), 'PENDING', '팔로우 요청에 실패했습니다.');
+  /**
+   * 여러 팔로우 액션을 순차적으로 실행하는 헬퍼 함수
+   */
+  const executeMultipleActions = useCallback(
+    async (
+      actions: Array<() => Promise<unknown>>,
+      errorMessage: string
+    ): Promise<void> => {
+      if (!userId) return;
+
+      setIsLoading(true);
+      setActionError(null);
+      try {
+        for (const action of actions) {
+          await action();
+        }
+        await checkFollowStatus();
+        onSuccess?.();
+      } catch (err) {
+        console.error('Failed to execute multiple actions:', err);
+        const errorMsg = extractErrorMessage(err, errorMessage);
+        setActionError(errorMsg);
+      } finally {
+        setIsLoading(false);
+      }
     },
-    [userId, executeAction]
+    [userId, onSuccess, checkFollowStatus]
   );
 
-  const acceptFollow = useCallback(
-    () => {
-      return executeAction(() => followApi.acceptFollow(userId!), 'FOLLOWING', '팔로우 수락에 실패했습니다.');
-    },
-    [userId, executeAction]
-  );
+  const requestFollow = useCallback(() => {
+    if (!userId) return;
+    return executeAction(
+      () => followApi.requestFollow(userId),
+      FOLLOW_ERROR_MESSAGES.REQUEST_FAILED
+    );
+  }, [userId, executeAction]);
+
+  const acceptFollow = useCallback(() => {
+    if (!userId) return;
+    return executeAction(
+      () => followApi.acceptFollow(userId),
+      FOLLOW_ERROR_MESSAGES.ACCEPT_FAILED
+    );
+  }, [userId, executeAction]);
 
   const rejectFollow = useCallback(async () => {
+    if (!userId) return;
     if (followStatus !== 'PENDING') {
-      setError('대기 상태가 아닌 관계는 거부할 수 없습니다.');
+      setActionError(FOLLOW_ERROR_MESSAGES.REJECT_INVALID_STATE);
       return;
     }
-    return executeAction(() => followApi.rejectFollow(userId!), 'REJECTED', '팔로우 거절에 실패했습니다.');
-  }, [userId, followStatus, executeAction]);
+    return executeAction(
+      () => followApi.rejectFollow(userId),
+      FOLLOW_ERROR_MESSAGES.REJECT_FAILED
+    );
+  }, [userId, followStatus, executeAction, setActionError]);
 
-  const unfollow = useCallback(
-    () => {
-      return executeAction(() => followApi.unfollow(userId!), 'CANCELLED', '언팔로우에 실패했습니다.');
-    },
-    [userId, executeAction]
-  );
+  const unfollow = useCallback(() => {
+    if (!userId) return;
+    return executeAction(
+      () => followApi.unfollow(userId),
+      FOLLOW_ERROR_MESSAGES.UNFOLLOW_FAILED
+    );
+  }, [userId, executeAction]);
 
-  const block = useCallback(
-    () => {
-      return executeAction(() => followApi.blockFollow(userId!), 'BLOCKED', '차단에 실패했습니다.');
-    },
-    [userId, executeAction]
-  );
+  const block = useCallback(async () => {
+    if (!userId) return;
 
-  const unblock = useCallback(
-    () => {
-      // 차단 해제 후 상태는 CANCELLED
-      return executeAction(() => followApi.unblockFollow(userId!), 'CANCELLED', '차단 해제에 실패했습니다.');
-    },
-    [userId, executeAction]
-  );
+    // 팔로워 탭인 경우: PENDING 상태의 요청을 먼저 처리한 후 차단
+    if (actionType === 'follower') {
+      const actions: Array<() => Promise<unknown>> = [];
+
+      // 내가 상대에게 보낸 PENDING 요청이 있으면 취소
+      if (followStatus === 'PENDING') {
+        actions.push(() => followApi.unfollow(userId));
+      }
+
+      // 상대가 나에게 보낸 PENDING 요청이 있으면 거절
+      if (followData?.reverse_status === 'PENDING') {
+        actions.push(() => followApi.rejectFollow(userId));
+      }
+
+      // 차단 실행
+      actions.push(() => followApi.blockFollow(userId));
+
+      return executeMultipleActions(actions, FOLLOW_ERROR_MESSAGES.BLOCK_FOLLOWER_FAILED);
+    }
+
+    return executeAction(
+      () => followApi.blockFollow(userId),
+      FOLLOW_ERROR_MESSAGES.BLOCK_FAILED
+    );
+  }, [userId, actionType, followStatus, followData, executeAction, executeMultipleActions]);
+
+  const unblock = useCallback(() => {
+    if (!userId) return;
+    return executeAction(
+      () => followApi.unblockFollow(userId),
+      FOLLOW_ERROR_MESSAGES.UNBLOCK_FAILED
+    );
+  }, [userId, executeAction]);
+
+  const removeFollower = useCallback(() => {
+    if (!userId) return;
+    return executeAction(
+      () => followApi.removeFollower(userId),
+      FOLLOW_ERROR_MESSAGES.REMOVE_FOLLOWER_FAILED
+    );
+  }, [userId, executeAction]);
 
   return {
     followStatus,
+    followData, // 전체 응답 데이터 반환
     isLoading,
     isChecking,
+    hasChecked,
     error,
     checkFollowStatus,
     requestFollow,
@@ -133,6 +186,7 @@ export function useFollowActions({
     unfollow,
     block,
     unblock,
+    removeFollower,
     setError,
   };
 }

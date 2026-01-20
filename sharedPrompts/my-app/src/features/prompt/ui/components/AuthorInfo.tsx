@@ -19,7 +19,6 @@ export function AuthorInfo({ author, currentUserId }: AuthorInfoProps) {
     unfollow,
   } = useFollowActions({
     userId: author.id,
-    actionType: null,
   });
 
   // 작성자 정보 로드 시 팔로우 상태 확인

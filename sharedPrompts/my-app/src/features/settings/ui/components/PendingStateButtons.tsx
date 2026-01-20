@@ -1,7 +1,6 @@
-import { UserCheck, UserX, Ban } from 'lucide-react';
+import { UserCheck, UserX, Ban, X } from 'lucide-react';
 import { FollowActionButton } from './FollowActionButton';
 import { ButtonGroup } from './ButtonGroup';
-import { StatusIndicator } from './StatusIndicator';
 import { ICON_SIZE, FOLLOW_BUTTON_TEXT } from './constants';
 import type { PendingStateButtonsProps } from './types';
 
@@ -13,8 +12,15 @@ export function PendingStateButtons({
   onUnfollow,
   onBlock,
 }: PendingStateButtonsProps) {
-  // actionType='follower'인 경우: 상대가 나에게 요청한 상태 → 수락/거절/차단
+  // actionType='follower'인 경우: 상대가 나에게 요청한 상태 → 수락/거절/차단 순서
   if (actionType === 'follower') {
+    // 최소한 하나의 버튼이라도 표시되어야 함
+    const hasAnyButton = onAcceptFollow || onRejectFollow || onBlock;
+    
+    if (!hasAnyButton) {
+      return null;
+    }
+    
     return (
       <ButtonGroup>
         {onAcceptFollow && (
@@ -51,30 +57,30 @@ export function PendingStateButtons({
     );
   }
 
-  // actionType='follow'인 경우: 팔로잉 탭에서 내가 보낸 요청 → 요청 취소 버튼
-  if (actionType === 'follow') {
-    return (
-      <FollowActionButton
-        onClick={onUnfollow}
-        isLoading={isLoading}
-        variant="secondary"
-        icon={<UserX className={ICON_SIZE.MEDIUM} />}
-      >
-        {FOLLOW_BUTTON_TEXT.CANCEL_REQUEST}
-      </FollowActionButton>
-    );
-  }
-
-  // actionType=null인 경우(기타 컨텍스트): 단순 상태 표시용 비활성 "요청됨"
+  // actionType='follow' 또는 null인 경우: 내가 상대에게 보낸 요청 → 요청 취소/차단 버튼
   return (
-    <FollowActionButton
-      onClick={() => {}}
-      isLoading={false}
-      disabled
-      variant="secondary"
-    >
-      {FOLLOW_BUTTON_TEXT.WAITING}
-    </FollowActionButton>
+    <ButtonGroup>
+      {onUnfollow && (
+        <FollowActionButton
+          onClick={onUnfollow}
+          isLoading={isLoading}
+          variant="secondary"
+          icon={<X className={ICON_SIZE.MEDIUM} />}
+        >
+          {FOLLOW_BUTTON_TEXT.CANCEL_REQUEST}
+        </FollowActionButton>
+      )}
+      {onBlock && (
+        <FollowActionButton
+          onClick={onBlock}
+          isLoading={isLoading}
+          variant="danger"
+          icon={<Ban className={ICON_SIZE.MEDIUM} />}
+        >
+          {FOLLOW_BUTTON_TEXT.BLOCK}
+        </FollowActionButton>
+      )}
+    </ButtonGroup>
   );
 }
 

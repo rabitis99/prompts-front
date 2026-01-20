@@ -1,14 +1,13 @@
 import { UserPlus } from 'lucide-react';
-import type { UserResponseDto } from '@/features/auth/types/user';
+import type { FollowUserResponseDto } from '@/features/follow/types/follow.types';
 
 interface UserListItemProps {
-  user: UserResponseDto;
+  user: FollowUserResponseDto;
   onClick?: () => void;
 }
 
 export function UserListItem({ user, onClick }: UserListItemProps) {
   const handleClick = () => {
-    console.log('UserListItem clicked', { userId: user.id, nickname: user.nickname });
     onClick?.();
   };
 

@@ -10,9 +10,10 @@ import { FavoritesTab } from './FavoritesTab';
 import { ReportsTab } from './ReportsTab';
 import { FollowTab } from './FollowTab';
 import { FollowActionModal } from './FollowActionModal';
+import { BlockedUsersModal } from './components/BlockedUsersModal';
 import { DeleteUserModal } from './DeleteUserModal';
 import { LogoutModal } from './LogoutModal';
-import type { UserResponseDto } from '@/features/auth/types/user';
+import type { FollowUserResponseDto } from '@/features/follow/types/follow.types';
 
 export function SettingsView() {
   const {
@@ -49,9 +50,10 @@ export function SettingsView() {
     handleLogout,
   } = useSettingsPage();
 
-  const [followModalUser, setFollowModalUser] = useState<UserResponseDto | null>(null);
+  const [followModalUser, setFollowModalUser] = useState<FollowUserResponseDto | null>(null);
   const [followModalActionType, setFollowModalActionType] = useState<'follow' | 'follower' | null>(null);
   const [showFollowModal, setShowFollowModal] = useState(false);
+  const [showBlockedUsersModal, setShowBlockedUsersModal] = useState(false);
 
   const tabContent: Record<string, React.ReactElement> = {
     profile: (
@@ -102,6 +104,7 @@ export function SettingsView() {
           setShowFollowModal(true);
           console.log('Modal should open now');
         }}
+        onShowBlockedUsers={() => setShowBlockedUsersModal(true)}
       />
     ),
     reports: <ReportsTab />,
@@ -191,6 +194,15 @@ export function SettingsView() {
         onSuccess={() => {
           // 팔로우 수 갱신 필요 시 여기서 처리
           console.log('Follow action success');
+        }}
+      />
+
+      <BlockedUsersModal
+        isOpen={showBlockedUsersModal}
+        onClose={() => setShowBlockedUsersModal(false)}
+        onSuccess={() => {
+          // 팔로우 수 갱신 필요 시 여기서 처리
+          console.log('Blocked users updated');
         }}
       />
 

@@ -7,8 +7,10 @@ export const FOLLOW_BUTTON_TEXT = {
   UNFOLLOW: '언팔로우',
   CANCEL_REQUEST: '요청 취소',
   BLOCK: '차단',
+  BLOCKED: '차단됨',
   UNBLOCK: '차단 해제',
   UNBLOCK_AND_REQUEST: '차단 해제 후 요청',
+  REMOVE: '삭제',
   WAITING: '요청됨',
   PROCESSING: '처리 중...',
 } as const;

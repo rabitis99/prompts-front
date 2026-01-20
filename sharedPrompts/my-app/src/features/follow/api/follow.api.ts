@@ -5,9 +5,9 @@ import type { CustomResponse, PageResponse } from '@/shared/types/api';
 import type {
   FollowStatus,
   FollowResponseDto,
+  FollowUserResponseDto,
   FollowCountResponseDto,
 } from '../types/follow.types';
-import type { UserResponseDto } from '@/features/auth/types/user';
 
 export const followApi = {
   /**
@@ -29,7 +29,7 @@ export const followApi = {
    * POST /users/{followerId}/follow/reject
    */
   rejectFollow: (followerId: number) =>
-    api.post<void>(`/users/${followerId}/follow/reject`),
+    api.post<CustomResponse<void>>(`/users/${followerId}/follow/reject`),
 
   /**
    * 팔로우 차단
@@ -43,14 +43,14 @@ export const followApi = {
    * DELETE /users/{followingId}/follow/block
    */
   unblockFollow: (followingId: number) =>
-    api.delete<void>(`/users/${followingId}/follow/block`),
+    api.delete<CustomResponse<void>>(`/users/${followingId}/follow/block`),
 
   /**
    * 언팔로우
    * DELETE /users/{followingId}/follow
    */
   unfollow: (followingId: number) =>
-    api.delete<void>(`/users/${followingId}/follow`),
+    api.delete<CustomResponse<void>>(`/users/${followingId}/follow`),
 
   /**
    * 팔로우 상태 조회
@@ -62,18 +62,20 @@ export const followApi = {
   /**
    * 내 팔로워 목록 조회
    * GET /users/me/followers
+   * 양방향 관계 정보 포함 (N+1 방지)
    */
   getFollowers: (status?: FollowStatus, page?: number, size?: number) =>
-    api.get<CustomResponse<PageResponse<UserResponseDto>>>('/users/me/followers', {
+    api.get<CustomResponse<PageResponse<FollowUserResponseDto>>>('/users/me/followers', {
       params: { status, page, size },
     }),
 
   /**
    * 내 팔로잉 목록 조회
    * GET /users/me/following
+   * 양방향 관계 정보 포함 (N+1 방지)
    */
   getFollowing: (status?: FollowStatus, page?: number, size?: number) =>
-    api.get<CustomResponse<PageResponse<UserResponseDto>>>('/users/me/following', {
+    api.get<CustomResponse<PageResponse<FollowUserResponseDto>>>('/users/me/following', {
       params: { status, page, size },
     }),
 
@@ -85,5 +87,13 @@ export const followApi = {
     api.get<CustomResponse<FollowCountResponseDto>>('/users/me/follow/count', {
       params: { status },
     }),
+
+  /**
+   * 팔로워 삭제 (Remove)
+   * 상대가 나를 팔로우하고 있는 관계를 강제로 종료시키는 행위
+   * DELETE /users/me/followers/{followerId}
+   */
+  removeFollower: (followerId: number) =>
+    api.delete<CustomResponse<void>>(`/users/me/followers/${followerId}`),
 };
 

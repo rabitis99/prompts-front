@@ -3,9 +3,10 @@
 export type {
   FollowStatus,
   FollowResponseDto,
+  FollowUserResponseDto,
   FollowCountResponseDto,
-  FollowStatusResponse,
-  FollowCountResponse,
-  FollowListResponse,
+  PendingDirection,
 } from './follow.types';
+
+export { normalizePendingDirection } from './follow.types';
 
