@@ -41,7 +41,7 @@ export function useFavoritePrompts({ pageSize = 20 }: UseFavoritePromptsOptions 
 
   const refresh = useCallback(() => {
     setPage(0);
-  }, [fetchFavorites]);
+  }, []);
 
   useEffect(() => {
     fetchFavorites(page);
@@ -54,9 +54,13 @@ export function useFavoritePrompts({ pageSize = 20 }: UseFavoritePromptsOptions 
     setPage((prev) => prev + 1);
   }, [isLoading, hasMore]);
 
-  const goToPage = useCallback((targetPage: number) => {
-    setPage(targetPage);
-  }, []);
+  const goToPage = useCallback(
+    (targetPage: number) => {
+      if (targetPage < 0 || targetPage >= totalPages) return;
+      setPage(targetPage);
+    },
+    [totalPages]
+  );
 
   return {
     prompts,

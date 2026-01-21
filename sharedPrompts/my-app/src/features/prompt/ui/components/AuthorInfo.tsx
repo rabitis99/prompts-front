@@ -93,6 +93,7 @@ export function AuthorInfo({ author, currentUserId }: AuthorInfoProps) {
       <button
         onClick={handleProfileClick}
         className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        aria-label={`${author.nickname} 프로필 보기`}
       >
         <div
           className={`w-8 h-8 rounded-full bg-gradient-to-br ${getAvatarGradient(

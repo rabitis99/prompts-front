@@ -37,12 +37,8 @@ export function useReports() {
       
       // 최신 요청인지 확인하고, 컴포넌트가 마운트되어 있는지 확인
       if (currentRequestId !== requestIdRef.current || !isMountedRef.current) {
-        setIsLoading(false);
         return;
       }
-
-      // 디버깅: API 응답 확인
-      console.log('Reports API Response:', response);
 
       // API 응답 형식 확인
       if (!response?.data?.data) {
@@ -72,7 +68,6 @@ export function useReports() {
       
       // 최신 요청인지 확인하고, 컴포넌트가 마운트되어 있는지 확인
       if (currentRequestId !== requestIdRef.current || !isMountedRef.current) {
-        setIsLoading(false);
         return;
       }
       

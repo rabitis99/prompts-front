@@ -93,11 +93,12 @@ export function useFollowList({
 
   const goToPage = useCallback(
     (targetPage: number) => {
+      if (targetPage < 0 || targetPage >= totalPages) return;
       if (targetPage === page) return;
       setPage(targetPage);
       loadUsers(targetPage, true);
     },
-    [page, loadUsers]
+    [page, totalPages, loadUsers]
   );
 
   const refresh = useCallback(async () => {

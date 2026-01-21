@@ -96,7 +96,7 @@ export function PromptDetailCard({
           <button
             onClick={onToggleLike}
             disabled={isLiking}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
               liked
                 ? 'bg-red-50 text-red-500 shadow-md shadow-red-100'
                 : 'bg-white text-slate-600 hover:bg-slate-100 shadow-sm'

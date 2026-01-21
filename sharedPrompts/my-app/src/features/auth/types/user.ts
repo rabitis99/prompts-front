@@ -51,19 +51,19 @@ export interface User {
 
 /**
  * 공개 프로필용 Follow 상태
+ * 백엔드 PublicFollowState enum과 일치
  */
 export type PublicFollowState = 'FOLLOWING' | 'PENDING' | 'NONE';
 
 /**
  * 다른 사용자의 공개 프로필 조회용 DTO
+ * 백엔드 UserPublicProfileDto와 JSON 필드 기준으로 정렬
  */
 export interface UserPublicProfileDto {
-  userId: number;
+  id: number;
   nickname: string;
-  profileImageUrl?: string;
-  bio?: string;
-  promptCount: number;
-  followerCount: number;
-  followingCount: number;
-  followStatus?: PublicFollowState;
+  thumbnail?: string;
+  followers_count: number;
+  following_count: number;
+  follow_state?: PublicFollowState;
 }

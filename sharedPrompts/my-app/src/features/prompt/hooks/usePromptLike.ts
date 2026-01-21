@@ -41,7 +41,7 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
     };
 
     checkLikeStatus();
-  }, [promptId]);
+  }, [promptId, setPrompt]);
 
   // 좋아요 토글
   const toggleLike = useCallback(async () => {
@@ -59,11 +59,15 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
       const { isLiked, like_count } = response.data.data;
       setLiked(isLiked);
 
-      if (prompt && typeof like_count === 'number') {
-        setPrompt({
-          ...prompt,
-          like_count,
-        });
+      if (typeof like_count === 'number') {
+        setPrompt((prev) =>
+          prev
+            ? {
+                ...prev,
+                like_count,
+              }
+            : prev,
+        );
       }
     } catch (error) {
       console.error('Failed to toggle like:', error);

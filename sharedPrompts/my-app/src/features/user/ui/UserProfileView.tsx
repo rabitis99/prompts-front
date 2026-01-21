@@ -5,6 +5,7 @@ import { userApi } from '@/features/auth/api/user.api';
 import { promptApi } from '@/features/prompt/api/prompt.api';
 import type { UserPublicProfileDto } from '@/features/auth/types/user';
 import type { PromptResponseDto, PromptSearchCondition } from '@/features/prompt/types/prompt.types';
+import { SortType } from '@/features/prompt/types/prompt.types';
 import type { PageResponse } from '@/shared/types/api';
 import { PromptCard } from '@/features/prompt/ui/components/PromptCard';
 import { usePromptActions } from '@/features/prompt/model/usePromptActions';
@@ -57,9 +58,11 @@ export function UserProfileView() {
         if (currentUserId && Number(userId) !== currentUserId) {
           checkFollowStatus();
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to load profile:', err);
-        setError(err.response?.data?.error?.message || '프로필을 불러오는데 실패했습니다.');
+        const message =
+          err instanceof Error ? err.message : '프로필을 불러오는데 실패했습니다.';
+        setError(message);
       } finally {
         setIsLoadingProfile(false);
       }
@@ -78,7 +81,7 @@ export function UserProfileView() {
         const condition: PromptSearchCondition = {
           page,
           size: 20,
-          sort: 'LATEST',
+          sort: SortType.LATEST,
         };
 
         const response = await promptApi.getUserPrompts(Number(userId), condition);
@@ -185,34 +188,31 @@ export function UserProfileView() {
             <div className="flex items-center gap-6 flex-1">
               <div
                 className={`w-24 h-24 rounded-full bg-gradient-to-br ${getAvatarGradient(
-                  profile.userId
+                  profile.id
                 )} shadow-lg flex items-center justify-center text-white text-3xl font-bold flex-shrink-0`}
               >
                 {profile.nickname?.[0] || '?'}
               </div>
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl font-bold text-slate-900 mb-2">{profile.nickname}</h1>
-                {profile.bio && (
-                  <p className="text-slate-600 mb-4">{profile.bio}</p>
-                )}
                 <div className="flex items-center gap-6 text-sm">
                   <div>
-                    <span className="font-semibold text-slate-900">{profile.promptCount}</span>
+                    <span className="font-semibold text-slate-900">{prompts.length}</span>
                     <span className="text-slate-500 ml-1">프롬프트</span>
                   </div>
                   <div>
-                    <span className="font-semibold text-slate-900">{profile.followerCount}</span>
+                    <span className="font-semibold text-slate-900">{profile.followers_count}</span>
                     <span className="text-slate-500 ml-1">팔로워</span>
                   </div>
                   <div>
-                    <span className="font-semibold text-slate-900">{profile.followingCount}</span>
+                    <span className="font-semibold text-slate-900">{profile.following_count}</span>
                     <span className="text-slate-500 ml-1">팔로잉</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 팔로우 버튼 */}
+            {/* 팔로우 버튼: 본인 프로필이 아니고, 차단되지 않았으며, 상태 확인이 완료된 경우 표시 */}
             {!isOwnProfile && followStatus !== 'BLOCKED' && (followStatus || !isChecking) && (
               <button
                 onClick={handleFollowClick}

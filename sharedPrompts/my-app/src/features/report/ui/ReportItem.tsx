@@ -15,17 +15,21 @@ interface ReportItemProps {
 export const ReportItem = memo(function ReportItem({ report }: ReportItemProps) {
   const navigate = useNavigate();
 
+  const isPromptReport = report.report_type === 'PROMPT';
+  const canNavigateToPrompt = isPromptReport && report.target_id != null;
+
   const handleClick = () => {
-    // 프롬프트 신고만 상세 페이지로 이동
-    if (report.report_type === 'PROMPT') {
-      navigate(`/prompts/${report.target_id}`);
-    }
+    if (!canNavigateToPrompt) return;
+    navigate(`/prompts/${report.target_id}`);
   };
 
+  const Container: React.ElementType = canNavigateToPrompt ? 'button' : 'div';
+
   return (
-    <button
-      type="button"
-      onClick={handleClick}
+    <Container
+      type={canNavigateToPrompt ? 'button' : undefined}
+      onClick={canNavigateToPrompt ? handleClick : undefined}
+      aria-disabled={!canNavigateToPrompt ? true : undefined}
       className="w-full text-left p-4 border border-neutral-200 rounded-xl hover:border-neutral-300 hover:bg-neutral-50 transition-colors"
     >
       <div className="flex items-start justify-between gap-4 mb-3">
@@ -52,6 +56,6 @@ export const ReportItem = memo(function ReportItem({ report }: ReportItemProps) 
           <span>수정일: {formatReportDate(report.updated_at)}</span>
         )}
       </div>
-    </button>
+    </Container>
   );
 });
