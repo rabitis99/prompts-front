@@ -5,6 +5,7 @@ import type {
   UserResponseDto,
   UserUpdateRequestDto,
   PasswordChangeRequestDto,
+  UserPublicProfileDto,
 } from '@/features/auth/types/user';
 
 // 기존 함수 (호환성 유지)
@@ -30,4 +31,8 @@ export const userApi = {
   // 회원 탈퇴
   deleteUser: (id: number) =>
     api.delete<void>(`/users/${id}`),
+
+  // 다른 사용자의 공개 프로필 조회
+  getPublicProfile: (userId: number) =>
+    api.get<CustomResponse<UserPublicProfileDto>>(`/users/${userId}`),
 };

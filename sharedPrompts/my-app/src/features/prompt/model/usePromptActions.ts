@@ -12,13 +12,14 @@ export function usePromptActions(
   prompt: PromptResponseDto | null,
   setPrompt: (prompt: PromptResponseDto | null) => void
 ) {
-  const { liked, toggleLike } = usePromptLike({ promptId, prompt, setPrompt });
+  const { liked, isProcessing, toggleLike } = usePromptLike({ promptId, prompt, setPrompt });
   const { isFavorite, toggleFavorite } = usePromptFavorite({ promptId, prompt, setPrompt });
   const { copied, handleCopy } = usePromptCopy({ prompt });
 
   // UI 호환성을 위해 bookmarked로 매핑 (기존 코드와의 호환성 유지)
   return {
     liked,
+    isLiking: isProcessing,
     bookmarked: isFavorite,
     copied,
     toggleLike,

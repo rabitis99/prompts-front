@@ -6,6 +6,7 @@ import { AuthorInfo } from './components/AuthorInfo';
 interface PromptDetailCardProps {
   prompt: PromptResponseDto;
   liked: boolean;
+  isLiking?: boolean;
   copied: boolean;
   currentUserId?: number | null;
   onToggleLike: () => void;
@@ -19,6 +20,7 @@ export function PromptDetailCard({
   copied,
   currentUserId,
   onToggleLike,
+  isLiking,
   onCopy,
   formatDate,
 }: PromptDetailCardProps) {
@@ -93,6 +95,7 @@ export function PromptDetailCard({
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleLike}
+            disabled={isLiking}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all ${
               liked
                 ? 'bg-red-50 text-red-500 shadow-md shadow-red-100'

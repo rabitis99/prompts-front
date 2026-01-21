@@ -48,3 +48,22 @@ export interface User {
   provider: string;
   status: boolean;
 }
+
+/**
+ * 공개 프로필용 Follow 상태
+ */
+export type PublicFollowState = 'FOLLOWING' | 'PENDING' | 'NONE';
+
+/**
+ * 다른 사용자의 공개 프로필 조회용 DTO
+ */
+export interface UserPublicProfileDto {
+  userId: number;
+  nickname: string;
+  profileImageUrl?: string;
+  bio?: string;
+  promptCount: number;
+  followerCount: number;
+  followingCount: number;
+  followStatus?: PublicFollowState;
+}

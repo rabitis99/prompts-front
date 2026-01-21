@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { promptApi } from '@/features/prompt/api/prompt.api';
 import { likeApi } from '@/features/like/api/like.api';
@@ -28,6 +28,8 @@ export function useHomeFeedView() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [isTogglingLike, setIsTogglingLike] = useState(false);
+  const togglingRef = useRef(false);
 
   // URL 파라미터 변경 시 상태 동기화 (브라우저 뒤로가기/앞으로가기 대응)
   useEffect(() => {
@@ -184,41 +186,36 @@ export function useHomeFeedView() {
   };
 
   const toggleLike = async (id: number) => {
-    const isLiked = likedIds.includes(id);
-    
-    // 낙관적 업데이트
-    setLikedIds((prev) => 
-      isLiked ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-    
-    // 프롬프트 목록의 좋아요 수 업데이트
-    setPrompts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? { ...p, like_count: isLiked ? p.like_count - 1 : p.like_count + 1 }
-          : p
-      )
-    );
-    
+    if (togglingRef.current) return;
+
+    setIsTogglingLike(true);
+    togglingRef.current = true;
+
     try {
-      if (isLiked) {
-        await likeApi.unlikePrompt(id);
-      } else {
-        await likeApi.likePrompt(id);
-      }
-    } catch (error) {
-      // 에러 발생 시 롤백
-      setLikedIds((prev) => 
+      const isCurrentlyLiked = likedIds.includes(id);
+
+      const response = isCurrentlyLiked
+        ? await likeApi.unlikePrompt(id)
+        : await likeApi.likePrompt(id);
+
+      const { isLiked, like_count } = response.data.data;
+
+      // 좋아요 아이디 목록 동기화
+      setLikedIds((prev) =>
         isLiked ? [...prev, id] : prev.filter((i) => i !== id)
       );
+
+      // 프롬프트 목록의 like_count를 서버 값으로 동기화
       setPrompts((prev) =>
         prev.map((p) =>
-          p.id === id
-            ? { ...p, like_count: isLiked ? p.like_count + 1 : p.like_count - 1 }
-            : p
+          p.id === id ? { ...p, like_count } : p
         )
       );
+    } catch (error) {
       console.error('Failed to toggle like:', error);
+    } finally {
+      setIsTogglingLike(false);
+      togglingRef.current = false;
     }
   };
 
@@ -284,6 +281,7 @@ export function useHomeFeedView() {
     isLoading,
     hasMore,
     error,
+    isTogglingLike,
     handleCopy,
     toggleLike,
     handleResetFilters,

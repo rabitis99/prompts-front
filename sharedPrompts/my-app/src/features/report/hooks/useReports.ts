@@ -11,11 +11,15 @@ export function useReports() {
   const [hasMore, setHasMore] = useState(true);
   // 레이스 컨디션 방지를 위한 요청 ID 추적
   const requestIdRef = useRef(0);
-  // 언마운트 여부 추적
+  // 언마운트 여부 추적 (React StrictMode에서도 안전하게 동작하도록 명시적으로 관리)
   const isMountedRef = useRef(true);
 
   useEffect(() => {
+    // 마운트 시점에 true로 설정
+    isMountedRef.current = true;
+
     return () => {
+      // 언마운트 시점에 false로 설정
       isMountedRef.current = false;
     };
   }, []);

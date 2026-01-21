@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { ArrowLeft, Share2, Bookmark, BookmarkCheck, MoreHorizontal, Flag, Edit, Trash2 } from 'lucide-react';
 
 interface PromptDetailHeaderProps {
@@ -23,6 +24,25 @@ export function PromptDetailHeader({
   onDelete,
   onReport,
 }: PromptDetailHeaderProps) {
+  const moreMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!showMore) return;
+
+      const target = event.target as Node | null;
+      if (moreMenuRef.current && target && !moreMenuRef.current.contains(target)) {
+        onToggleShowMore();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMore, onToggleShowMore]);
+
   return (
     <header className="bg-white/70 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -48,7 +68,7 @@ export function PromptDetailHeader({
           <button className="p-2.5 rounded-xl hover:bg-slate-100 text-slate-400 transition-all">
             <Share2 className="w-5 h-5" />
           </button>
-          <div className="relative">
+          <div className="relative" ref={moreMenuRef}>
             <button
               onClick={onToggleShowMore}
               className="p-2.5 rounded-xl hover:bg-slate-100 text-slate-400 transition-all"
