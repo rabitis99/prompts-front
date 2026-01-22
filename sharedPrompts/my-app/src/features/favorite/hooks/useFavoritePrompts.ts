@@ -39,9 +39,14 @@ export function useFavoritePrompts({ pageSize = 20 }: UseFavoritePromptsOptions 
     [pageSize]
   );
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async () => {
     setPage(0);
-  }, []);
+    setPrompts([]);
+    setHasMore(true);
+    setError(null);
+    // 이미 첫 페이지에 있어도 강제로 새로고침
+    await fetchFavorites(0);
+  }, [fetchFavorites]);
 
   useEffect(() => {
     fetchFavorites(page);

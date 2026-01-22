@@ -32,15 +32,15 @@ export function FollowActionButton({
     'rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2';
 
   const sizeClasses = {
-    md: 'py-3 text-sm',
-    sm: 'py-2 text-xs',
+    md: 'px-4 py-3 text-sm',
+    sm: 'px-3 py-2 text-xs',
   } satisfies Record<ButtonSize, string>;
   
   const variantClasses = {
     primary: 'bg-violet-600 text-white hover:bg-violet-700',
     secondary: 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200',
     danger: 'bg-red-100 text-red-700 hover:bg-red-200',
-  };
+  } satisfies Record<ButtonVariant, string>;
 
   return (
     <button

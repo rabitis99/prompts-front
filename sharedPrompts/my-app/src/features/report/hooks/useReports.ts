@@ -50,9 +50,6 @@ export function useReports() {
 
       const pageData = response.data.data;
       const newReports = pageData.content || [];
-      
-      console.log('Parsed reports:', newReports);
-      console.log('Reports count:', newReports.length);
 
       if (reset) {
         setReports(newReports);
@@ -63,7 +60,7 @@ export function useReports() {
       // last 필드가 없으면 content 길이로 판단
       const isLast = pageData.last ?? newReports.length < REPORT_CONSTANTS.PAGE_SIZE;
       setHasMore(!isLast);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load reports:', err);
       
       // 최신 요청인지 확인하고, 컴포넌트가 마운트되어 있는지 확인
@@ -71,9 +68,10 @@ export function useReports() {
         return;
       }
       
-      setError(
-        err.response?.data?.message || err.message || '신고 내역을 불러오는데 실패했습니다.'
-      );
+      const errorMessage =
+        (err as any)?.response?.data?.message ||
+        (err instanceof Error ? err.message : '신고 내역을 불러오는데 실패했습니다.');
+      setError(errorMessage);
     } finally {
       // 최신 요청인지 확인하고, 컴포넌트가 마운트되어 있는지 확인
       if (currentRequestId === requestIdRef.current && isMountedRef.current) {

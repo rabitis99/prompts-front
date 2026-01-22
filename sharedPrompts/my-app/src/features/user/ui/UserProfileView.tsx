@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { userApi } from '@/features/auth/api/user.api';
 import { promptApi } from '@/features/prompt/api/prompt.api';
+import { likeApi } from '@/features/like/api/like.api';
 import type { UserPublicProfileDto } from '@/features/auth/types/user';
 import type { PromptResponseDto, PromptSearchCondition } from '@/features/prompt/types/prompt.types';
 import { SortType } from '@/features/prompt/types/prompt.types';
 import type { PageResponse } from '@/shared/types/api';
 import { PromptCard } from '@/features/prompt/ui/components/PromptCard';
-import { usePromptActions } from '@/features/prompt/model/usePromptActions';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useFollowActions } from '@/features/follow/hooks/useFollowActions';
 import { getAvatarGradient } from '@/features/prompt/ui/utils';
@@ -22,11 +22,13 @@ export function UserProfileView() {
   const [prompts, setPrompts] = useState<PromptResponseDto[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [totalPromptCount, setTotalPromptCount] = useState(0);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isLoadingPrompts, setIsLoadingPrompts] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const { isLiked, isCopied, handleToggleLike, handleCopy } = usePromptActions();
+  const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [togglingLikeIds, setTogglingLikeIds] = useState<Set<number>>(new Set());
 
   const {
     followStatus,
@@ -89,12 +91,65 @@ export function UserProfileView() {
 
         if (page === 0) {
           setPrompts(data.content);
+          setTotalPromptCount(data.total_elements ?? 0);
+          
+          // 좋아요 상태 확인
+          const checkLikes = async () => {
+            try {
+              const likeStatuses = await Promise.allSettled(
+                data.content.map((prompt) =>
+                  likeApi.checkPromptLike(prompt.id).then((res) => ({
+                    promptId: prompt.id,
+                    isLiked: res.data.data.isLiked,
+                  }))
+                )
+              );
+              
+              const liked = new Set<number>();
+              likeStatuses.forEach((result) => {
+                if (result.status === 'fulfilled' && result.value.isLiked) {
+                  liked.add(result.value.promptId);
+                }
+              });
+              setLikedIds(liked);
+            } catch (err) {
+              console.error('Failed to check likes:', err);
+            }
+          };
+          checkLikes();
         } else {
           setPrompts((prev) => [...prev, ...data.content]);
+          
+          // 새로 추가된 프롬프트의 좋아요 상태 확인
+          const checkNewLikes = async () => {
+            try {
+              const likeStatuses = await Promise.allSettled(
+                data.content.map((prompt) =>
+                  likeApi.checkPromptLike(prompt.id).then((res) => ({
+                    promptId: prompt.id,
+                    isLiked: res.data.data.isLiked,
+                  }))
+                )
+              );
+              
+              setLikedIds((prev) => {
+                const updated = new Set(prev);
+                likeStatuses.forEach((result) => {
+                  if (result.status === 'fulfilled' && result.value.isLiked) {
+                    updated.add(result.value.promptId);
+                  }
+                });
+                return updated;
+              });
+            } catch (err) {
+              console.error('Failed to check new likes:', err);
+            }
+          };
+          checkNewLikes();
         }
 
         setHasMore(!data.last && data.content.length > 0);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to load prompts:', err);
       } finally {
         setIsLoadingPrompts(false);
@@ -104,6 +159,8 @@ export function UserProfileView() {
     loadPrompts();
   }, [userId, page, isLoadingProfile]);
 
+  // followStatus는 useFollowActions에서 반환하는 FollowStatus 타입
+  // (PublicFollowState와는 별개로 전체 상태를 포함)
   const handleFollowClick = async () => {
     if (isFollowLoading || isChecking) return;
 
@@ -117,6 +174,53 @@ export function UserProfileView() {
       console.error('Follow action failed:', error);
     }
   };
+
+  const handleToggleLike = useCallback(async (promptId: number) => {
+    if (togglingLikeIds.has(promptId)) return;
+    
+    setTogglingLikeIds((prev) => new Set(prev).add(promptId));
+    
+    try {
+      const isCurrentlyLiked = likedIds.has(promptId);
+      const response = isCurrentlyLiked
+        ? await likeApi.unlikePrompt(promptId)
+        : await likeApi.likePrompt(promptId);
+      
+      const { isLiked, like_count } = response.data.data;
+      
+      setLikedIds((prev) => {
+        const updated = new Set(prev);
+        if (isLiked) {
+          updated.add(promptId);
+        } else {
+          updated.delete(promptId);
+        }
+        return updated;
+      });
+      
+      setPrompts((prev) =>
+        prev.map((p) => (p.id === promptId ? { ...p, like_count } : p))
+      );
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
+    } finally {
+      setTogglingLikeIds((prev) => {
+        const updated = new Set(prev);
+        updated.delete(promptId);
+        return updated;
+      });
+    }
+  }, [likedIds, togglingLikeIds]);
+
+  const handleCopy = useCallback(async (promptId: number, content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedId(promptId);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy prompt:', err);
+    }
+  }, []);
 
   const getFollowButtonText = () => {
     if (isChecking) return '확인 중...';
@@ -197,7 +301,7 @@ export function UserProfileView() {
                 <h1 className="text-2xl font-bold text-slate-900 mb-2">{profile.nickname}</h1>
                 <div className="flex items-center gap-6 text-sm">
                   <div>
-                    <span className="font-semibold text-slate-900">{prompts.length}</span>
+                    <span className="font-semibold text-slate-900">{totalPromptCount}</span>
                     <span className="text-slate-500 ml-1">프롬프트</span>
                   </div>
                   <div>
@@ -243,8 +347,8 @@ export function UserProfileView() {
                   <PromptCard
                     key={prompt.id}
                     prompt={prompt}
-                    isLiked={isLiked(prompt.id)}
-                    isCopied={isCopied(prompt.id)}
+                    isLiked={likedIds.has(prompt.id)}
+                    isCopied={copiedId === prompt.id}
                     onToggleLike={handleToggleLike}
                     onCopy={handleCopy}
                   />

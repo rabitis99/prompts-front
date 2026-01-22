@@ -71,6 +71,8 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
       }
     } catch (error) {
       console.error('Failed to toggle like:', error);
+      // TODO: 사용자에게 좋아요 실패에 대한 피드백 제공 (예: toast 또는 snackbar)
+      // toast.error('좋아요 처리에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsProcessing(false);
       processingRef.current = false;

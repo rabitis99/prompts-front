@@ -29,8 +29,11 @@ export const ReportItem = memo(function ReportItem({ report }: ReportItemProps) 
     <Container
       type={canNavigateToPrompt ? 'button' : undefined}
       onClick={canNavigateToPrompt ? handleClick : undefined}
-      aria-disabled={!canNavigateToPrompt ? true : undefined}
-      className="w-full text-left p-4 border border-neutral-200 rounded-xl hover:border-neutral-300 hover:bg-neutral-50 transition-colors"
+      className={`w-full text-left p-4 border border-neutral-200 rounded-xl transition-colors ${
+        canNavigateToPrompt
+          ? 'hover:border-neutral-300 hover:bg-neutral-50 cursor-pointer'
+          : 'cursor-default'
+      }`}
     >
       <div className="flex items-start justify-between gap-4 mb-3">
         <div className="flex-1">
