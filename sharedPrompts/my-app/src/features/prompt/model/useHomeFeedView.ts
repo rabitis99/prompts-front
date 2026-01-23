@@ -28,6 +28,7 @@ export function useHomeFeedView() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [togglingLikeIds, setTogglingLikeIds] = useState<Set<number>>(new Set());
 
   // URL 파라미터 변경 시 상태 동기화 (브라우저 뒤로가기/앞으로가기 대응)
   useEffect(() => {
@@ -77,76 +78,46 @@ export function useHomeFeedView() {
         const newPrompts = response.data.data.content;
         const totalElements = response.data.data.total_elements ?? 0;
         
+        // 좋아요 상태 확인 헬퍼 함수
+        const checkPromptsLikes = async (promptsToCheck: PromptResponseDto[], append: boolean) => {
+          try {
+            const likeStatuses = await Promise.allSettled(
+              promptsToCheck.map((prompt) =>
+                likeApi.checkPromptLike(prompt.id).then((res) => ({
+                  promptId: prompt.id,
+                  isLiked: res.data.data.isLiked,
+                }))
+              )
+            );
+
+            const liked = likeStatuses
+              .filter((result): result is PromiseFulfilledResult<{ promptId: number; isLiked: boolean }> => 
+                result.status === 'fulfilled'
+              )
+              .map((result) => result.value)
+              .filter((item) => item.isLiked)
+              .map((item) => item.promptId);
+
+            if (append) {
+              setLikedIds((prev) => [...prev, ...liked]);
+            } else {
+              setLikedIds(liked);
+            }
+          } catch (err) {
+            console.error('Failed to check prompts like statuses:', err);
+            if (!append) {
+              setLikedIds([]);
+            }
+          }
+        };
+
         if (page === 0) {
           setPrompts(newPrompts);
           setTotalCount(totalElements);
-          
-          // 각 프롬프트의 좋아요 상태 확인
-          const checkPromptsLikes = async () => {
-            try {
-              const likeStatuses = await Promise.allSettled(
-                newPrompts.map((prompt) =>
-                  likeApi.checkPromptLike(prompt.id).then((res) => ({
-                    promptId: prompt.id,
-                    isLiked: res.data.data.isLiked,
-                  }))
-                )
-              );
-
-              const likedIds = likeStatuses
-                .filter((result) => result.status === 'fulfilled')
-                .map((result) => {
-                  if (result.status === 'fulfilled') {
-                    return result.value;
-                  }
-                  return null;
-                })
-                .filter((item): item is { promptId: number; isLiked: boolean } => item !== null)
-                .filter((item) => item.isLiked)
-                .map((item) => item.promptId);
-
-              setLikedIds(likedIds);
-            } catch (err) {
-              console.error('Failed to check prompts like statuses:', err);
-              setLikedIds([]);
-            }
-          };
-
-          checkPromptsLikes();
+          await checkPromptsLikes(newPrompts, false);
         } else {
           setPrompts((prev) => [...prev, ...newPrompts]);
-          
-          // 새로 추가된 프롬프트의 좋아요 상태 확인
-          const checkNewPromptsLikes = async () => {
-            try {
-              const likeStatuses = await Promise.allSettled(
-                newPrompts.map((prompt) =>
-                  likeApi.checkPromptLike(prompt.id).then((res) => ({
-                    promptId: prompt.id,
-                    isLiked: res.data.data.isLiked,
-                  }))
-                )
-              );
-
-              const likedIds = likeStatuses
-                .filter((result) => result.status === 'fulfilled')
-                .map((result) => {
-                  if (result.status === 'fulfilled') {
-                    return result.value;
-                  }
-                  return null;
-                })
-                .filter((item): item is { promptId: number; isLiked: boolean } => item !== null)
-                .filter((item) => item.isLiked)
-                .map((item) => item.promptId);
-
-              setLikedIds((prev) => [...prev, ...likedIds]);
-            } catch (err) {
-              console.error('Failed to check new prompts like statuses:', err);
-            }
-          };
-
-          checkNewPromptsLikes();
+          await checkPromptsLikes(newPrompts, true);
         }
         
         setHasMore(newPrompts.length === PAGE_SIZE);
@@ -184,41 +155,43 @@ export function useHomeFeedView() {
   };
 
   const toggleLike = async (id: number) => {
-    const isLiked = likedIds.includes(id);
-    
-    // 낙관적 업데이트
-    setLikedIds((prev) => 
-      isLiked ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-    
-    // 프롬프트 목록의 좋아요 수 업데이트
-    setPrompts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? { ...p, like_count: isLiked ? p.like_count - 1 : p.like_count + 1 }
-          : p
-      )
-    );
-    
+    if (togglingLikeIds.has(id)) return;
+
+    setTogglingLikeIds((prev) => new Set(prev).add(id));
+
     try {
-      if (isLiked) {
-        await likeApi.unlikePrompt(id);
-      } else {
-        await likeApi.likePrompt(id);
-      }
-    } catch (error) {
-      // 에러 발생 시 롤백
-      setLikedIds((prev) => 
-        isLiked ? [...prev, id] : prev.filter((i) => i !== id)
+      const isCurrentlyLiked = likedIds.includes(id);
+
+      const response = isCurrentlyLiked
+        ? await likeApi.unlikePrompt(id)
+        : await likeApi.likePrompt(id);
+
+      const { isLiked, like_count } = response.data.data;
+
+      // 좋아요 아이디 목록 동기화
+      setLikedIds((prev) =>
+        isLiked 
+          ? prev.includes(id) ? prev : [...prev, id]
+          : prev.filter((i) => i !== id)
       );
+
+      // 프롬프트 목록의 like_count를 서버 값으로 동기화
       setPrompts((prev) =>
         prev.map((p) =>
-          p.id === id
-            ? { ...p, like_count: isLiked ? p.like_count + 1 : p.like_count - 1 }
-            : p
+          p.id === id ? { ...p, like_count } : p
         )
       );
+    } catch (error) {
       console.error('Failed to toggle like:', error);
+      // TODO: 사용자에게 좋아요 실패에 대한 피드백 제공 (예: toast 또는 snackbar)
+      // Toast 알림 시스템이 구현되면 아래 주석을 해제하고 사용하세요:
+      // toast.error('좋아요 처리에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setTogglingLikeIds((prev) => {
+        const updated = new Set(prev);
+        updated.delete(id);
+        return updated;
+      });
     }
   };
 
@@ -284,6 +257,7 @@ export function useHomeFeedView() {
     isLoading,
     hasMore,
     error,
+    isTogglingLike: (id: number) => togglingLikeIds.has(id),
     handleCopy,
     toggleLike,
     handleResetFilters,

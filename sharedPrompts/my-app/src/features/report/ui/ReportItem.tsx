@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { ReportResponseDto } from '../types/report.types';
 import {
   REPORT_TYPE_DISPLAY_NAMES,
@@ -12,16 +13,34 @@ interface ReportItemProps {
 }
 
 export const ReportItem = memo(function ReportItem({ report }: ReportItemProps) {
+  const navigate = useNavigate();
+
+  const isPromptReport = report.report_type === 'PROMPT';
+  const canNavigateToPrompt = isPromptReport && report.target_id != null;
+
+  const handleClick = () => {
+    if (!canNavigateToPrompt) return;
+    navigate(`/prompts/${report.target_id}`);
+  };
+
+  const Container: React.ElementType = canNavigateToPrompt ? 'button' : 'div';
+
   return (
-    <div className="p-4 border border-neutral-200 rounded-xl hover:border-neutral-300 transition-colors">
+    <Container
+      type={canNavigateToPrompt ? 'button' : undefined}
+      onClick={canNavigateToPrompt ? handleClick : undefined}
+      className={`w-full text-left p-4 border border-neutral-200 rounded-xl transition-colors ${
+        canNavigateToPrompt
+          ? 'hover:border-neutral-300 hover:bg-neutral-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2'
+          : 'cursor-default'
+      }`}
+    >
       <div className="flex items-start justify-between gap-4 mb-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-sm font-semibold text-neutral-700">
               {REPORT_TYPE_DISPLAY_NAMES[report.report_type]}
             </span>
-            <span className="text-sm text-neutral-400">•</span>
-            <span className="text-sm text-neutral-600">ID: {report.target_id}</span>
           </div>
           <div className="text-sm font-medium text-neutral-900 mb-1">
             {REPORT_REASON_DISPLAY_NAMES[report.reason]}
@@ -40,6 +59,6 @@ export const ReportItem = memo(function ReportItem({ report }: ReportItemProps) 
           <span>수정일: {formatReportDate(report.updated_at)}</span>
         )}
       </div>
-    </div>
+    </Container>
   );
 });

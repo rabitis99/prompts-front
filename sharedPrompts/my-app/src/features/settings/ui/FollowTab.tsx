@@ -3,6 +3,7 @@ import { Users, Loader2, Ban } from 'lucide-react';
 import { useFollowList } from '@/features/follow/hooks/useFollowList';
 import { UserListItem } from './components/UserListItem';
 import type { FollowUserResponseDto } from '@/features/follow/types/follow.types';
+import { Pagination } from '@/shared/ui/Pagination';
 
 interface FollowTabProps {
   followCount: { followersCount: number; followingCount: number };
@@ -10,17 +11,21 @@ interface FollowTabProps {
   onShowBlockedUsers?: () => void;
 }
 
+const PAGE_SIZE = 20;
+
 export function FollowTab({ followCount, onUserClick, onShowBlockedUsers }: FollowTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<'followers' | 'following'>('followers');
 
   const followers = useFollowList({
     type: 'followers',
     autoLoad: activeSubTab === 'followers',
+    pageSize: PAGE_SIZE,
   });
 
   const following = useFollowList({
     type: 'following',
     autoLoad: activeSubTab === 'following',
+    pageSize: PAGE_SIZE,
   });
 
   const currentList = activeSubTab === 'followers' ? followers : following;
@@ -116,16 +121,14 @@ export function FollowTab({ followCount, onUserClick, onShowBlockedUsers }: Foll
           </div>
         )}
 
-        {/* 더 보기 버튼 */}
-        {currentList.hasMore && currentList.users.length > 0 && (
-          <div className="text-center pt-4 mt-4 border-t border-neutral-100">
-            <button
-              onClick={currentList.loadMore}
-              disabled={currentList.isLoading}
-              className="px-6 py-2 text-sm font-medium text-violet-600 hover:text-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {currentList.isLoading ? '불러오는 중...' : '더 보기'}
-            </button>
+        {/* Pagination */}
+        {currentList.totalPages > 1 && currentList.users.length > 0 && (
+          <div className="flex justify-center pt-6 mt-6 border-t border-neutral-100">
+            <Pagination
+              currentPage={currentList.page + 1}
+              totalPages={currentList.totalPages}
+              onPageChange={(nextPage) => currentList.goToPage(nextPage - 1)}
+            />
           </div>
         )}
       </div>

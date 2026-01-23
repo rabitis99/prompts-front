@@ -109,9 +109,7 @@ export function PromptCard({
               }`}
             >
               <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500' : ''}`} />
-              <span className="text-xs font-semibold">
-                {isLiked ? (prompt.like_count + 1) : prompt.like_count}
-              </span>
+              <span className="text-xs font-semibold">{prompt.like_count}</span>
             </button>
           ) : (
             <span className="flex items-center gap-1.5 text-slate-400">

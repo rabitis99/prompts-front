@@ -20,8 +20,10 @@ export function useFollowList({
   const [users, setUsers] = useState<FollowUserResponseDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(0); // 0-based
   const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const requestIdRef = useRef(0);
 
   const loadUsers = useCallback(
@@ -53,7 +55,14 @@ export function useFollowList({
           setUsers((prev) => [...prev, ...newUsers]);
         }
 
+        const totalElements = data.total_elements ?? newUsers.length;
+        const calculatedTotalPages =
+          data.total_pages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+
         setHasMore(!data.last);
+        setTotalCount(totalElements);
+        setTotalPages(calculatedTotalPages);
+        setPage(data.page ?? targetPage);
       } catch (err) {
         // 레이스 컨디션 방지: 최신 요청인지 확인
         if (currentRequestId !== requestIdRef.current) return;
@@ -82,6 +91,16 @@ export function useFollowList({
     loadUsers(nextPage, false);
   }, [isLoading, hasMore, page, loadUsers]);
 
+  const goToPage = useCallback(
+    (targetPage: number) => {
+      if (targetPage < 0 || targetPage >= totalPages) return;
+      if (targetPage === page) return;
+      setPage(targetPage);
+      loadUsers(targetPage, true);
+    },
+    [page, totalPages, loadUsers]
+  );
+
   const refresh = useCallback(async () => {
     setPage(0);
     setUsers([]);
@@ -104,7 +123,11 @@ export function useFollowList({
     error,
     hasMore,
     loadMore,
+    page,
+    totalCount,
+    totalPages,
     refresh,
+    goToPage,
   };
 }
 

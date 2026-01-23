@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UserPlus, UserCheck, Loader2 } from 'lucide-react';
 import { useFollowActions } from '@/features/follow/hooks/useFollowActions';
 import type { UserResponseDto } from '@/features/auth/types/user';
@@ -10,6 +11,7 @@ interface AuthorInfoProps {
 }
 
 export function AuthorInfo({ author, currentUserId }: AuthorInfoProps) {
+  const navigate = useNavigate();
   const {
     followStatus,
     isLoading,
@@ -20,6 +22,12 @@ export function AuthorInfo({ author, currentUserId }: AuthorInfoProps) {
   } = useFollowActions({
     userId: author.id,
   });
+
+  const handleProfileClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/users/${author.id}`);
+  };
 
   // 작성자 정보 로드 시 팔로우 상태 확인
   useEffect(() => {
@@ -82,7 +90,11 @@ export function AuthorInfo({ author, currentUserId }: AuthorInfoProps) {
 
   return (
     <div className="flex items-center gap-2 ml-auto">
-      <div className="flex items-center gap-2">
+      <button
+        onClick={handleProfileClick}
+        className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        aria-label={`${author.nickname} 프로필 보기`}
+      >
         <div
           className={`w-8 h-8 rounded-full bg-gradient-to-br ${getAvatarGradient(
             author.id
@@ -96,7 +108,7 @@ export function AuthorInfo({ author, currentUserId }: AuthorInfoProps) {
             <span className="text-xs text-slate-500 truncate">{author.job}</span>
           )}
         </div>
-      </div>
+      </button>
       
       {/* 팔로우 버튼 */}
       {!isOwnProfile && followStatus !== 'BLOCKED' && (followStatus || !isChecking) && (

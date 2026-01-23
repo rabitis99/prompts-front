@@ -58,6 +58,7 @@ export function PromptDetailView() {
     handleOpenReportModal,
     handleOpenCommentReportModal,
     handleCloseReportModal,
+    isLiking,
   } = usePromptDetailView();
 
   if (isLoading) {
@@ -105,6 +106,7 @@ export function PromptDetailView() {
             <PromptDetailCard
               prompt={prompt}
               liked={liked}
+              isLiking={isLiking}
               copied={copied}
               currentUserId={currentUserId}
               onToggleLike={toggleLike}

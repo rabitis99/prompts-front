@@ -48,7 +48,7 @@ export function BlockedUsersModal({ isOpen, onClose, onSuccess }: BlockedUsersMo
       aria-labelledby="blocked-users-modal-title"
     >
       <div
-        className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] shadow-xl animate-in zoom-in-95 flex flex-col"
+        className="bg-white rounded-2xl p-5 md:p-6 max-w-lg w-full max-h-[70vh] shadow-xl animate-in zoom-in-95 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
@@ -171,7 +171,8 @@ function BlockedUserItem({ user, onUnblock, isLoading }: BlockedUserItemProps) {
           onClick={handleUnblock}
           isLoading={isUnblocking || isLoading}
           variant="secondary"
-          icon={<Ban className={ICON_SIZE.MEDIUM} />}
+          fullWidth={false}
+          icon={<Ban className={ICON_SIZE.SMALL} />}
         >
           {FOLLOW_BUTTON_TEXT.UNBLOCK}
         </FollowActionButton>

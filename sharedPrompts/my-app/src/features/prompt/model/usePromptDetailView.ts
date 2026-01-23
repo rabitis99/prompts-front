@@ -68,7 +68,7 @@ export function usePromptDetailView() {
   const { relatedPrompts } = useRelatedPrompts(prompt);
 
   // 프롬프트 액션 (좋아요, 북마크, 복사)
-  const { liked, bookmarked, copied, toggleLike, toggleBookmark, handleCopy } = usePromptActions(
+  const { liked, isLiking, bookmarked, copied, toggleLike, toggleBookmark, handleCopy } = usePromptActions(
     promptId,
     prompt,
     setPrompt
@@ -204,6 +204,7 @@ export function usePromptDetailView() {
     handleOpenReportModal,
     handleOpenCommentReportModal,
     handleCloseReportModal,
+    isLiking,
   };
 }
 

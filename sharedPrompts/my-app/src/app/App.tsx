@@ -13,6 +13,7 @@ import NotificationsPage from "@/pages/NotificationsPage";
 import PromptDetailPage from "@/pages/PromptDetailPage";
 import CreatePromptPage from "@/pages/CreatePromptPage";
 import AdminPage from "@/pages/AdminPage";
+import UserProfilePage from "@/pages/UserProfilePage";
 import { fetchMe } from "@/features/auth/api/user.api";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 
@@ -65,6 +66,7 @@ export default function App() {
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/prompts/create" element={<CreatePromptPage />} />
           <Route path="/prompts/:id" element={<PromptDetailPage />} />
+          <Route path="/users/:userId" element={<UserProfilePage />} />
           <Route path="/admin" element={<AdminPage />} />
         </Route>
       </Routes>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { AxiosError } from 'axios';
 import { reportApi } from '../api/report.api';
 import type { ReportResponseDto } from '../types/report.types';
 import { REPORT_CONSTANTS } from '../constants/report.constants';
@@ -11,11 +12,15 @@ export function useReports() {
   const [hasMore, setHasMore] = useState(true);
   // 레이스 컨디션 방지를 위한 요청 ID 추적
   const requestIdRef = useRef(0);
-  // 언마운트 여부 추적
+  // 언마운트 여부 추적 (React StrictMode에서도 안전하게 동작하도록 명시적으로 관리)
   const isMountedRef = useRef(true);
 
   useEffect(() => {
+    // 마운트 시점에 true로 설정
+    isMountedRef.current = true;
+
     return () => {
+      // 언마운트 시점에 false로 설정
       isMountedRef.current = false;
     };
   }, []);
@@ -33,12 +38,8 @@ export function useReports() {
       
       // 최신 요청인지 확인하고, 컴포넌트가 마운트되어 있는지 확인
       if (currentRequestId !== requestIdRef.current || !isMountedRef.current) {
-        setIsLoading(false);
         return;
       }
-
-      // 디버깅: API 응답 확인
-      console.log('Reports API Response:', response);
 
       // API 응답 형식 확인
       if (!response?.data?.data) {
@@ -50,9 +51,6 @@ export function useReports() {
 
       const pageData = response.data.data;
       const newReports = pageData.content || [];
-      
-      console.log('Parsed reports:', newReports);
-      console.log('Reports count:', newReports.length);
 
       if (reset) {
         setReports(newReports);
@@ -63,18 +61,18 @@ export function useReports() {
       // last 필드가 없으면 content 길이로 판단
       const isLast = pageData.last ?? newReports.length < REPORT_CONSTANTS.PAGE_SIZE;
       setHasMore(!isLast);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load reports:', err);
       
       // 최신 요청인지 확인하고, 컴포넌트가 마운트되어 있는지 확인
       if (currentRequestId !== requestIdRef.current || !isMountedRef.current) {
-        setIsLoading(false);
         return;
       }
       
-      setError(
-        err.response?.data?.message || err.message || '신고 내역을 불러오는데 실패했습니다.'
-      );
+      const errorMessage =
+        (err instanceof AxiosError && err.response?.data?.message) ||
+        (err instanceof Error ? err.message : '신고 내역을 불러오는데 실패했습니다.');
+      setError(errorMessage);
     } finally {
       // 최신 요청인지 확인하고, 컴포넌트가 마운트되어 있는지 확인
       if (currentRequestId === requestIdRef.current && isMountedRef.current) {
@@ -98,16 +96,14 @@ export function useReports() {
   // 초기 로드
   useEffect(() => {
     loadReports(0, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadReports]);
 
   // 페이지 변경 시 추가 로드
   useEffect(() => {
     if (page > 0) {
       loadReports(page, false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, loadReports]);
 
   return {
     reports,

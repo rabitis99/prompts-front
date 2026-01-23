@@ -3,10 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useFavoritePrompts } from '@/features/favorite/hooks/useFavoritePrompts';
 import { PromptCard } from '@/features/prompt/ui/components/PromptCard';
 import { BookmarkCheck } from 'lucide-react';
+import { Pagination } from '@/shared/ui/Pagination';
+
+const PAGE_SIZE = 20;
 
 export function FavoritesTab() {
   const navigate = useNavigate();
-  const { prompts, isLoading, error, hasMore, loadMore, refresh } = useFavoritePrompts();
+  const { prompts, isLoading, error, page, totalPages, refresh, goToPage } = useFavoritePrompts({
+    pageSize: PAGE_SIZE,
+  });
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const handleCopy = async (id: number, content: string) => {
@@ -84,16 +89,14 @@ export function FavoritesTab() {
         ))}
       </div>
 
-      {/* Load More */}
-      {hasMore && (
-        <div className="text-center pt-4">
-          <button
-            onClick={loadMore}
-            disabled={isLoading}
-            className="px-6 py-3 bg-white border border-neutral-200 text-neutral-700 text-sm font-semibold rounded-lg hover:border-violet-300 hover:text-violet-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? '불러오는 중...' : '더 보기'}
-          </button>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center pt-6">
+          <Pagination
+            currentPage={page + 1}
+            totalPages={totalPages}
+            onPageChange={(nextPage) => goToPage(nextPage - 1)}
+          />
         </div>
       )}
     </div>

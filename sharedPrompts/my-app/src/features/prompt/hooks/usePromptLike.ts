@@ -1,15 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { likeApi } from '@/features/like/api/like.api';
 import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
 
 interface UsePromptLikeOptions {
   promptId: number | null;
   prompt: PromptResponseDto | null;
-  setPrompt: (prompt: PromptResponseDto | null) => void;
+  setPrompt: (prompt: PromptResponseDto | null | ((prev: PromptResponseDto | null) => PromptResponseDto | null)) => void;
 }
 
 export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOptions) {
   const [liked, setLiked] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const processingRef = useRef(false);
 
   // 프롬프트 로드 시 좋아요 상태 확인
   useEffect(() => {
@@ -18,7 +20,21 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
     const checkLikeStatus = async () => {
       try {
         const response = await likeApi.checkPromptLike(promptId);
-        setLiked(response.data.data.isLiked);
+        const { isLiked, like_count } = response.data.data;
+        setLiked(isLiked);
+
+        // 서버에서 내려준 최신 like_count로 동기화
+        // 프롬프트 전환 시 응답 레이스 컨디션 방지: 현재 promptId와 일치하는 경우에만 업데이트
+        if (typeof like_count === 'number') {
+          setPrompt((prev: PromptResponseDto | null) =>
+            prev && prev.id === promptId
+              ? {
+                  ...prev,
+                  like_count,
+                }
+              : prev,
+          );
+        }
       } catch (err) {
         console.error('Failed to check prompt like status:', err);
         setLiked(false);
@@ -26,40 +42,49 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
     };
 
     checkLikeStatus();
-  }, [promptId]);
+  }, [promptId, setPrompt]);
 
   // 좋아요 토글
   const toggleLike = useCallback(async () => {
     if (!promptId || !prompt) return;
+    if (processingRef.current) return;
 
-    const wasLiked = liked;
-
-    // 낙관적 업데이트
-    setLiked(!liked);
-    setPrompt({
-      ...prompt,
-      like_count: wasLiked ? prompt.like_count - 1 : prompt.like_count + 1,
-    });
+    setIsProcessing(true);
+    processingRef.current = true;
 
     try {
-      if (wasLiked) {
-        await likeApi.unlikePrompt(promptId);
-      } else {
-        await likeApi.likePrompt(promptId);
+      const response = liked
+        ? await likeApi.unlikePrompt(promptId)
+        : await likeApi.likePrompt(promptId);
+
+      const { isLiked, like_count } = response.data.data;
+      setLiked(isLiked);
+
+      // 프롬프트 전환 시 응답 레이스 컨디션 방지: 현재 promptId와 일치하는 경우에만 업데이트
+      if (typeof like_count === 'number') {
+        setPrompt((prev) =>
+          prev && prev.id === promptId
+            ? {
+                ...prev,
+                like_count,
+              }
+            : prev,
+        );
       }
     } catch (error) {
-      // 에러 발생 시 롤백
-      setLiked(wasLiked);
-      setPrompt({
-        ...prompt,
-        like_count: wasLiked ? prompt.like_count + 1 : prompt.like_count - 1,
-      });
       console.error('Failed to toggle like:', error);
+      // TODO: 사용자에게 좋아요 실패에 대한 피드백 제공 (예: toast 또는 snackbar)
+      // Toast 알림 시스템이 구현되면 아래 주석을 해제하고 사용하세요:
+      // toast.error('좋아요 처리에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsProcessing(false);
+      processingRef.current = false;
     }
   }, [promptId, prompt, liked, setPrompt]);
 
   return {
     liked,
+    isProcessing,
     toggleLike,
   };
 }

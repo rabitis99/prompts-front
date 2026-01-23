@@ -3,6 +3,7 @@ import type { FollowStatus, FollowUserResponseDto } from '@/features/follow/type
 export type FollowActionType = 'follow' | 'follower' | null;
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger';
+export type ButtonSize = 'md' | 'sm';
 
 export interface BaseButtonStateProps {
   isLoading: boolean;

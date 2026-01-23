@@ -35,5 +35,14 @@ export const promptApi = {
     api.get<CustomResponse<PageResponse<PromptResponseDto>>>('/prompts/me', {
       params: condition,
     }),
+
+  // 특정 사용자의 프롬프트 목록 조회
+  getUserPrompts: (userId: number, condition?: PromptSearchCondition) =>
+    api.get<CustomResponse<PageResponse<PromptResponseDto>>>(
+      `/prompts/user/${userId}`,
+      {
+        params: condition,
+      }
+    ),
 };
 
