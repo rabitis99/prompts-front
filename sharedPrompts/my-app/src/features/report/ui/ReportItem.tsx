@@ -31,7 +31,7 @@ export const ReportItem = memo(function ReportItem({ report }: ReportItemProps) 
       onClick={canNavigateToPrompt ? handleClick : undefined}
       className={`w-full text-left p-4 border border-neutral-200 rounded-xl transition-colors ${
         canNavigateToPrompt
-          ? 'hover:border-neutral-300 hover:bg-neutral-50 cursor-pointer'
+          ? 'hover:border-neutral-300 hover:bg-neutral-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2'
           : 'cursor-default'
       }`}
     >

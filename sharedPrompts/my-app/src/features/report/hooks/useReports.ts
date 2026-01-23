@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { AxiosError } from 'axios';
 import { reportApi } from '../api/report.api';
 import type { ReportResponseDto } from '../types/report.types';
 import { REPORT_CONSTANTS } from '../constants/report.constants';
@@ -69,7 +70,7 @@ export function useReports() {
       }
       
       const errorMessage =
-        (err as any)?.response?.data?.message ||
+        (err instanceof AxiosError && err.response?.data?.message) ||
         (err instanceof Error ? err.message : '신고 내역을 불러오는데 실패했습니다.');
       setError(errorMessage);
     } finally {
@@ -95,16 +96,14 @@ export function useReports() {
   // 초기 로드
   useEffect(() => {
     loadReports(0, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadReports]);
 
   // 페이지 변경 시 추가 로드
   useEffect(() => {
     if (page > 0) {
       loadReports(page, false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, loadReports]);
 
   return {
     reports,

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { userApi } from '@/features/auth/api/user.api';
@@ -29,6 +29,24 @@ export function UserProfileView() {
   const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [togglingLikeIds, setTogglingLikeIds] = useState<Set<number>>(new Set());
+  const copyTimerRef = useRef<number | null>(null);
+
+  // userId 변경 시 상태 초기화
+  useEffect(() => {
+    setPrompts([]);
+    setPage(0);
+    setHasMore(true);
+    setTotalPromptCount(0);
+    setLikedIds(new Set());
+    setCopiedId(null);
+    setTogglingLikeIds(new Set());
+    setError(null);
+    // 타이머 정리
+    if (copyTimerRef.current !== null) {
+      clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = null;
+    }
+  }, [userId]);
 
   const {
     followStatus,
@@ -216,10 +234,29 @@ export function UserProfileView() {
     try {
       await navigator.clipboard.writeText(content);
       setCopiedId(promptId);
-      setTimeout(() => setCopiedId(null), 2000);
+      
+      // 이전 타이머 정리
+      if (copyTimerRef.current !== null) {
+        clearTimeout(copyTimerRef.current);
+      }
+      
+      // 새 타이머 설정
+      copyTimerRef.current = window.setTimeout(() => {
+        setCopiedId(null);
+        copyTimerRef.current = null;
+      }, 2000);
     } catch (err) {
       console.error('Failed to copy prompt:', err);
     }
+  }, []);
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current !== null) {
+        clearTimeout(copyTimerRef.current);
+      }
+    };
   }, []);
 
   const getFollowButtonText = () => {

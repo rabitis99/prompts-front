@@ -24,9 +24,10 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
         setLiked(isLiked);
 
         // 서버에서 내려준 최신 like_count로 동기화
+        // 프롬프트 전환 시 응답 레이스 컨디션 방지: 현재 promptId와 일치하는 경우에만 업데이트
         if (typeof like_count === 'number') {
           setPrompt((prev: PromptResponseDto | null) =>
-            prev
+            prev && prev.id === promptId
               ? {
                   ...prev,
                   like_count,
@@ -59,9 +60,10 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
       const { isLiked, like_count } = response.data.data;
       setLiked(isLiked);
 
+      // 프롬프트 전환 시 응답 레이스 컨디션 방지: 현재 promptId와 일치하는 경우에만 업데이트
       if (typeof like_count === 'number') {
         setPrompt((prev) =>
-          prev
+          prev && prev.id === promptId
             ? {
                 ...prev,
                 like_count,
@@ -72,6 +74,7 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
     } catch (error) {
       console.error('Failed to toggle like:', error);
       // TODO: 사용자에게 좋아요 실패에 대한 피드백 제공 (예: toast 또는 snackbar)
+      // Toast 알림 시스템이 구현되면 아래 주석을 해제하고 사용하세요:
       // toast.error('좋아요 처리에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsProcessing(false);

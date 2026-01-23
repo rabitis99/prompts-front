@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { promptApi } from '@/features/prompt/api/prompt.api';
 import { likeApi } from '@/features/like/api/like.api';
@@ -91,14 +91,10 @@ export function useHomeFeedView() {
             );
 
             const liked = likeStatuses
-              .filter((result) => result.status === 'fulfilled')
-              .map((result) => {
-                if (result.status === 'fulfilled') {
-                  return result.value;
-                }
-                return null;
-              })
-              .filter((item): item is { promptId: number; isLiked: boolean } => item !== null)
+              .filter((result): result is PromiseFulfilledResult<{ promptId: number; isLiked: boolean }> => 
+                result.status === 'fulfilled'
+              )
+              .map((result) => result.value)
               .filter((item) => item.isLiked)
               .map((item) => item.promptId);
 
@@ -118,10 +114,10 @@ export function useHomeFeedView() {
         if (page === 0) {
           setPrompts(newPrompts);
           setTotalCount(totalElements);
-          checkPromptsLikes(newPrompts, false);
+          await checkPromptsLikes(newPrompts, false);
         } else {
           setPrompts((prev) => [...prev, ...newPrompts]);
-          checkPromptsLikes(newPrompts, true);
+          await checkPromptsLikes(newPrompts, true);
         }
         
         setHasMore(newPrompts.length === PAGE_SIZE);
@@ -174,7 +170,9 @@ export function useHomeFeedView() {
 
       // 좋아요 아이디 목록 동기화
       setLikedIds((prev) =>
-        isLiked ? [...prev, id] : prev.filter((i) => i !== id)
+        isLiked 
+          ? prev.includes(id) ? prev : [...prev, id]
+          : prev.filter((i) => i !== id)
       );
 
       // 프롬프트 목록의 like_count를 서버 값으로 동기화
@@ -186,6 +184,7 @@ export function useHomeFeedView() {
     } catch (error) {
       console.error('Failed to toggle like:', error);
       // TODO: 사용자에게 좋아요 실패에 대한 피드백 제공 (예: toast 또는 snackbar)
+      // Toast 알림 시스템이 구현되면 아래 주석을 해제하고 사용하세요:
       // toast.error('좋아요 처리에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setTogglingLikeIds((prev) => {
