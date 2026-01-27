@@ -22,7 +22,7 @@ export function AiCallStatisticsSection({ aiStats }: AiCallStatisticsSectionProp
         <StatCard label="오늘 호출" value={aiStats.calls_today} />
         <StatCard label="이번 주 호출" value={aiStats.calls_this_week} />
         <StatCard label="이번 달 호출" value={aiStats.calls_this_month} />
-        {aiStats.average_response_time && (
+        {aiStats.average_response_time != null && (
           <StatCard label="평균 응답 시간" value={`${aiStats.average_response_time}ms`} />
         )}
       </div>

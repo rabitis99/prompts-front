@@ -10,10 +10,10 @@
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
-): (...args: Parameters<T>) => void {
+): ((...args: Parameters<T>) => void) & { cancel: () => void } {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  return function debounced(...args: Parameters<T>) {
+  const debounced = function(...args: Parameters<T>) {
     if (timeoutId !== null) {
       clearTimeout(timeoutId);
     }
@@ -23,6 +23,15 @@ export function debounce<T extends (...args: any[]) => any>(
       timeoutId = null;
     }, wait);
   };
+
+  debounced.cancel = () => {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+  };
+
+  return debounced;
 }
 
 /**
@@ -58,25 +67,4 @@ export function throttle<T extends (...args: any[]) => any>(
   };
 }
 
-/**
- * React Hook용 Debounce
- * 별도 파일로 분리 권장: useDebounce.ts
- */
-// import { useState, useEffect } from 'react';
-// 
-// export function useDebounce<T>(value: T, delay: number): T {
-//   const [debouncedValue, setDebouncedValue] = useState<T>(value);
-//
-//   useEffect(() => {
-//     const handler = setTimeout(() => {
-//       setDebouncedValue(value);
-//     }, delay);
-//
-//     return () => {
-//       clearTimeout(handler);
-//     };
-//   }, [value, delay]);
-//
-//   return debouncedValue;
-// }
 

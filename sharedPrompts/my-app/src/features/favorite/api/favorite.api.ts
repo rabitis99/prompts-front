@@ -10,7 +10,7 @@ export const favoriteApi = {
 
   // 즐겨찾기 제거
   removeFavorite: (promptId: number) =>
-    api.delete<void>(`/prompts/${promptId}/favorites`),
+    api.delete<CustomResponse<void>>(`/prompts/${promptId}/favorites`),
 
   // 즐겨찾기 상태 확인
   checkFavorite: (promptId: number) =>

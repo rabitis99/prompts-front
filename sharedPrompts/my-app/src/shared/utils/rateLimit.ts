@@ -32,15 +32,20 @@ class RateLimitTracker {
   }
 
   /**
+   * 오래된 요청 정리
+   */
+  private pruneOldRequests(): void {
+    const now = Date.now();
+    const windowStart = now - this.config.windowMs;
+    this.requests = this.requests.filter((r) => r.timestamp > windowStart);
+  }
+
+  /**
    * 요청을 기록하고 Rate Limit 체크
    * @returns 대기 시간(ms), 0이면 즉시 요청 가능
    */
   canMakeRequest(): number {
-    const now = Date.now();
-    const windowStart = now - this.config.windowMs;
-
-    // 오래된 요청 제거
-    this.requests = this.requests.filter((r) => r.timestamp > windowStart);
+    this.pruneOldRequests();
 
     const availableSlots = this.config.maxRequests - this.config.buffer - this.requests.length;
 
@@ -51,7 +56,7 @@ class RateLimitTracker {
     // 가장 오래된 요청이 윈도우를 벗어날 때까지 대기
     if (this.requests.length > 0) {
       const oldestRequest = this.requests[0];
-      const waitTime = oldestRequest.timestamp + this.config.windowMs - now + 100; // 100ms 여유
+      const waitTime = oldestRequest.timestamp + this.config.windowMs - Date.now() + 100; // 100ms 여유
       return Math.max(0, waitTime);
     }
 
@@ -75,9 +80,7 @@ class RateLimitTracker {
    * 현재 사용 가능한 요청 슬롯 수
    */
   getAvailableSlots(): number {
-    const now = Date.now();
-    const windowStart = now - this.config.windowMs;
-    this.requests = this.requests.filter((r) => r.timestamp > windowStart);
+    this.pruneOldRequests();
     return Math.max(0, this.config.maxRequests - this.config.buffer - this.requests.length);
   }
 

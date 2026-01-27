@@ -68,8 +68,12 @@ export function usePromptLikes(
             `/prompts/${prompt.id}/likes`
           );
 
-          if (cached?.data?.data?.isLiked) {
-            cachedLikedIds.push(prompt.id);
+          // 캐시가 존재하면 (isLiked가 true든 false든) 캐시 히트로 처리
+          if (cached?.data?.data !== undefined) {
+            if (cached.data.data.isLiked) {
+              cachedLikedIds.push(prompt.id);
+            }
+            // isLiked가 false인 경우도 캐시 히트이므로 uncachedPrompts에 추가하지 않음
           } else {
             uncachedPrompts.push(prompt);
           }
@@ -91,6 +95,11 @@ export function usePromptLikes(
 
         // 배치 요청으로 처리 (최대 5개씩, 100ms 딜레이)
         const requests = uncachedPrompts.map((prompt) => () => {
+          // 취소 신호 확인
+          if (abortSignal?.aborted) {
+            return Promise.reject(new Error('Request aborted'));
+          }
+          
           // 중복 요청 방지
           const requestKey = rateLimitTracker.createRequestKey(
             'GET',
@@ -143,12 +152,23 @@ export function usePromptLikes(
    * 좋아요 토글
    */
   const toggleLike = useCallback(async (id: number): Promise<{ isLiked: boolean; like_count: number } | null> => {
-    if (togglingLikeIds.has(id)) return null;
+    // 현재 토글 중인지 확인을 위해 함수형 업데이트 사용
+    let isCurrentlyToggling = false;
+    setTogglingLikeIds((prev) => {
+      isCurrentlyToggling = prev.has(id);
+      return prev;
+    });
+    if (isCurrentlyToggling) return null;
 
     setTogglingLikeIds((prev) => new Set(prev).add(id));
 
     try {
-      const isCurrentlyLiked = likedIds.includes(id);
+      // 현재 좋아요 상태 확인을 위해 함수형 업데이트 사용
+      let isCurrentlyLiked = false;
+      setLikedIds((prev) => {
+        isCurrentlyLiked = prev.includes(id);
+        return prev;
+      });
 
       // 좋아요 상태 변경 시 캐시 무효화
       apiCache.invalidate('GET', `/prompts/${id}/likes`);
@@ -179,7 +199,7 @@ export function usePromptLikes(
         return updated;
       });
     }
-  }, [likedIds, togglingLikeIds]);
+  }, []);
 
   const isTogglingLike = useCallback(
     (id: number) => togglingLikeIds.has(id),

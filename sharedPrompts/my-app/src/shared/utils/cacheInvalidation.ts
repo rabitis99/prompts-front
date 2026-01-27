@@ -72,6 +72,18 @@ export function invalidateRelatedCache(method: string, url: string): void {
  * 특정 엔드포인트의 모든 캐시 무효화
  */
 export function invalidateEndpointCache(endpoint: string): void {
+  // endpoint 검증 (알려진 패턴만 허용)
+  const allowedPatterns = Object.keys(CACHE_POLICY.endpoints);
+  const isKnownEndpoint = allowedPatterns.some(pattern => {
+    const regex = new RegExp('^' + pattern.replace(/:[^/]+/g, '[^/]+') + '$');
+    return regex.test(endpoint);
+  });
+  
+  if (!isKnownEndpoint && !endpoint.startsWith('/prompts/') && !endpoint.startsWith('/users/')) {
+    console.warn(`Unknown endpoint pattern: ${endpoint}`);
+    return;
+  }
+  
   apiCache.invalidatePattern(new RegExp(`^GET:${endpoint.replace(/:[^/]+/g, '[^/]+')}(:|$)`));
 }
 

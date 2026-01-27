@@ -40,13 +40,25 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
+        manualChunks(id) {
+          const normalizedId = id.replace(/\\/g, '/');
+          
           // Vendor chunks
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['lucide-react'],
+          if (normalizedId.includes('node_modules')) {
+            if (normalizedId.includes('react') || normalizedId.includes('react-dom') || normalizedId.includes('react-router-dom')) {
+              return 'react-vendor';
+            }
+            if (normalizedId.includes('lucide-react')) {
+              return 'ui-vendor';
+            }
+          }
           // Feature chunks
-          'admin': ['./src/features/admin'],
-          'settings': ['./src/features/settings'],
+          if (normalizedId.includes('/src/features/admin/')) {
+            return 'admin';
+          }
+          if (normalizedId.includes('/src/features/settings/')) {
+            return 'settings';
+          }
         },
       },
     },

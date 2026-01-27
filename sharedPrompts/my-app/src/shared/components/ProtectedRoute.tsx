@@ -20,9 +20,12 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   const [hasAdminRole, setHasAdminRole] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     const checkAuth = async () => {
       if (!isAuthenticated) {
-        setIsChecking(false);
+        if (isMounted) {
+          setIsChecking(false);
+        }
         return;
       }
 
@@ -30,27 +33,30 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
         try {
           // UserResponseDto를 사용하여 role 정보 확인
           // 일반 유저도 role을 받을 수 있지만, UI에는 표시하지 않음
-          console.log('[ProtectedRoute] /users/me 호출 시작 (requireAdmin=true)');
           const response = await userApi.getMyInfo();
-          console.log('[ProtectedRoute] /users/me 응답:', response);
-          console.log('[ProtectedRoute] /users/me 응답 데이터:', response.data);
-          console.log('[ProtectedRoute] /users/me 사용자 정보:', response.data.data);
           const user = response.data.data;
-          console.log('[ProtectedRoute] 사용자 role:', user.role);
           // ROLE_ADMIN 또는 ADMIN 둘 다 허용
           const hasAdmin = user.role === 'ADMIN' || user.role === 'ROLE_ADMIN';
-          console.log('[ProtectedRoute] hasAdminRole:', hasAdmin);
-          setHasAdminRole(hasAdmin);
+          if (isMounted) {
+            setHasAdminRole(hasAdmin);
+          }
         } catch (error) {
           console.error('[ProtectedRoute] Failed to fetch user info:', error);
-          setHasAdminRole(false);
+          if (isMounted) {
+            setHasAdminRole(false);
+          }
         }
       }
 
-      setIsChecking(false);
+      if (isMounted) {
+        setIsChecking(false);
+      }
     };
 
     checkAuth();
+    return () => {
+      isMounted = false;
+    };
   }, [isAuthenticated, requireAdmin]);
 
   if (isChecking) {

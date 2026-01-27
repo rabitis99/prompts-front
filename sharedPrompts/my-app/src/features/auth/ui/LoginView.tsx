@@ -121,14 +121,6 @@ export function LoginView({ onChangeView, initialError }: Props) {
         </div>
       </div>
 
-      {/* 에러 메시지 */}
-      {error && (
-        <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg text-red-600 text-sm">
-          <AlertCircle className="w-4 h-4" />
-          {error}
-        </div>
-      )}
-
       {/* 로컬 로그인 */}
       <div className="space-y-4">
         <div className="space-y-1.5">

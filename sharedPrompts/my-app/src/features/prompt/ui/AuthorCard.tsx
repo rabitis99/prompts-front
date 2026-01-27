@@ -86,6 +86,7 @@ export function AuthorCard({
     <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
       <div className="flex items-center justify-between gap-4 mb-5">
         <button
+          type="button"
           onClick={handleProfileClick}
           className="flex items-center gap-4 flex-1 min-w-0 hover:opacity-80 transition-opacity text-left"
           aria-label={`${authorName} 프로필 보기`}

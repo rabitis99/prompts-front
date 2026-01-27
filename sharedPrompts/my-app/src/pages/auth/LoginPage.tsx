@@ -15,8 +15,8 @@ export default function AuthPage() {
   // URL에서 에러 파라미터 추출
   const errorParam = searchParams.get('error');
 
-  const views = {
-    login: <LoginView onChangeView={setView} />,
+  const views: Record<string, React.ReactElement> = {
+    login: <LoginView onChangeView={setView} initialError={errorParam} />,
     forgot: <ForgotPasswordView onChangeView={setView} />,
     verify: <VerifyEmailView onChangeView={setView} />,
   };
@@ -40,11 +40,7 @@ export default function AuthPage() {
         </div>
 
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-neutral-200/50 border border-white p-8">
-          {currentView === 'login' ? (
-            <LoginView onChangeView={setView} initialError={errorParam} />
-          ) : (
-            views[currentView]
-          )}
+          {views[currentView]}
         </div>
 
         <p className="text-center text-xs text-neutral-400 mt-6 relative">

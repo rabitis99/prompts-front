@@ -1,7 +1,6 @@
 import type { PromptStatisticsResponseDto } from '@/features/statistics/types/statistics.types';
 import { StatCard } from '@/features/admin/components/StatCard';
-import { LineChartWrapper } from '@/features/admin/components/charts';
-import { PieChartWrapper } from '@/features/admin/components/charts';
+import { LineChartWrapper, PieChartWrapper } from '@/features/admin/components/charts';
 
 interface PromptStatisticsSectionProps {
   promptStats: PromptStatisticsResponseDto;
@@ -48,9 +47,6 @@ export function PromptStatisticsSection({ promptStats }: PromptStatisticsSection
           label="프롬프트 공개/비공개 비율"
           height={200}
           outerRadius={70}
-          labelFormatter={({ name, value, percent }) =>
-            `${name}: ${value} (${percent ? (percent * 100).toFixed(0) : 0}%)`
-          }
         />
       </div>
     </div>

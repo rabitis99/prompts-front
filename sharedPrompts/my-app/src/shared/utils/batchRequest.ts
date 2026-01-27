@@ -61,26 +61,22 @@ class BatchRequestManager {
       return;
     }
 
-    this.processing = true;
-
     // 타이머가 있으면 취소
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
     }
 
-    // 최대 대기 시간 후 또는 배치 크기 도달 시 처리
-    this.timer = setTimeout(async () => {
-      await this.executeBatch();
-    }, this.config.maxWaitTime);
-
     // 배치 크기에 도달하면 즉시 처리
     if (this.queue.length >= this.config.maxBatchSize) {
-      if (this.timer) {
-        clearTimeout(this.timer);
-        this.timer = null;
-      }
+      this.processing = true;
       await this.executeBatch();
+    } else {
+      // 최대 대기 시간 후 처리
+      this.timer = setTimeout(async () => {
+        this.processing = true;
+        await this.executeBatch();
+      }, this.config.maxWaitTime);
     }
   }
 
@@ -111,10 +107,8 @@ class BatchRequestManager {
           item.reject(result.reason);
         }
       });
-    } catch (error) {
-      // 전체 배치 실패 시 모든 요청 거부
-      batch.forEach((item) => item.reject(error));
-    }
+    // Promise.allSettled는 rejection을 throw하지 않으므로 
+    // 개별 실패는 results에서 처리됨
 
     // 다음 배치 처리 (대기 중인 요청이 있으면)
     if (this.queue.length > 0) {
@@ -184,13 +178,9 @@ export async function batchRequests<T>(
     );
 
     results.push(
-      ...batchResults.map((result) => {
-        if (result.status === 'fulfilled') {
-          return result.value;
-        } else {
-          throw result.reason;
-        }
-      })
+      ...batchResults
+        .filter((result): result is PromiseFulfilledResult<T> => result.status === 'fulfilled')
+        .map((result) => result.value)
     );
 
     // 마지막 배치가 아니면 딜레이

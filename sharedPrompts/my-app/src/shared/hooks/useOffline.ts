@@ -5,9 +5,15 @@ import { useState, useEffect } from 'react';
  * @returns {boolean} 오프라인 상태 여부
  */
 export function useOffline(): boolean {
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isOffline, setIsOffline] = useState(
+    typeof navigator !== 'undefined' ? !navigator.onLine : false
+  );
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
 

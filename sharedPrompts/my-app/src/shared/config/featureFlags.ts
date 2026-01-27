@@ -3,6 +3,8 @@
  * 환경 변수 또는 런타임 설정으로 기능을 on/off 할 수 있습니다.
  */
 
+import { useMemo } from 'react';
+
 type FeatureFlag = {
   name: string;
   description: string;
@@ -100,9 +102,9 @@ export function getFeatureFlagInfo(flagName: string): FeatureFlag | null {
 
 /**
  * React Hook으로 Feature Flag 사용
+ * 주의: 런타임 플래그 변경에는 반응하지 않습니다.
+ * 플래그가 런타임에 변경될 수 있다면 상태 관리를 추가해야 합니다.
  */
-import { useMemo } from 'react';
-
 export function useFeatureFlag(flagName: string): boolean {
   return useMemo(() => isFeatureEnabled(flagName), [flagName]);
 }

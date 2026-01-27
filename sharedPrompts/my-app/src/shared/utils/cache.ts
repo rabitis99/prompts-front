@@ -58,8 +58,8 @@ class ApiCache {
   /**
    * 캐시에 데이터 저장
    */
-  set<T>(method: string, url: string, data: T, ttl?: number): void {
-    const key = this.createKey(method, url);
+  set<T>(method: string, url: string, data: T, params?: any, ttl?: number): void {
+    const key = this.createKey(method, url, params);
     const now = Date.now();
     const expiresAt = now + (ttl ?? this.config.defaultTTL);
 
@@ -137,9 +137,20 @@ export const apiCache = new ApiCache({
 });
 
 // 주기적으로 만료된 캐시 정리 (5분마다)
+let cleanupIntervalId: ReturnType<typeof setInterval> | null = null;
 if (typeof window !== 'undefined') {
-  setInterval(() => {
+  cleanupIntervalId = setInterval(() => {
     apiCache.cleanup();
   }, 5 * 60 * 1000);
+  
+  // HMR이나 모듈 재로딩 시 이전 interval 정리
+  if (import.meta.hot) {
+    import.meta.hot.dispose(() => {
+      if (cleanupIntervalId) {
+        clearInterval(cleanupIntervalId);
+        cleanupIntervalId = null;
+      }
+    });
+  }
 }
 

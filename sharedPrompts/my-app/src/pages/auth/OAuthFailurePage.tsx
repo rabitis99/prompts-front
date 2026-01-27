@@ -1,6 +1,12 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { AxiosError } from 'axios';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+
+interface OAuthErrorResponse {
+  code?: string;
+  error?: { code?: string };
+}
 
 export default function OAuthFailurePage() {
   const [params] = useSearchParams();
@@ -21,12 +27,13 @@ export default function OAuthFailurePage() {
 
     oauthCallback(key, state)
       .then(() => navigate('/auth/bootstrap'))
-      .catch((err: any) => {
+      .catch((err: unknown) => {
         // OAuth 콜백 실패 시에도 플래그 정리
         localStorage.removeItem('oauth_signup');
         
         // 에러 코드 확인
-        const errorData = err?.response?.data;
+        const axiosError = err as AxiosError<OAuthErrorResponse>;
+        const errorData = axiosError?.response?.data;
         const errorCode = errorData?.error?.code || errorData?.code;
         
         // OAuth2 토큰 무효 에러인 경우 특별 처리

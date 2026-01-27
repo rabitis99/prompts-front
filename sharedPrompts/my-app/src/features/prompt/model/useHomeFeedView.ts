@@ -92,7 +92,7 @@ export function useHomeFeedView() {
     return () => {
       abortController.abort();
     };
-  }, [prompts.length, page, checkPromptsLikes, PAGE_SIZE]);
+  }, [prompts.length, page, checkPromptsLikes]);
 
   // 클라이언트 사이드 검색 필터링
   const filteredPrompts = useMemo(

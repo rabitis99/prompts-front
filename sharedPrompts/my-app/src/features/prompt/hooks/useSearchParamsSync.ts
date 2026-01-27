@@ -31,8 +31,15 @@ export function useSearchParamsSync(
 
   // URL 파라미터 변경 시 상태 동기화 (브라우저 뒤로가기/앞으로가기 대응)
   useEffect(() => {
+    const VALID_SORT_OPTIONS: SortOption[] = ['latest', 'popular', 'comments'];
+    
+    function isValidSortOption(value: string | null): value is SortOption {
+      return value !== null && VALID_SORT_OPTIONS.includes(value as SortOption);
+    }
+    
     const categoryParam = searchParams.get('category') || 'all';
-    const sortParam = (searchParams.get('sort') as SortOption) || 'latest';
+    const sortRaw = searchParams.get('sort');
+    const sortParam: SortOption = isValidSortOption(sortRaw) ? sortRaw : 'latest';
 
     if (categoryParam !== selectedDomain) {
       onDomainChange(categoryParam);
@@ -41,8 +48,7 @@ export function useSearchParamsSync(
     if (sortParam !== sortBy) {
       onSortChange(sortParam);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, selectedDomain, sortBy, onDomainChange, onSortChange]);
 
   // URL에 도메인 업데이트
   const updateDomainInUrl = useCallback(

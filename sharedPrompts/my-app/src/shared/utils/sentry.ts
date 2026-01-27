@@ -9,6 +9,8 @@
 
 import * as Sentry from '@sentry/react';
 
+let isInitialized = false;
+
 /**
  * Sentry 초기화
  * 환경 변수 VITE_SENTRY_DSN이 설정되어 있을 때만 활성화
@@ -20,6 +22,8 @@ export function initSentry() {
     console.warn('Sentry DSN not configured. Error monitoring is disabled.');
     return;
   }
+  
+  isInitialized = true;
 
   Sentry.init({
     dsn,
@@ -80,8 +84,12 @@ export function clearSentryUser() {
 
 /**
  * 커스텀 에러 로깅
+ * DSN이 설정되어 있을 때만 전송합니다.
  */
 export function captureError(error: Error, context?: Record<string, unknown>) {
+  if (!isInitialized) {
+    return;
+  }
   Sentry.captureException(error, {
     extra: context,
   });

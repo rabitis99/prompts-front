@@ -84,6 +84,7 @@ export function CommentsSection({
           />
           <div className="flex justify-end mt-3">
             <button
+              type="button"
               onClick={onSubmitComment}
               disabled={!commentText.trim() || isSubmittingComment}
               className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md"
@@ -102,6 +103,7 @@ export function CommentsSection({
             {/* Main Comment */}
             <div className="flex gap-3 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
               <button
+                type="button"
                 onClick={(e) => handleUserClick(comment.user_response_dto.id, e)}
                 className={`w-10 h-10 rounded-full bg-gradient-to-br ${getAvatarGradient(
                   comment.user_response_dto.id
@@ -111,6 +113,7 @@ export function CommentsSection({
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <button
+                    type="button"
                     onClick={(e) => handleUserClick(comment.user_response_dto.id, e)}
                     className="font-semibold text-slate-900 hover:text-indigo-600 transition-colors cursor-pointer"
                   >
@@ -122,6 +125,7 @@ export function CommentsSection({
                       {isCommentOwner(comment.user_response_dto.id) ? (
                         <>
                           <button
+                            type="button"
                             onClick={() => onStartEditComment(comment.id, comment.content)}
                             className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
                             title="수정"
@@ -129,6 +133,7 @@ export function CommentsSection({
                             <Edit className="w-3.5 h-3.5 text-slate-500" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => onDeleteComment(comment.id)}
                             disabled={isDeletingComment}
                             className="p-1.5 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
@@ -140,6 +145,7 @@ export function CommentsSection({
                       ) : (
                         onReportComment && (
                           <button
+                            type="button"
                             onClick={() => onReportComment(comment.id)}
                             className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
                             title="신고"
@@ -163,6 +169,7 @@ export function CommentsSection({
                     />
                     <div className="flex items-center gap-2">
                       <button
+                        type="button"
                         onClick={() => onSaveEditComment(comment.id)}
                         disabled={!editingText.trim() || isUpdatingComment}
                         className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
@@ -171,6 +178,7 @@ export function CommentsSection({
                         저장
                       </button>
                       <button
+                        type="button"
                         onClick={onCancelEditComment}
                         disabled={isUpdatingComment}
                         className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-200 disabled:opacity-50 transition-colors flex items-center gap-1"
@@ -185,6 +193,7 @@ export function CommentsSection({
                 )}
                 <div className="flex items-center gap-4">
                   <button
+                    type="button"
                     onClick={() => onToggleCommentLike(comment.id)}
                     disabled={editingCommentId === comment.id}
                     className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${
@@ -199,6 +208,7 @@ export function CommentsSection({
                     {comment.like_count}
                   </button>
                   <button 
+                    type="button"
                     className="text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors"
                     disabled={editingCommentId === comment.id}
                   >
@@ -214,6 +224,7 @@ export function CommentsSection({
                 {comment.replies.map((reply) => (
                   <div key={reply.id} className="flex gap-3 p-3 rounded-xl bg-slate-50">
                     <button
+                      type="button"
                       onClick={(e) => handleUserClick(reply.user_response_dto.id, e)}
                       className={`w-8 h-8 rounded-full bg-gradient-to-br ${getAvatarGradient(
                         reply.user_response_dto.id
@@ -223,6 +234,7 @@ export function CommentsSection({
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <button
+                          type="button"
                           onClick={(e) => handleUserClick(reply.user_response_dto.id, e)}
                           className="font-semibold text-slate-900 text-sm hover:text-indigo-600 transition-colors cursor-pointer"
                         >
@@ -248,6 +260,7 @@ export function CommentsSection({
       {/* Show More */}
       {allCommentsCount > 3 && (
         <button
+          type="button"
           onClick={onToggleShowAllComments}
           className="w-full mt-6 py-3 text-sm font-semibold text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2 hover:bg-slate-50 rounded-xl transition-all"
         >

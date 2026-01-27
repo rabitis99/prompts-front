@@ -13,6 +13,7 @@ declare module 'axios' {
     _rateLimitRetry?: boolean;
     _skipCache?: boolean; // 캐시 스킵 플래그
     _skipRateLimit?: boolean; // Rate Limit 체크 스킵 플래그
+    _pendingRequestKey?: string; // 중복 요청 방지용 키
   }
 }
 
@@ -93,6 +94,10 @@ api.interceptors.request.use(
           config,
         } as any);
       }
+      
+      // 요청을 pendingRequests에 등록 (실제 요청은 response interceptor에서 처리)
+      // 여기서는 플래그만 설정하여 response interceptor에서 처리하도록 함
+      config._pendingRequestKey = requestKey;
     }
 
     // Rate Limit 체크 (스킵 플래그가 없을 때만)
@@ -124,14 +129,11 @@ api.interceptors.response.use(
       );
       
       // GET 요청의 경우 pendingRequests에 추가 (중복 방지용)
-      if (config.method?.toUpperCase() === 'GET') {
-        const requestKey = rateLimitTracker.createRequestKey(
-          config.method,
-          config.url || '',
-          config.params
-        );
-        // 요청 완료 후 pendingRequests에서 제거하기 위해 Promise에 등록
-        // (실제 제거는 rateLimitTracker.getOrCreateRequest에서 처리)
+      if (config.method?.toUpperCase() === 'GET' && config._pendingRequestKey) {
+        // 요청이 성공적으로 완료되면 pendingRequests에서 제거
+        // (실제 제거는 rateLimitTracker.getOrCreateRequest의 finally에서 처리되지만,
+        // 인터셉터에서 직접 호출하지 않으므로 여기서는 플래그만 확인)
+        // 실제 pendingRequests 등록/제거는 getOrCreateRequest를 사용하는 곳에서 처리됨
       }
     }
 
@@ -149,6 +151,7 @@ api.interceptors.response.use(
         config.method,
         config.url || '',
         response.data,
+        config.params,
         ttl
       );
     }
@@ -186,7 +189,25 @@ api.interceptors.response.use(
     // Rate limit exceeded (429) 처리
     if (axiosError.response?.status === 429) {
       const retryAfter = axiosError.response.headers['retry-after'];
-      const retryAfterSeconds = retryAfter ? parseInt(retryAfter, 10) : 60;
+      let retryAfterSeconds = 60; // 기본값
+      
+      if (retryAfter) {
+        // 숫자 형식인 경우
+        const parsed = parseInt(retryAfter, 10);
+        if (!isNaN(parsed)) {
+          retryAfterSeconds = parsed;
+        } else {
+          // HTTP-date 형식인 경우 파싱 시도
+          try {
+            const date = new Date(retryAfter);
+            if (!isNaN(date.getTime())) {
+              retryAfterSeconds = Math.max(0, Math.floor((date.getTime() - Date.now()) / 1000));
+            }
+          } catch {
+            // 파싱 실패 시 기본값 사용
+          }
+        }
+      }
       
       console.warn(
         `Rate limit exceeded. Retry after ${retryAfterSeconds} seconds.`,
@@ -200,7 +221,8 @@ api.interceptors.response.use(
       // toast.error(`요청이 너무 많습니다. ${retryAfterSeconds}초 후에 다시 시도해주세요.`);
 
       // retry-after 시간만큼 대기 후 재시도 (최대 1회)
-      if (!originalRequest._rateLimitRetry && retryAfterSeconds > 0) {
+      const MAX_RETRY_WAIT_SECONDS = 10;
+      if (!originalRequest._rateLimitRetry && retryAfterSeconds > 0 && retryAfterSeconds <= MAX_RETRY_WAIT_SECONDS) {
         originalRequest._rateLimitRetry = true;
         
         await new Promise((resolve) => setTimeout(resolve, retryAfterSeconds * 1000));

@@ -18,20 +18,27 @@ export function DateRangeFilter({
   return (
     <div className="flex items-center gap-2">
       <Calendar className="w-4 h-4 text-neutral-500" />
+      <label htmlFor="start-date" className="sr-only">시작 날짜</label>
       <input
+        id="start-date"
         type="datetime-local"
         value={startDate}
         onChange={(e) => onStartDateChange(e.target.value)}
         className="px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+        aria-label="시작 날짜"
       />
       <span className="text-neutral-500">~</span>
+      <label htmlFor="end-date" className="sr-only">종료 날짜</label>
       <input
+        id="end-date"
         type="datetime-local"
         value={endDate}
         onChange={(e) => onEndDateChange(e.target.value)}
         className="px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+        aria-label="종료 날짜"
       />
       <button
+        type="button"
         onClick={onApply}
         className="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700"
       >

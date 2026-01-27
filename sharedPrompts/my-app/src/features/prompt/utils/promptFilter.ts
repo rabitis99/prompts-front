@@ -20,7 +20,10 @@ export function filterPrompts(
     return prompts;
   }
 
-  const query = searchQuery.toLowerCase();
+  const query = searchQuery.trim().toLowerCase();
+  if (!query) {
+    return prompts;
+  }
   return prompts.filter((p) => {
     const categoryDisplayName =
       PROMPT_CATEGORY_DISPLAY_NAMES[p.prompt_category]?.toLowerCase() || '';

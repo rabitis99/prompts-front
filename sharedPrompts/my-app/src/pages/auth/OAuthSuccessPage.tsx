@@ -19,8 +19,6 @@ export default function OAuthSuccessPage() {
     if (calledRef.current) return;
     calledRef.current = true;
 
-    console.log("OAuthSuccessPage callback 실행");
-
     const key = params.get("key");
     const state = params.get("state");
 
@@ -31,7 +29,7 @@ export default function OAuthSuccessPage() {
       return;
     }
 
-    console.log("OAuth callback 호출", { key: key.substring(0, 10) + "...", state: state.substring(0, 10) + "..." });
+    console.log("OAuth callback 호출", { keyPresent: !!key, statePresent: !!state });
     setLoadingMessage("OAuth 인증 중...");
 
     oauthCallback(key, state)
@@ -76,9 +74,6 @@ export default function OAuthSuccessPage() {
           errorCode,
           errorMessage,
           status: err?.response?.status,
-          key: key?.substring(0, 10) + "...",
-          state: state?.substring(0, 10) + "...",
-          fullError: err
         });
         
         // OAuth2 토큰 무효 에러인 경우

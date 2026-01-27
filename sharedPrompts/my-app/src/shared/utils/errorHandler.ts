@@ -3,6 +3,7 @@
  * 모든 컴포넌트에서 동일한 방식으로 에러를 처리합니다.
  */
 
+import { useState, useCallback } from 'react';
 import { getUserFriendlyErrorMessage, ERROR_POLICY } from '@/shared/config/policy';
 
 export interface AppError extends Error {
@@ -16,7 +17,12 @@ export interface AppError extends Error {
  */
 export function normalizeError(error: unknown): AppError {
   if (error instanceof Error) {
-    const appError = error as AppError;
+    // 새 객체를 생성하여 원본 에러 변경 방지
+    const appError: AppError = {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    };
     
     // Axios 에러인 경우
     if ('response' in error && (error as any).response) {
@@ -60,8 +66,6 @@ export function isRetryableError(error: unknown): boolean {
 /**
  * React Hook으로 에러 처리
  */
-import { useState, useCallback } from 'react';
-
 export function useErrorHandler() {
   const [error, setError] = useState<AppError | null>(null);
   const [isRetryable, setIsRetryable] = useState(false);

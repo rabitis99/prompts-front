@@ -179,8 +179,13 @@ export const PromptCard = React.memo(PromptCardComponent, (prevProps, nextProps)
     prevProps.prompt.id === nextProps.prompt.id &&
     prevProps.prompt.title === nextProps.prompt.title &&
     prevProps.prompt.description === nextProps.prompt.description &&
+    prevProps.prompt.content === nextProps.prompt.content &&
     prevProps.prompt.like_count === nextProps.prompt.like_count &&
     prevProps.prompt.comment_count === nextProps.prompt.comment_count &&
+    prevProps.prompt.prompt_category === nextProps.prompt.prompt_category &&
+    JSON.stringify(prevProps.prompt.tags) === JSON.stringify(nextProps.prompt.tags) &&
+    prevProps.prompt.user_response_dto?.id === nextProps.prompt.user_response_dto?.id &&
+    prevProps.prompt.user_response_dto?.nickname === nextProps.prompt.user_response_dto?.nickname &&
     prevProps.isLiked === nextProps.isLiked &&
     prevProps.isCopied === nextProps.isCopied &&
     prevProps.variant === nextProps.variant &&

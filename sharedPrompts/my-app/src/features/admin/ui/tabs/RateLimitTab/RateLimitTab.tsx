@@ -68,7 +68,7 @@ export function RateLimitTab() {
   const ruleData = statistics?.rule_stats
     ? Object.entries(statistics.rule_stats).map(([name, count]) => ({
         name,
-        count,
+        value: count,
       }))
     : [];
 
@@ -76,7 +76,7 @@ export function RateLimitTab() {
   const typeData = statistics?.type_stats
     ? Object.entries(statistics.type_stats).map(([type, count]) => ({
         type,
-        count,
+        value: count,
       }))
     : [];
 
@@ -104,7 +104,7 @@ export function RateLimitTab() {
           {/* 시간대별 통계 */}
           <div className="bg-white rounded-2xl border border-neutral-200 p-6">
             <h3 className="text-lg font-semibold text-neutral-900 mb-4">시간대별 Rate Limit 위반</h3>
-            <BarChartWrapper data={hourlyData} dataKey="count" xKey="hour" height={400} />
+            <BarChartWrapper data={hourlyData} dataKey="count" xKey="hour" height={400} label="시간대별 Rate Limit 위반" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -124,7 +124,7 @@ export function RateLimitTab() {
             {/* 타입별 통계 */}
             <div className="bg-white rounded-2xl border border-neutral-200 p-6">
               <h3 className="text-lg font-semibold text-neutral-900 mb-4">타입별 위반 통계</h3>
-              <VerticalBarChartWrapper data={typeData} dataKey="count" yKey="type" height={300} />
+              <VerticalBarChartWrapper data={typeData} dataKey="value" yKey="type" height={300} />
             </div>
           </div>
 

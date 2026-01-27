@@ -72,7 +72,7 @@ export function usePromptList(
       const requestKey = rateLimitTracker.createRequestKey('GET', '/prompts', {
         page: pageNum,
         size: PAGE_SIZE,
-        sort: sort === 'latest' ? SortType.LATEST : SortType.POPULAR,
+        sort: sort === 'latest' ? SortType.LATEST : sort === 'comments' ? SortType.COMMENTS : SortType.POPULAR,
         prompt_category: domain !== 'all' ? domain : undefined,
       });
 
@@ -85,7 +85,7 @@ export function usePromptList(
           const searchCondition: Parameters<typeof promptApi.getPrompts>[0] = {
             page: pageNum,
             size: PAGE_SIZE,
-            sort: sort === 'latest' ? SortType.LATEST : SortType.POPULAR,
+            sort: sort === 'latest' ? SortType.LATEST : sort === 'comments' ? SortType.COMMENTS : SortType.POPULAR,
           };
 
           if (domain !== 'all' && selectedDomainOption?.category) {

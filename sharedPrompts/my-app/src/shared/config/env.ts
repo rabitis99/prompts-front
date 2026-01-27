@@ -21,7 +21,7 @@ function validateEnvVars() {
   const missing: string[] = [];
 
   Object.entries(requiredEnvVars).forEach(([key, value]) => {
-    if (!value || value.trim() === '') {
+    if (value === undefined || value === null || String(value).trim() === '') {
       missing.push(key);
     }
   });

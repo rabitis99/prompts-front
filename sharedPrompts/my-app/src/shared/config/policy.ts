@@ -105,7 +105,7 @@ export const ERROR_POLICY = {
   },
   
   // 재시도 가능한 에러
-  retryableErrors: [429, 500, 502, 503, 504],
+  retryableErrors: [408, 429, 500, 502, 503, 504],
   
   // 로깅할 에러 레벨
   logLevels: {

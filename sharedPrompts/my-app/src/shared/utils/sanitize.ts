@@ -23,6 +23,9 @@ export function sanitizeMarkdown(dirty: string): string {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a'],
     ALLOWED_ATTR: ['href', 'target', 'rel'],
     ALLOW_DATA_ATTR: false,
+    // target="_blank" 사용 시 rel="noopener noreferrer" 자동 추가
+    ADD_ATTR: ['target'],
+    FORBID_ATTR: [],
   });
 }
 
@@ -33,7 +36,16 @@ export function sanitizeMarkdown(dirty: string): string {
  * @returns 안전한 텍스트
  */
 export function sanitizeText(text: string): string {
-  // HTML 태그를 이스케이프
+  // HTML 태그를 이스케이프 (SSR 호환)
+  if (typeof document === 'undefined') {
+    // SSR 환경에서는 수동 이스케이프
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;

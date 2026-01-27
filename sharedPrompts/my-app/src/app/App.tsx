@@ -35,18 +35,11 @@ function RootRedirect() {
       try {
         // UserResponseDto를 사용하여 role 정보 확인
         // 일반 유저도 role을 받을 수 있지만, UI에는 표시하지 않음
-        console.log('[App RootRedirect] /users/me 호출 시작');
         const response = await userApi.getMyInfo();
-        console.log('[App RootRedirect] /users/me 응답:', response);
-        console.log('[App RootRedirect] /users/me 응답 데이터:', response.data);
-        console.log('[App RootRedirect] /users/me 사용자 정보:', response.data.data);
         const user = response.data.data;
-        console.log('[App RootRedirect] 사용자 role:', user.role);
         // ROLE_ADMIN 또는 ADMIN 둘 다 허용
         const isAdmin = user.role === "ADMIN" || user.role === "ROLE_ADMIN";
-        console.log('[App RootRedirect] isAdmin:', isAdmin);
         if (isAdmin) {
-          console.log('[App RootRedirect] Admin 권한 확인됨, /admin으로 리다이렉트');
           navigate("/admin", { replace: true });
         }
       } catch (error) {
@@ -60,7 +53,7 @@ function RootRedirect() {
   }, [isAuthenticated, navigate]);
 
   if (isChecking) {
-    return <div className="p-10 text-center">로딩 중...</div>;
+    return <LoadingState fullScreen message="로딩 중..." />;
   }
 
   return <PromptsHub />;
@@ -79,40 +72,40 @@ export default function App() {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/auth/success" element={<OAuthSuccessPage />} />
             <Route path="/auth/bootstrap" element={<BootstrapPage />} />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <SettingsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/notifications"
-            element={
-              <ProtectedRoute>
-                <NotificationsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/prompts/create"
-            element={
-              <ProtectedRoute>
-                <CreatePromptPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/prompts/:id" element={<PromptDetailPage />} />
-          <Route path="/users/:userId" element={<UserProfilePage />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AdminPage />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <NotificationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/prompts/create"
+              element={
+                <ProtectedRoute>
+                  <CreatePromptPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/prompts/:id" element={<PromptDetailPage />} />
+            <Route path="/users/:userId" element={<UserProfilePage />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminPage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
         </Routes>
       </Suspense>

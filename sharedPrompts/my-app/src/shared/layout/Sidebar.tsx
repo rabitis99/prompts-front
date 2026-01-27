@@ -19,32 +19,36 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   }, [isOpen]);
 
   useEffect(() => {
+    let isMounted = true;
     const checkAdminRole = async () => {
       if (!isAuthenticated) {
-        setIsAdmin(false);
+        if (isMounted) {
+          setIsAdmin(false);
+        }
         return;
       }
 
       try {
         // UserResponseDto를 사용하여 role 정보 확인
         // 일반 유저도 role을 받을 수 있지만, UI에는 표시하지 않음
-        console.log('[Sidebar] /users/me 호출 시작');
         const response = await userApi.getMyInfo();
-        console.log('[Sidebar] /users/me 응답:', response);
-        console.log('[Sidebar] /users/me 응답 데이터:', response.data);
-        console.log('[Sidebar] /users/me 사용자 정보:', response.data.data);
         const user = response.data.data;
-        console.log('[Sidebar] 사용자 role:', user.role);
         // role이 ADMIN 또는 ROLE_ADMIN일 때만 admin 메뉴 표시
-        setIsAdmin(user.role === "ADMIN" || user.role === "ROLE_ADMIN");
-        console.log('[Sidebar] isAdmin:', user.role === "ADMIN" || user.role === "ROLE_ADMIN");
+        if (isMounted) {
+          setIsAdmin(user.role === "ADMIN" || user.role === "ROLE_ADMIN");
+        }
       } catch (error) {
         console.error("[Sidebar] Failed to fetch user info:", error);
-        setIsAdmin(false);
+        if (isMounted) {
+          setIsAdmin(false);
+        }
       }
     };
 
     checkAdminRole();
+    return () => {
+      isMounted = false;
+    };
   }, [isAuthenticated]);
 
   const handleNav = (path: string) => {

@@ -57,6 +57,7 @@ export function UserTable({ users, onBlock, onRoleChange }: UserTableProps) {
                 <td className="px-4 py-3 text-sm">
                   <div className="flex gap-2">
                     <button
+                      type="button"
                       onClick={() => onBlock(user.id, user.is_blocked)}
                       className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                         user.is_blocked
@@ -69,6 +70,7 @@ export function UserTable({ users, onBlock, onRoleChange }: UserTableProps) {
                     </button>
                     {user.role !== 'ADMIN' && user.role !== 'ROLE_ADMIN' && (
                       <button
+                        type="button"
                         onClick={() => onRoleChange(user.id, 'ADMIN')}
                         className="px-3 py-1 rounded-lg text-xs font-medium bg-purple-100 text-purple-700 hover:bg-purple-200"
                       >
