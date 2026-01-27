@@ -3,7 +3,7 @@ import { useEffect, useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/shared/layout/AppLayout";
 import { OfflineIndicator, LoadingState, ProtectedRoute } from "@/shared/components";
-import { fetchMe } from "@/features/auth/api/user.api";
+import { userApi } from "@/features/auth/api/user.api";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 
 // 코드 스플리팅: 페이지 컴포넌트를 lazy loading
@@ -33,12 +33,24 @@ function RootRedirect() {
       }
 
       try {
-        const user = await fetchMe();
-        if (user.role === "ROLE_ADMIN") {
+        // UserResponseDto를 사용하여 role 정보 확인
+        // 일반 유저도 role을 받을 수 있지만, UI에는 표시하지 않음
+        console.log('[App RootRedirect] /users/me 호출 시작');
+        const response = await userApi.getMyInfo();
+        console.log('[App RootRedirect] /users/me 응답:', response);
+        console.log('[App RootRedirect] /users/me 응답 데이터:', response.data);
+        console.log('[App RootRedirect] /users/me 사용자 정보:', response.data.data);
+        const user = response.data.data;
+        console.log('[App RootRedirect] 사용자 role:', user.role);
+        // ROLE_ADMIN 또는 ADMIN 둘 다 허용
+        const isAdmin = user.role === "ADMIN" || user.role === "ROLE_ADMIN";
+        console.log('[App RootRedirect] isAdmin:', isAdmin);
+        if (isAdmin) {
+          console.log('[App RootRedirect] Admin 권한 확인됨, /admin으로 리다이렉트');
           navigate("/admin", { replace: true });
         }
       } catch (error) {
-        console.error("Failed to fetch user info:", error);
+        console.error("[App RootRedirect] Failed to fetch user info:", error);
       } finally {
         setIsChecking(false);
       }

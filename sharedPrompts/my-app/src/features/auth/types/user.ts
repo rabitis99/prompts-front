@@ -8,6 +8,7 @@ import type { UserTermsResponseDto, UserTermsRequestDto } from './user.terms';
 /**
  * 사용자 응답 DTO
  * 백엔드 UserResponseDto와 일치
+ * 일반 유저도 role을 받을 수 있지만, 프론트엔드에서는 일반 유저에게 role 정보를 표시하지 않음
  */
 export interface UserResponseDto {
   id: number;
@@ -16,6 +17,7 @@ export interface UserResponseDto {
   nickname: string;
   age?: number;
   job?: string;
+  role?: string; // 백엔드에서 보낼 수 있지만, 일반 유저에게는 UI에 표시하지 않음
   thumbnail?: string;
   is_signup_completed?: boolean;
   user_terms?: UserTermsResponseDto;

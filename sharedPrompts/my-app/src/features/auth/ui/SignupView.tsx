@@ -152,12 +152,22 @@ export function SignupView() {
           console.error('회원가입/로그인 실패:', error);
           
           // 에러 상태 코드에 따라 다른 메시지 표시
-          let errorMessage = '회원가입에 실패했습니다. 다시 시도해주세요.';
+          // axios interceptor에서 이미 처리된 에러 메시지가 있으면 우선 사용
+          let errorMessage = error?.message || '회원가입에 실패했습니다. 다시 시도해주세요.';
           
           if (error?.response?.status === 409) {
             errorMessage = '이미 사용 중인 이메일입니다.';
           } else if (error?.response?.status === 401) {
-            errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
+            // axios interceptor에서 이미 구체적인 메시지를 설정했을 수 있음
+            // 하지만 여전히 기본 메시지가 표시되면 백엔드 응답에서 추출 시도
+            if (!error?.message || error.message.includes('인증이 필요합니다')) {
+              const errorData = error?.response?.data || error?.originalErrorData;
+              errorMessage = 
+                errorData?.error?.message || 
+                errorData?.message || 
+                errorData?.data?.message ||
+                '이메일 또는 비밀번호가 올바르지 않습니다.';
+            }
           } else if (error?.response?.status === 400) {
             const errorData = error?.response?.data;
             if (errorData?.error?.message) {

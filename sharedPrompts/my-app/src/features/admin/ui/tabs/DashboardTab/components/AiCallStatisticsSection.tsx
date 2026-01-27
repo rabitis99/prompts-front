@@ -1,6 +1,6 @@
 import type { AiCallStatisticsResponseDto } from '@/features/statistics/types/statistics.types';
-import { StatCard } from '../../../components/StatCard';
-import { BarChartWrapper } from '../../../components/charts';
+import { StatCard } from '@/features/admin/components/StatCard';
+import { BarChartWrapper } from '@/features/admin/components/charts';
 
 interface AiCallStatisticsSectionProps {
   aiStats: AiCallStatisticsResponseDto;

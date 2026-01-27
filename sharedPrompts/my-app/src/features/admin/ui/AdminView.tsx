@@ -7,7 +7,7 @@ import { PromptsTab } from './tabs/PromptsTab/PromptsTab';
 import { ReportsTab } from './tabs/ReportsTab';
 import { AuditLogsTab } from './tabs/AuditLogsTab';
 import { FollowsTab } from './tabs/FollowsTab';
-import { RateLimitTab } from './tabs/RateLimitTab';
+import { RateLimitTab } from './tabs/RateLimitTab/RateLimitTab';
 
 export function AdminView() {
   const { activeTab, setActiveTab } = useAdminView();

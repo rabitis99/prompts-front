@@ -20,6 +20,23 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // 개발 서버 프록시 설정 (CORS 문제 해결)
+  // 프로덕션에서는 백엔드에서 CORS를 올바르게 설정해야 합니다
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        // 필요시 헤더 추가
+        // configure: (proxy, _options) => {
+        //   proxy.on('error', (err, _req, _res) => {
+        //     console.log('proxy error', err);
+        //   });
+        // },
+      },
+    },
+  },
   build: {
     rollupOptions: {
       output: {

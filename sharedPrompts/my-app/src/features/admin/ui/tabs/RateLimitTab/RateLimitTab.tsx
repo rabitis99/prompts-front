@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { adminApi } from '../../api';
-import type { RateLimitLogStatisticsResponseDto } from '../../types/admin.types';
-import { BarChartWrapper, PieChartWrapper, VerticalBarChartWrapper } from '../../components/charts';
+import { adminApi } from '../../../api';
+import type { RateLimitLogStatisticsResponseDto } from '../../../types/admin.types';
+import { BarChartWrapper, PieChartWrapper, VerticalBarChartWrapper } from '../../../components/charts';
 import { DateRangeFilter, TopViolatorsList } from './components';
 
 const COLORS = ['#8b5cf6', '#a78bfa', '#c4b5fd', '#10b981', '#ef4444'];

@@ -1,7 +1,7 @@
 import type { UserStatisticsResponseDto } from '@/features/statistics/types/statistics.types';
-import { StatCard } from '../../../components/StatCard';
-import { BarChartWrapper } from '../../../components/charts';
-import { PieChartWrapper } from '../../../components/charts';
+import { StatCard } from '@/features/admin/components/StatCard';
+import { BarChartWrapper } from '@/features/admin/components/charts';
+import { PieChartWrapper } from '@/features/admin/components/charts';
 
 interface UserStatisticsSectionProps {
   userStats: UserStatisticsResponseDto;

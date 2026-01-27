@@ -33,7 +33,7 @@ export function UserTable({ users, onBlock, onRoleChange }: UserTableProps) {
                 <td className="px-4 py-3 text-sm">
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      user.role === 'ADMIN'
+                      user.role === 'ADMIN' || user.role === 'ROLE_ADMIN'
                         ? 'bg-purple-100 text-purple-700'
                         : 'bg-gray-100 text-gray-700'
                     }`}
@@ -67,7 +67,7 @@ export function UserTable({ users, onBlock, onRoleChange }: UserTableProps) {
                       <Ban className="w-3 h-3 inline mr-1" />
                       {user.is_blocked ? '해제' : '차단'}
                     </button>
-                    {user.role !== 'ADMIN' && (
+                    {user.role !== 'ADMIN' && user.role !== 'ROLE_ADMIN' && (
                       <button
                         onClick={() => onRoleChange(user.id, 'ADMIN')}
                         className="px-3 py-1 rounded-lg text-xs font-medium bg-purple-100 text-purple-700 hover:bg-purple-200"
