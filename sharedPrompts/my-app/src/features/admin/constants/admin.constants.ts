@@ -1,4 +1,4 @@
-import { Users, FileText, AlertTriangle, History, TrendingUp, UserCircle2 } from 'lucide-react';
+import { Users, FileText, AlertTriangle, History, TrendingUp, UserCircle2, Activity } from 'lucide-react';
 
 export const ADMIN_TABS = [
   { id: 'dashboard', label: '대시보드', icon: TrendingUp },
@@ -7,6 +7,7 @@ export const ADMIN_TABS = [
   { id: 'prompts', label: '프롬프트 관리', icon: FileText },
   { id: 'reports', label: '신고 처리', icon: AlertTriangle },
   { id: 'audit-logs', label: '감사 로그', icon: History },
+  { id: 'rate-limit', label: 'Rate Limit 통계', icon: Activity },
 ] as const;
 
 export type AdminTabId = (typeof ADMIN_TABS)[number]['id'];

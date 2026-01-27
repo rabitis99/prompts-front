@@ -25,11 +25,13 @@ export default function OAuthSuccessPage() {
     const state = params.get("state");
 
     if (!key || !state) {
+      console.error("OAuth key/state 누락", { key, state });
       setErrorMessage("OAuth key/state 누락");
       navigate("/login?error=oauth");
       return;
     }
 
+    console.log("OAuth callback 호출", { key: key.substring(0, 10) + "...", state: state.substring(0, 10) + "..." });
     setLoadingMessage("OAuth 인증 중...");
 
     oauthCallback(key, state)
@@ -60,12 +62,42 @@ export default function OAuthSuccessPage() {
             navigate("/feed");
           });
       })
-      .catch((err) => {
-        console.error("oauthCallback 실패", err);
+      .catch((err: any) => {
         // OAuth 실패 시 oauth_signup 플래그 정리
         localStorage.removeItem('oauth_signup');
-        setErrorMessage("OAuth 인증 실패");
-        navigate("/login?error=oauth");
+        
+        // 에러 메시지 추출
+        const errorData = err?.response?.data;
+        const errorCode = errorData?.error?.code || errorData?.code;
+        const errorMessage = errorData?.error?.message || errorData?.message || err?.message;
+        
+        // 상세한 에러 로깅
+        console.error("oauthCallback 실패", {
+          errorCode,
+          errorMessage,
+          status: err?.response?.status,
+          key: key?.substring(0, 10) + "...",
+          state: state?.substring(0, 10) + "...",
+          fullError: err
+        });
+        
+        // OAuth2 토큰 무효 에러인 경우
+        if (errorCode === 'OAUTH2_TOKEN_INVALID') {
+          setErrorMessage("OAuth 인증 토큰이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.");
+          console.warn("OAuth2 토큰 무효 - 가능한 원인:", [
+            "1. OAuth 인증 과정이 너무 오래 걸려서 토큰이 만료됨",
+            "2. 같은 토큰을 두 번 사용하려고 시도함 (새로고침/뒤로가기)",
+            "3. 백엔드 세션/캐시가 만료됨",
+            "4. OAuth provider에서 받은 인증 코드가 이미 사용됨"
+          ]);
+        } else {
+          setErrorMessage(errorMessage || "OAuth 인증 실패");
+        }
+        
+        // 에러 메시지 표시 후 로그인 페이지로 이동
+        setTimeout(() => {
+          navigate("/login?error=oauth" + (errorCode === 'OAUTH2_TOKEN_INVALID' ? '_token_invalid' : ''));
+        }, 2000);
       });
   }, []); // ⭐ 의존성 비움 (의도적)
 

@@ -1,7 +1,24 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { rateLimitTracker, waitForRateLimit } from '@/shared/utils/rateLimit';
+import { apiCache } from '@/shared/utils/cache';
+import { logApiError } from '@/shared/utils/errorLogger';
+import { invalidateRelatedCache } from '@/shared/utils/cacheInvalidation';
+import { getCacheTTL, getUserFriendlyErrorMessage, getRateLimitPolicy } from '@/shared/config/policy';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// Rate limit retry 플래그를 위한 타입 확장
+declare module 'axios' {
+  export interface InternalAxiosRequestConfig {
+    _retry?: boolean;
+    _rateLimitRetry?: boolean;
+    _skipCache?: boolean; // 캐시 스킵 플래그
+    _skipRateLimit?: boolean; // Rate Limit 체크 스킵 플래그
+  }
+}
+
+import { ENV } from '@/shared/config/env';
+
+const API_BASE_URL = ENV.API_BASE_URL;
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -13,49 +30,266 @@ export const api = axios.create({
  * Request Interceptor
  * - accessToken 자동 첨부
  * - 로그아웃 중일 때 logout 요청 외 모든 요청 차단
+ * - Rate Limit 체크 및 캐시 확인
  */
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const { accessToken, isLoggingOut } = useAuthStore.getState();
+api.interceptors.request.use(
+  async (config: InternalAxiosRequestConfig) => {
+    const { accessToken, isLoggingOut } = useAuthStore.getState();
 
-  // 로그아웃 중일 때, logout 요청이 아니면 차단
-  if (isLoggingOut && !config.url?.includes('/auth/logout')) {
-    return Promise.reject(new Error('로그아웃 중입니다. 요청이 취소되었습니다.'));
-  }
+    // 로그아웃 중일 때, logout 요청이 아니면 차단
+    if (isLoggingOut && !config.url?.includes('/auth/logout')) {
+      return Promise.reject(new Error('로그아웃 중입니다. 요청이 취소되었습니다.'));
+    }
 
-  if (accessToken) {
-    (config.headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
-  }
+    if (accessToken) {
+      (config.headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
+    }
 
-  return config;
-});
+    // GET 요청에 대해 캐시 확인 (스킵 플래그가 없을 때만)
+    if (config.method?.toLowerCase() === 'get' && !config._skipCache) {
+      const cached = apiCache.get(
+        config.method,
+        config.url || '',
+        config.params
+      );
+      if (cached) {
+        // 캐시된 응답 반환 (axios 응답 형식으로 래핑)
+        return Promise.reject({
+          __cached: true,
+          data: cached,
+          config,
+        } as any);
+      }
+    }
+
+    // 중복 요청 방지: 동일한 요청이 진행 중이면 기존 요청 재사용
+    if (!config._skipRateLimit && config.method?.toUpperCase() === 'GET') {
+      const requestKey = rateLimitTracker.createRequestKey(
+        config.method,
+        config.url || '',
+        config.params
+      );
+      
+      const existingRequest = rateLimitTracker.pendingRequests.get(requestKey);
+      if (existingRequest) {
+        // 동일한 요청이 진행 중이면 기존 Promise 재사용
+        return Promise.reject({
+          __duplicate: true,
+          promise: existingRequest,
+          config,
+        } as any);
+      }
+    }
+
+    // Rate Limit 체크 (스킵 플래그가 없을 때만)
+    if (!config._skipRateLimit) {
+      await waitForRateLimit();
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 /**
  * Response Interceptor
  * - 401 → refresh → retry
+ * - 429 → rate limit exceeded 처리
+ * - 캐시 저장 및 Rate Limit 추적
  * - 모든 메서드(GET, POST, PATCH, DELETE 등) 동일 적용
  */
 api.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
+  (response) => {
+    const config = response.config as InternalAxiosRequestConfig;
+
+    // Rate Limit 추적
+    if (!config._skipRateLimit) {
+      rateLimitTracker.recordRequest(
+        config.method?.toUpperCase() || 'GET',
+        config.url || ''
+      );
+      
+      // GET 요청의 경우 pendingRequests에 추가 (중복 방지용)
+      if (config.method?.toUpperCase() === 'GET') {
+        const requestKey = rateLimitTracker.createRequestKey(
+          config.method,
+          config.url || '',
+          config.params
+        );
+        // 요청 완료 후 pendingRequests에서 제거하기 위해 Promise에 등록
+        // (실제 제거는 rateLimitTracker.getOrCreateRequest에서 처리)
+      }
+    }
+
+    // POST/PATCH/DELETE 요청 후 관련 캐시 무효화
+    if (config.method && ['POST', 'PATCH', 'DELETE', 'PUT'].includes(config.method.toUpperCase())) {
+      invalidateRelatedCache(config.method, config.url || '');
+    }
+
+    // GET 요청 응답 캐싱 (스킵 플래그가 없을 때만)
+    if (config.method?.toLowerCase() === 'get' && !config._skipCache) {
+      // 정책에서 캐시 TTL 가져오기
+      const ttl = getCacheTTL(config.url || '');
+
+      apiCache.set(
+        config.method,
+        config.url || '',
+        response.data,
+        ttl
+      );
+    }
+
+    return response;
+  },
+  async (error: any) => {
+    // 중복 요청 처리: 기존 요청의 결과를 재사용
+    if (error?.__duplicate) {
+      try {
+        const response = await error.promise;
+        return Promise.resolve({
+          ...response,
+          config: error.config,
+        });
+      } catch (err) {
+        return Promise.reject(err);
+      }
+    }
+
+    // 캐시된 응답 처리
+    if (error?.__cached) {
+      return Promise.resolve({
+        data: error.data,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: error.config,
+      });
+    }
+
+    const axiosError = error as AxiosError;
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Rate limit exceeded (429) 처리
+    if (axiosError.response?.status === 429) {
+      const retryAfter = axiosError.response.headers['retry-after'];
+      const retryAfterSeconds = retryAfter ? parseInt(retryAfter, 10) : 60;
+      
+      console.warn(
+        `Rate limit exceeded. Retry after ${retryAfterSeconds} seconds.`,
+        axiosError.response.data
+      );
+
+      // Rate Limit 추적기 초기화 (429 발생 시 윈도우 리셋)
+      rateLimitTracker.reset();
+
+      // 사용자에게 알림 (선택적 - toast 시스템이 있다면 사용)
+      // toast.error(`요청이 너무 많습니다. ${retryAfterSeconds}초 후에 다시 시도해주세요.`);
+
+      // retry-after 시간만큼 대기 후 재시도 (최대 1회)
+      if (!originalRequest._rateLimitRetry && retryAfterSeconds > 0) {
+        originalRequest._rateLimitRetry = true;
+        
+        await new Promise((resolve) => setTimeout(resolve, retryAfterSeconds * 1000));
+        
+        return api(originalRequest);
+      }
+
+      // 재시도 실패 시 에러 반환
+      return Promise.reject(
+        new Error(`Rate limit exceeded. Please try again after ${retryAfterSeconds} seconds.`)
+      );
+    }
+
+    // OAuth2 callback 에러는 토큰 갱신 시도하지 않음
+    const isOAuthCallback = originalRequest.url?.includes('/auth/callback');
+    const errorData = axiosError.response?.data as any;
+    const errorCode = errorData?.error?.code || errorData?.code;
+    
+    // OAuth2 토큰 무효 에러는 바로 반환 (토큰 갱신 시도하지 않음)
+    if (errorCode === 'OAUTH2_TOKEN_INVALID' || isOAuthCallback) {
+      if (isOAuthCallback && errorCode === 'OAUTH2_TOKEN_INVALID') {
+        console.error('OAuth2 토큰 무효 에러 발생:', {
+          url: originalRequest.url,
+          params: originalRequest.params,
+          errorCode,
+          errorMessage: errorData?.error?.message || errorData?.message
+        });
+      }
+      return Promise.reject(axiosError);
+    }
+
+    // 에러 상태 코드별 사용자 친화적 메시지 처리
+    if (axiosError.response?.status) {
+      const statusCode = axiosError.response.status;
+      const userFriendlyMessage = getUserFriendlyErrorMessage(statusCode);
+      
+      logApiError(new Error(userFriendlyMessage), {
+        method: originalRequest.method,
+        url: originalRequest.url,
+        status: statusCode,
+      });
+      
+      // 5xx 서버 에러는 재시도 가능한 에러로 표시
+      if (statusCode >= 500) {
+        const error = new Error(userFriendlyMessage) as any;
+        error.isRetryable = true;
+        error.statusCode = statusCode;
+        return Promise.reject(error);
+      }
+      
+      return Promise.reject(new Error(userFriendlyMessage));
+    }
+
+    // 네트워크 에러 처리 (타임아웃, 연결 실패 등)
+    if (!axiosError.response && axiosError.request) {
+      const userFriendlyMessage = '네트워크 연결을 확인해주세요. 인터넷 연결 상태를 확인하고 다시 시도해주세요.';
+      logApiError(new Error(userFriendlyMessage), {
+        method: originalRequest.method,
+        url: originalRequest.url,
+      });
+      const error = new Error(userFriendlyMessage) as any;
+      error.isRetryable = true;
+      return Promise.reject(error);
+    }
+
+    // 401 Unauthorized 처리 (동시 refresh 요청 방지)
+    if (axiosError.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
+      // 동시 refresh 요청 방지를 위한 전역 Promise
+      // 여러 요청이 동시에 401을 받아도 refresh는 한 번만 실행
+      if (!(window as any).__refreshTokenPromise) {
+        (window as any).__refreshTokenPromise = (async () => {
+          try {
+            const { refreshToken, setTokens, clear } = useAuthStore.getState();
+
+            if (!refreshToken) {
+              clear();
+              throw new Error('No refresh token available');
+            }
+
+            // refresh 요청
+            const res = await axios.post(`${API_BASE_URL}/auth/refresh`, { refresh_token: refreshToken });
+            const { access_token: newAccessToken, refresh_token: newRefreshToken } = res.data.data;
+
+            // 토큰 갱신
+            setTokens(newAccessToken, newRefreshToken);
+
+            return newAccessToken;
+          } catch (refreshError) {
+            useAuthStore.getState().clear();
+            window.location.href = '/login';
+            throw refreshError;
+          } finally {
+            // refresh 완료 후 Promise 초기화
+            delete (window as any).__refreshTokenPromise;
+          }
+        })();
+      }
+
       try {
-        const { refreshToken, setTokens, clear } = useAuthStore.getState();
-
-        if (!refreshToken) {
-          clear();
-          return Promise.reject(error);
-        }
-
-        // refresh 요청
-        const res = await axios.post(`${API_BASE_URL}/auth/refresh`, { refresh_token: refreshToken });
-        const { access_token: newAccessToken, refresh_token: newRefreshToken } = res.data.data;
-
-        // 토큰 갱신
-        setTokens(newAccessToken, newRefreshToken);
+        // 진행 중인 refresh Promise를 기다림
+        const newAccessToken = await (window as any).__refreshTokenPromise;
 
         // 원래 요청 헤더에 새 accessToken 적용
         if (originalRequest.headers) {
@@ -65,12 +299,10 @@ api.interceptors.response.use(
         // 원래 요청 재시도
         return api(originalRequest);
       } catch (refreshError) {
-        useAuthStore.getState().clear();
-        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
 
-    return Promise.reject(error);
+    return Promise.reject(axiosError);
   }
 );

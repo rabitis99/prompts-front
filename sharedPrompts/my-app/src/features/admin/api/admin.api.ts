@@ -157,5 +157,78 @@ export const adminApi = {
     api.get<CustomResponse<PageResponse<AdminFollowUserDto>>>('/admin/follows', {
       params,
     }),
+
+  // ======================
+  //      인증 보안 이벤트 로그
+  // ======================
+
+  /**
+   * 인증 보안 이벤트 로그 조회
+   * 백엔드: GET /admin/auth-audit-logs
+   */
+  getAuthAuditLogs: (params?: {
+    provider?: string;
+    userId?: number;
+    eventType?: string;
+    failReason?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    size?: number;
+  }) =>
+    api.get<CustomResponse<PageResponse<import('../types/admin.types').AuthAuditLogResponseDto>>>('/admin/auth-audit-logs', {
+      params,
+    }),
+
+  // ======================
+  //      Rate Limit 로그
+  // ======================
+
+  /**
+   * Rate Limit 로그 조회
+   * 백엔드: GET /admin/rate-limit-logs
+   */
+  getRateLimitLogs: (params?: {
+    ruleName?: string;
+    userId?: number;
+    rateLimitType?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    size?: number;
+  }) =>
+    api.get<CustomResponse<PageResponse<import('../types/admin.types').RateLimitLogResponseDto>>>('/admin/rate-limit-logs', {
+      params,
+    }),
+
+  /**
+   * Rate Limit 통계 조회
+   * 백엔드: GET /admin/rate-limit-logs/statistics
+   */
+  getRateLimitLogStatistics: (params?: {
+    startDate?: string;
+    endDate?: string;
+  }) =>
+    api.get<CustomResponse<import('../types/admin.types').RateLimitLogStatisticsResponseDto>>('/admin/rate-limit-logs/statistics', {
+      params,
+    }),
+
+  // ======================
+  //      유지보수 작업
+  // ======================
+
+  /**
+   * 좋아요 수 재빌드 시작
+   * 백엔드: POST /admin/maintenance/likes/rebuild
+   */
+  rebuildLikeCounts: () =>
+    api.post<CustomResponse<void>>('/admin/maintenance/likes/rebuild'),
+
+  /**
+   * 좋아요 수 재빌드 상태 조회
+   * 백엔드: GET /admin/maintenance/likes/rebuild/status
+   */
+  getRebuildLikeCountsStatus: () =>
+    api.get<CustomResponse<import('../types/admin.types').RebuildLikeCountsStatusResponseDto>>('/admin/maintenance/likes/rebuild/status'),
 };
 

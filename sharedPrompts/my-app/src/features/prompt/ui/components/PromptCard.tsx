@@ -1,7 +1,9 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Copy, Check } from 'lucide-react';
 import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
 import { PROMPT_CATEGORY_DISPLAY_NAMES } from '@/features/prompt/types/prompt.types';
+import { getAvatarGradient } from '@/features/prompt/ui/utils';
 
 interface PromptCardProps {
   prompt: PromptResponseDto;
@@ -13,7 +15,7 @@ interface PromptCardProps {
   showCategoryBadge?: boolean;
 }
 
-export function PromptCard({
+function PromptCardComponent({
   prompt,
   isLiked = false,
   isCopied = false,
@@ -39,6 +41,14 @@ export function PromptCard({
     e.stopPropagation();
     if (onToggleLike) {
       onToggleLike(prompt.id);
+    }
+  };
+
+  const handleUserClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (prompt.user_response_dto?.id) {
+      navigate(`/users/${prompt.user_response_dto.id}`);
     }
   };
 
@@ -100,33 +110,55 @@ export function PromptCard({
 
       {/* Footer */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 text-sm">
-          {onToggleLike ? (
-            <button
-              onClick={handleLikeClick}
-              className={`flex items-center gap-1.5 transition-colors ${
-                isLiked ? 'text-red-500' : 'text-slate-400 hover:text-red-500'
-              }`}
-            >
-              <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500' : ''}`} />
-              <span className="text-xs font-semibold">{prompt.like_count}</span>
-            </button>
-          ) : (
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="flex items-center gap-4 text-sm">
+            {onToggleLike ? (
+              <button
+                onClick={handleLikeClick}
+                className={`flex items-center gap-1.5 transition-colors ${
+                  isLiked ? 'text-red-500' : 'text-slate-400 hover:text-red-500'
+                }`}
+              >
+                <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500' : ''}`} />
+                <span className="text-xs font-semibold">{prompt.like_count}</span>
+              </button>
+            ) : (
+              <span className="flex items-center gap-1.5 text-slate-400">
+                <Heart className="w-4 h-4" />
+                <span className="text-xs font-semibold">{prompt.like_count}</span>
+              </span>
+            )}
             <span className="flex items-center gap-1.5 text-slate-400">
-              <Heart className="w-4 h-4" />
-              <span className="text-xs font-semibold">{prompt.like_count}</span>
+              <MessageCircle className="w-4 h-4" />
+              <span className="text-xs font-semibold">{prompt.comment_count}</span>
             </span>
+          </div>
+          
+          {/* User Info */}
+          {prompt.user_response_dto && (
+            <button
+              onClick={handleUserClick}
+              className="flex items-center gap-2 ml-auto hover:opacity-80 transition-opacity flex-shrink-0"
+              aria-label={`${prompt.user_response_dto.nickname} 프로필 보기`}
+            >
+              <div
+                className={`w-6 h-6 rounded-full bg-gradient-to-br ${getAvatarGradient(
+                  prompt.user_response_dto.id
+                )} flex items-center justify-center text-white text-xs font-bold`}
+              >
+                {prompt.user_response_dto.nickname?.[0] || '?'}
+              </div>
+              <span className="text-xs font-medium text-slate-600 truncate max-w-[100px]">
+                {prompt.user_response_dto.nickname}
+              </span>
+            </button>
           )}
-          <span className="flex items-center gap-1.5 text-slate-400">
-            <MessageCircle className="w-4 h-4" />
-            <span className="text-xs font-semibold">{prompt.comment_count}</span>
-          </span>
         </div>
         {onCopy && (
           <button
             onClick={handleCopyClick}
             aria-label="프롬프트 복사"
-            className={`p-2 rounded-lg transition-colors ${
+            className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
               isCopied
                 ? 'bg-green-50 text-green-600'
                 : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
@@ -140,3 +172,20 @@ export function PromptCard({
   );
 }
 
+// React.memo로 메모이제이션하여 불필요한 리렌더링 방지
+export const PromptCard = React.memo(PromptCardComponent, (prevProps, nextProps) => {
+  // 프롬프트 데이터가 변경되지 않았고, 좋아요/복사 상태도 동일하면 리렌더링 방지
+  return (
+    prevProps.prompt.id === nextProps.prompt.id &&
+    prevProps.prompt.title === nextProps.prompt.title &&
+    prevProps.prompt.description === nextProps.prompt.description &&
+    prevProps.prompt.like_count === nextProps.prompt.like_count &&
+    prevProps.prompt.comment_count === nextProps.prompt.comment_count &&
+    prevProps.isLiked === nextProps.isLiked &&
+    prevProps.isCopied === nextProps.isCopied &&
+    prevProps.variant === nextProps.variant &&
+    prevProps.showCategoryBadge === nextProps.showCategoryBadge
+  );
+});
+
+PromptCard.displayName = 'PromptCard';

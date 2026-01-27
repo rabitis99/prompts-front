@@ -113,3 +113,102 @@ export interface AuditLogResponseDto {
   created_at: string;
 }
 
+/**
+ * 인증 이벤트 타입 (백엔드 enum과 일치)
+ */
+export type AuthEventType = 'LOGIN_SUCCESS' | 'LOGIN_FAIL' | 'LOGOUT' | 'TOKEN_REFRESH' | 'TOKEN_REFRESH_FAIL';
+
+/**
+ * 인증 실패 사유 (백엔드 enum과 일치)
+ */
+export type AuthFailReason =
+  | 'INVALID_PASSWORD'
+  | 'USER_NOT_FOUND'
+  | 'USER_BLOCKED'
+  | 'TOKEN_EXPIRED'
+  | 'TOKEN_INVALID'
+  | 'OAUTH2_STATE_MISMATCH'
+  | 'OAUTH2_TOKEN_INVALID'
+  | 'OAUTH2_INVALID_CODE'
+  | 'OAUTH2_AUTHENTICATION_FAILED'
+  | 'ETC';
+
+/**
+ * Provider (백엔드 enum과 일치)
+ */
+export type Provider = 'LOCAL' | 'GOOGLE' | 'NAVER' | 'KAKAO';
+
+/**
+ * 인증 보안 이벤트 로그 응답 DTO
+ */
+export interface AuthAuditLogResponseDto {
+  id: number;
+  event_type: AuthEventType;
+  provider?: Provider;
+  provider_id_hash?: string;
+  user_id?: number;
+  fail_reason?: AuthFailReason;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: string;
+}
+
+/**
+ * Rate Limit 타입 (백엔드 enum과 일치)
+ */
+export type RateLimitType = 'API' | 'AUTH' | 'OAUTH2';
+
+/**
+ * Rate Limit 로그 응답 DTO
+ */
+export interface RateLimitLogResponseDto {
+  id: number;
+  rule_name: string;
+  rate_limit_key: string;
+  current_count: number;
+  capacity: number;
+  retry_after?: number;
+  user_id?: number;
+  client_ip?: string;
+  uri?: string;
+  http_method?: string;
+  rate_limit_type: RateLimitType;
+  created_at: string;
+}
+
+/**
+ * Rate Limit 통계 응답 DTO
+ */
+export interface RateLimitLogStatisticsResponseDto {
+  hourly_stats: Record<number, number>; // 0-23시별 통계
+  rule_stats: Record<string, number>; // 규칙별 통계
+  type_stats: Record<RateLimitType, number>; // 타입별 통계
+  top_violating_ips: TopViolatorDto[]; // 최다 위반 IP 목록
+  top_violating_users: TopViolatorDto[]; // 최다 위반 사용자 목록
+  start_date: string;
+  end_date: string;
+}
+
+/**
+ * 위반자 정보 DTO
+ */
+export interface TopViolatorDto {
+  identifier: string; // IP 주소 또는 사용자 ID
+  violation_count: number;
+}
+
+/**
+ * 유지보수 작업 상태 (백엔드 enum과 일치)
+ */
+export type MaintenanceJobStatus = 'IDLE' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+
+/**
+ * 좋아요 수 재빌드 상태 응답 DTO
+ */
+export interface RebuildLikeCountsStatusResponseDto {
+  status: MaintenanceJobStatus;
+  started_at?: string;
+  completed_at?: string;
+  error_message?: string;
+}
+

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Eye,
@@ -12,9 +12,10 @@ import { oauthLogin } from "@/features/auth/api/oauth";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 interface Props {
   onChangeView: (view: "login" | "forgot" | "verify") => void;
+  initialError?: string | null;
 }
 
-export function LoginView({ onChangeView }: Props) {
+export function LoginView({ onChangeView, initialError }: Props) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,6 +23,15 @@ export function LoginView({ onChangeView }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { login } = useAuth();
+
+  // URL 파라미터에서 에러 메시지 설정
+  useEffect(() => {
+    if (initialError === 'oauth') {
+      setError("OAuth 로그인에 실패했습니다. 다시 시도해주세요.");
+    } else if (initialError === 'oauth_token_invalid') {
+      setError("OAuth 인증 토큰이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.");
+    }
+  }, [initialError]);
 
   const handleLogin = async () => {
     if (!email || !password) {

@@ -21,10 +21,20 @@ export default function OAuthFailurePage() {
 
     oauthCallback(key, state)
       .then(() => navigate('/auth/bootstrap'))
-      .catch(() => {
+      .catch((err: any) => {
         // OAuth 콜백 실패 시에도 플래그 정리
         localStorage.removeItem('oauth_signup');
-        navigate('/login?error=oauth');
+        
+        // 에러 코드 확인
+        const errorData = err?.response?.data;
+        const errorCode = errorData?.error?.code || errorData?.code;
+        
+        // OAuth2 토큰 무효 에러인 경우 특별 처리
+        if (errorCode === 'OAUTH2_TOKEN_INVALID') {
+          navigate('/login?error=oauth_token_invalid');
+        } else {
+          navigate('/login?error=oauth');
+        }
       });
   }, [navigate, params, oauthCallback]);
 

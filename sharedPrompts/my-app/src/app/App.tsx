@@ -1,21 +1,24 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/shared/layout/AppLayout";
-import PromptsHub from "@/pages/PromptsHub";
-import HomeFeedPage from "@/pages/HomeFeedPage";
-import Login from "@/pages/auth/LoginPage";
-import SignupPage from "@/pages/auth/SignupPage";
-import OAuthSuccessPage from "@/pages/auth/OAuthSuccessPage";
-import BootstrapPage from "@/pages/auth/AuthBootstrapPage";
-import SettingsPage from "@/pages/SettingsPage";
-import NotificationsPage from "@/pages/NotificationsPage";
-import PromptDetailPage from "@/pages/PromptDetailPage";
-import CreatePromptPage from "@/pages/CreatePromptPage";
-import AdminPage from "@/pages/AdminPage";
-import UserProfilePage from "@/pages/UserProfilePage";
+import { OfflineIndicator, LoadingState, ProtectedRoute } from "@/shared/components";
 import { fetchMe } from "@/features/auth/api/user.api";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+
+// 코드 스플리팅: 페이지 컴포넌트를 lazy loading
+const PromptsHub = lazy(() => import("@/pages/PromptsHub"));
+const HomeFeedPage = lazy(() => import("@/pages/HomeFeedPage"));
+const Login = lazy(() => import("@/pages/auth/LoginPage"));
+const SignupPage = lazy(() => import("@/pages/auth/SignupPage"));
+const OAuthSuccessPage = lazy(() => import("@/pages/auth/OAuthSuccessPage"));
+const BootstrapPage = lazy(() => import("@/pages/auth/AuthBootstrapPage"));
+const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
+const NotificationsPage = lazy(() => import("@/pages/NotificationsPage"));
+const PromptDetailPage = lazy(() => import("@/pages/PromptDetailPage"));
+const CreatePromptPage = lazy(() => import("@/pages/CreatePromptPage"));
+const AdminPage = lazy(() => import("@/pages/AdminPage"));
+const UserProfilePage = lazy(() => import("@/pages/UserProfilePage"));
 
 function RootRedirect() {
   const navigate = useNavigate();
@@ -54,22 +57,53 @@ function RootRedirect() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<RootRedirect />} />
-          <Route path="/feed" element={<HomeFeedPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/auth/success" element={<OAuthSuccessPage />} />
-          <Route path="/auth/bootstrap" element={<BootstrapPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/prompts/create" element={<CreatePromptPage />} />
+      <OfflineIndicator />
+      <Suspense fallback={<LoadingState fullScreen />}>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<RootRedirect />} />
+            <Route path="/feed" element={<HomeFeedPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/auth/success" element={<OAuthSuccessPage />} />
+            <Route path="/auth/bootstrap" element={<BootstrapPage />} />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/prompts/create"
+            element={
+              <ProtectedRoute>
+                <CreatePromptPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/prompts/:id" element={<PromptDetailPage />} />
           <Route path="/users/:userId" element={<UserProfilePage />} />
-          <Route path="/admin" element={<AdminPage />} />
-        </Route>
-      </Routes>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminPage />
+              </ProtectedRoute>
+            }
+          />
+          </Route>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

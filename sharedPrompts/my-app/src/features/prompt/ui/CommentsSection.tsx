@@ -1,4 +1,5 @@
 import { MessageCircle, Send, Heart, ChevronDown, ChevronUp, Edit, Trash2, X, Check, Flag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { CommentResponseDto } from '@/features/comment/types/comment.types';
 import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
 
@@ -55,6 +56,14 @@ export function CommentsSection({
   isCommentOwner,
   onReportComment,
 }: CommentsSectionProps) {
+  const navigate = useNavigate();
+
+  const handleUserClick = (userId: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/users/${userId}`);
+  };
+
   return (
     <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 sm:p-8">
       <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
@@ -92,14 +101,21 @@ export function CommentsSection({
           <div key={comment.id} className="space-y-4">
             {/* Main Comment */}
             <div className="flex gap-3 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
-              <div
+              <button
+                onClick={(e) => handleUserClick(comment.user_response_dto.id, e)}
                 className={`w-10 h-10 rounded-full bg-gradient-to-br ${getAvatarGradient(
                   comment.user_response_dto.id
-                )} flex-shrink-0 shadow-md`}
+                )} flex-shrink-0 shadow-md hover:opacity-80 transition-opacity cursor-pointer`}
+                aria-label={`${comment.user_response_dto.nickname} 프로필 보기`}
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="font-semibold text-slate-900">{comment.user_response_dto.nickname}</span>
+                  <button
+                    onClick={(e) => handleUserClick(comment.user_response_dto.id, e)}
+                    className="font-semibold text-slate-900 hover:text-indigo-600 transition-colors cursor-pointer"
+                  >
+                    {comment.user_response_dto.nickname}
+                  </button>
                   <span className="text-xs text-slate-400">{formatDate(comment.created_at)}</span>
                   {editingCommentId !== comment.id && (
                     <div className="flex items-center gap-2 ml-auto">
@@ -197,16 +213,21 @@ export function CommentsSection({
               <div className="ml-12 space-y-3">
                 {comment.replies.map((reply) => (
                   <div key={reply.id} className="flex gap-3 p-3 rounded-xl bg-slate-50">
-                    <div
+                    <button
+                      onClick={(e) => handleUserClick(reply.user_response_dto.id, e)}
                       className={`w-8 h-8 rounded-full bg-gradient-to-br ${getAvatarGradient(
                         reply.user_response_dto.id
-                      )} flex-shrink-0 shadow-md`}
+                      )} flex-shrink-0 shadow-md hover:opacity-80 transition-opacity cursor-pointer`}
+                      aria-label={`${reply.user_response_dto.nickname} 프로필 보기`}
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-slate-900 text-sm">
+                        <button
+                          onClick={(e) => handleUserClick(reply.user_response_dto.id, e)}
+                          className="font-semibold text-slate-900 text-sm hover:text-indigo-600 transition-colors cursor-pointer"
+                        >
                           {reply.user_response_dto.nickname}
-                        </span>
+                        </button>
                         {reply.user_response_dto.id === prompt.user_response_dto.id && (
                           <span className="px-2 py-0.5 rounded-full text-xs bg-gradient-to-r from-violet-500 to-indigo-500 text-white font-semibold">
                             작성자
