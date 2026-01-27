@@ -6,7 +6,6 @@
 import { useMemo } from 'react';
 
 type FeatureFlag = {
-  name: string;
   description: string;
   enabled: boolean;
   // 환경별 오버라이드 가능
@@ -22,7 +21,6 @@ type FeatureFlag = {
 const featureFlags: Record<string, FeatureFlag> = {
   // 예시: 새 기능을 점진적으로 롤아웃
   NEW_COMMENT_SYSTEM: {
-    name: 'NEW_COMMENT_SYSTEM',
     description: '새로운 댓글 시스템 활성화',
     enabled: false,
     overrides: {
@@ -32,14 +30,12 @@ const featureFlags: Record<string, FeatureFlag> = {
   
   // 예시: 실험적 기능
   EXPERIMENTAL_SEARCH: {
-    name: 'EXPERIMENTAL_SEARCH',
     description: '실험적 검색 기능',
     enabled: false,
   },
   
   // 예시: 관리자 전용 기능
   ADMIN_ANALYTICS: {
-    name: 'ADMIN_ANALYTICS',
     description: '관리자 분석 대시보드',
     enabled: true,
   },

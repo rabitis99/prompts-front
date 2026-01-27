@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { AiCallStatisticsResponseDto } from '@/features/statistics/types/statistics.types';
 import { StatCard } from '@/features/admin/components/StatCard';
 import { BarChartWrapper } from '@/features/admin/components/charts';
@@ -8,11 +9,14 @@ interface AiCallStatisticsSectionProps {
 
 export function AiCallStatisticsSection({ aiStats }: AiCallStatisticsSectionProps) {
   // AI 호출 추이 데이터
-  const aiCallTrendData = [
-    { period: '오늘', 호출: aiStats.calls_today },
-    { period: '이번 주', 호출: aiStats.calls_this_week },
-    { period: '이번 달', 호출: aiStats.calls_this_month },
-  ];
+  const aiCallTrendData = useMemo(
+    () => [
+      { period: '오늘', 호출: aiStats.calls_today },
+      { period: '이번 주', 호출: aiStats.calls_this_week },
+      { period: '이번 달', 호출: aiStats.calls_this_month },
+    ],
+    [aiStats.calls_today, aiStats.calls_this_week, aiStats.calls_this_month]
+  );
 
   return (
     <div className="bg-white rounded-2xl border border-neutral-200 p-6">

@@ -144,8 +144,9 @@ export const rateLimitTracker = new RateLimitTracker();
  * Rate Limit을 고려하여 요청을 지연시키는 헬퍼
  */
 export async function waitForRateLimit(): Promise<void> {
-  const waitTime = rateLimitTracker.canMakeRequest();
-  if (waitTime > 0) {
+  while (true) {
+    const waitTime = rateLimitTracker.canMakeRequest();
+    if (waitTime <= 0) return;
     await new Promise((resolve) => setTimeout(resolve, waitTime));
   }
 }

@@ -21,6 +21,8 @@ export function ErrorState({
       <div className="max-w-md w-full text-center">
         <div className="mb-6">
           <svg
+            aria-hidden="true"
+            focusable="false"
             className="mx-auto h-16 w-16 text-red-500"
             fill="none"
             viewBox="0 0 24 24"

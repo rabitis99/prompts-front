@@ -19,6 +19,19 @@ export function sanitizeHtml(dirty: string): string {
  * @returns sanitize된 HTML 문자열
  */
 export function sanitizeMarkdown(dirty: string): string {
+  // target="_blank" 링크에 rel="noopener noreferrer" 자동 추가
+  DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+    if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+      const rel = (node.getAttribute('rel') || '')
+        .split(/\s+/)
+        .filter(Boolean);
+      const relSet = new Set(rel);
+      relSet.add('noopener');
+      relSet.add('noreferrer');
+      node.setAttribute('rel', [...relSet].join(' '));
+    }
+  });
+
   return DOMPurify.sanitize(dirty, {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a'],
     ALLOWED_ATTR: ['href', 'target', 'rel'],

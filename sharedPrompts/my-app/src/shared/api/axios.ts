@@ -21,6 +21,9 @@ import { ENV } from '@/shared/config/env';
 
 const API_BASE_URL = ENV.API_BASE_URL;
 
+// 동시 refresh 요청 방지를 위한 모듈 스코프 Promise
+let refreshTokenPromise: Promise<string> | null = null;
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: false,
@@ -69,6 +72,9 @@ api.interceptors.request.use(
       );
       if (cached) {
         // 캐시된 응답 반환 (axios 응답 형식으로 래핑)
+        // Note: Promise.reject를 사용하여 캐시 히트를 처리하는 것은 비정상적이지만,
+        // response interceptor에서 __cached 플래그를 확인하여 정상 응답으로 변환합니다.
+        // 이 패턴은 axios 인터셉터의 제약으로 인해 사용되며, 향후 axios adapter 커스터마이징으로 개선 가능합니다.
         return Promise.reject({
           __cached: true,
           data: cached,
@@ -362,10 +368,10 @@ api.interceptors.response.use(
     if (axiosError.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // 동시 refresh 요청 방지를 위한 전역 Promise
+      // 동시 refresh 요청 방지를 위한 모듈 스코프 Promise
       // 여러 요청이 동시에 401을 받아도 refresh는 한 번만 실행
-      if (!(window as any).__refreshTokenPromise) {
-        (window as any).__refreshTokenPromise = (async () => {
+      if (!refreshTokenPromise) {
+        refreshTokenPromise = (async () => {
           try {
             const { refreshToken, setTokens, clear } = useAuthStore.getState();
 
@@ -388,14 +394,14 @@ api.interceptors.response.use(
             throw refreshError;
           } finally {
             // refresh 완료 후 Promise 초기화
-            delete (window as any).__refreshTokenPromise;
+            refreshTokenPromise = null;
           }
         })();
       }
 
       try {
         // 진행 중인 refresh Promise를 기다림
-        const newAccessToken = await (window as any).__refreshTokenPromise;
+        const newAccessToken = await refreshTokenPromise;
 
         // 원래 요청 헤더에 새 accessToken 적용
         if (originalRequest.headers) {

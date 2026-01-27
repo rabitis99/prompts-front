@@ -1,5 +1,6 @@
 import { MessageCircle, Send, Heart, ChevronDown, ChevronUp, Edit, Trash2, X, Check, Flag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import type { MouseEvent } from 'react';
 import type { CommentResponseDto } from '@/features/comment/types/comment.types';
 import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
 
@@ -58,7 +59,7 @@ export function CommentsSection({
 }: CommentsSectionProps) {
   const navigate = useNavigate();
 
-  const handleUserClick = (userId: number, e: React.MouseEvent) => {
+  const handleUserClick = (userId: number, e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
     navigate(`/users/${userId}`);

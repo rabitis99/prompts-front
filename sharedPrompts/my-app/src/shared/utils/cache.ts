@@ -66,9 +66,9 @@ class ApiCache {
     // 캐시 크기 제한
     if (this.cache.size >= this.config.maxSize) {
       // 가장 오래된 엔트리 제거
-      const oldestKey = Array.from(this.cache.entries())
-        .sort((a, b) => a[1].timestamp - b[1].timestamp)[0]?.[0];
-      if (oldestKey) {
+      // Map은 삽입 순서를 유지하므로 첫 번째 키가 가장 오래된 항목
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
         this.cache.delete(oldestKey);
       }
     }

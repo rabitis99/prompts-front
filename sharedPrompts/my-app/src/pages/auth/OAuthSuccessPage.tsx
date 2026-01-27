@@ -13,6 +13,7 @@ export default function OAuthSuccessPage() {
 
   // ⭐ StrictMode / 재렌더에서도 1회 실행 보장
   const calledRef = useRef(false);
+  const redirectTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     // 이미 실행됐으면 즉시 종료
@@ -90,10 +91,16 @@ export default function OAuthSuccessPage() {
         }
         
         // 에러 메시지 표시 후 로그인 페이지로 이동
-        setTimeout(() => {
+        redirectTimeoutRef.current = window.setTimeout(() => {
           navigate("/login?error=oauth" + (errorCode === 'OAUTH2_TOKEN_INVALID' ? '_token_invalid' : ''));
         }, 2000);
       });
+
+    return () => {
+      if (redirectTimeoutRef.current !== null) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
   }, []); // ⭐ 의존성 비움 (의도적)
 
   return (

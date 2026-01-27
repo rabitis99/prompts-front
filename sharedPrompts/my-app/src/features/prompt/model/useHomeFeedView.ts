@@ -11,7 +11,7 @@
  * - 캐싱, 배치 요청, 중복 요청 방지, Debounce 모두 적용
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { SortOption } from './homeFeed.constants';
 import { PAGE_SIZE } from './homeFeed.constants';
@@ -75,15 +75,15 @@ export function useHomeFeedView() {
   }, [selectedDomain, sortBy, setPrompts, setLikedIds]);
 
   // 프롬프트 목록 로드 후 좋아요 상태 확인
+  const prevPromptsLengthRef = useRef(0);
   useEffect(() => {
     if (prompts.length === 0) return;
 
     const abortController = new AbortController();
 
-    // 새로 로드된 프롬프트만 확인 (페이지 기반)
-    const startIndex = page * PAGE_SIZE;
-    const endIndex = startIndex + PAGE_SIZE;
-    const newPrompts = prompts.slice(startIndex, endIndex);
+    // 새로 로드된 프롬프트만 확인 (이전 길이와 비교)
+    const newPrompts = prompts.slice(prevPromptsLengthRef.current);
+    prevPromptsLengthRef.current = prompts.length;
 
     if (newPrompts.length > 0) {
       checkPromptsLikes(newPrompts, page > 0, abortController.signal);
@@ -123,21 +123,24 @@ export function useHomeFeedView() {
     }
   };
 
-  // 카테고리 변경 시 URL 업데이트
-  const handleDomainChange = (domain: string) => {
-    setSelectedDomain(domain);
+  // 페이지네이션 리셋 헬퍼
+  const resetPagination = useCallback(() => {
     setPage(0);
     setPrompts([]);
     setLikedIds([]);
+  }, [setPrompts, setLikedIds]);
+
+  // 카테고리 변경 시 URL 업데이트
+  const handleDomainChange = (domain: string) => {
+    setSelectedDomain(domain);
+    resetPagination();
     updateDomainInUrl(domain);
   };
 
   // 정렬 변경 시 URL 업데이트
   const handleSortChange = (sort: SortOption) => {
     setSortBy(sort);
-    setPage(0);
-    setPrompts([]);
-    setLikedIds([]);
+    resetPagination();
     updateSortInUrl(sort);
   };
 

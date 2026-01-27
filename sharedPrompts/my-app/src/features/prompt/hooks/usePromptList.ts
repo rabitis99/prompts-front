@@ -93,6 +93,8 @@ export function usePromptList(
           }
 
           return promptApi.getPrompts(searchCondition);
+          // Note: abortSignal을 API 레이어에서 지원하려면 promptApi.getPrompts에 signal 옵션 추가 필요
+          // 현재는 응답 후 abortSignal.aborted 확인으로 처리
         }
       );
 
