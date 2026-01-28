@@ -62,3 +62,6 @@ export const SORT_OPTIONS = {
   comments: '댓글순',
 } as const;
 
+// 페이지네이션 상수
+export const PAGE_SIZE = 20;
+

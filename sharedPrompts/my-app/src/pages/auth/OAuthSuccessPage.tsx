@@ -13,23 +13,24 @@ export default function OAuthSuccessPage() {
 
   // ⭐ StrictMode / 재렌더에서도 1회 실행 보장
   const calledRef = useRef(false);
+  const redirectTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     // 이미 실행됐으면 즉시 종료
     if (calledRef.current) return;
     calledRef.current = true;
 
-    console.log("OAuthSuccessPage callback 실행");
-
     const key = params.get("key");
     const state = params.get("state");
 
     if (!key || !state) {
+      console.error("OAuth key/state 누락", { key, state });
       setErrorMessage("OAuth key/state 누락");
       navigate("/login?error=oauth");
       return;
     }
 
+    console.log("OAuth callback 호출", { keyPresent: !!key, statePresent: !!state });
     setLoadingMessage("OAuth 인증 중...");
 
     oauthCallback(key, state)
@@ -60,13 +61,46 @@ export default function OAuthSuccessPage() {
             navigate("/feed");
           });
       })
-      .catch((err) => {
-        console.error("oauthCallback 실패", err);
+      .catch((err: any) => {
         // OAuth 실패 시 oauth_signup 플래그 정리
         localStorage.removeItem('oauth_signup');
-        setErrorMessage("OAuth 인증 실패");
-        navigate("/login?error=oauth");
+        
+        // 에러 메시지 추출
+        const errorData = err?.response?.data;
+        const errorCode = errorData?.error?.code || errorData?.code;
+        const errorMessage = errorData?.error?.message || errorData?.message || err?.message;
+        
+        // 상세한 에러 로깅
+        console.error("oauthCallback 실패", {
+          errorCode,
+          errorMessage,
+          status: err?.response?.status,
+        });
+        
+        // OAuth2 토큰 무효 에러인 경우
+        if (errorCode === 'OAUTH2_TOKEN_INVALID') {
+          setErrorMessage("OAuth 인증 토큰이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.");
+          console.warn("OAuth2 토큰 무효 - 가능한 원인:", [
+            "1. OAuth 인증 과정이 너무 오래 걸려서 토큰이 만료됨",
+            "2. 같은 토큰을 두 번 사용하려고 시도함 (새로고침/뒤로가기)",
+            "3. 백엔드 세션/캐시가 만료됨",
+            "4. OAuth provider에서 받은 인증 코드가 이미 사용됨"
+          ]);
+        } else {
+          setErrorMessage(errorMessage || "OAuth 인증 실패");
+        }
+        
+        // 에러 메시지 표시 후 로그인 페이지로 이동
+        redirectTimeoutRef.current = window.setTimeout(() => {
+          navigate("/login?error=oauth" + (errorCode === 'OAUTH2_TOKEN_INVALID' ? '_token_invalid' : ''));
+        }, 2000);
       });
+
+    return () => {
+      if (redirectTimeoutRef.current !== null) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
   }, []); // ⭐ 의존성 비움 (의도적)
 
   return (

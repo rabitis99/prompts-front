@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UserPlus, UserCheck, Loader2 } from 'lucide-react';
 import { useFollowActions } from '@/features/follow/hooks/useFollowActions';
 
@@ -17,6 +18,7 @@ export function AuthorCard({
   currentUserId,
   getAvatarGradient,
 }: AuthorCardProps) {
+  const navigate = useNavigate();
   const {
     followStatus,
     isLoading,
@@ -38,7 +40,15 @@ export function AuthorCard({
   // 본인인 경우 팔로우 버튼 숨김
   const isOwnProfile = currentUserId && authorId === currentUserId;
 
-  const handleFollowClick = () => {
+  const handleProfileClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/users/${authorId}`);
+  };
+
+  const handleFollowClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!followStatus) {
       requestFollow();
     } else if (followStatus === 'FOLLOWING' || followStatus === 'PENDING') {
@@ -75,7 +85,12 @@ export function AuthorCard({
   return (
     <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6">
       <div className="flex items-center justify-between gap-4 mb-5">
-        <div className="flex items-center gap-4 flex-1 min-w-0">
+        <button
+          type="button"
+          onClick={handleProfileClick}
+          className="flex items-center gap-4 flex-1 min-w-0 hover:opacity-80 transition-opacity text-left"
+          aria-label={`${authorName} 프로필 보기`}
+        >
           <div
             className={`w-16 h-16 rounded-full bg-gradient-to-br ${getAvatarGradient(
               authorId
@@ -87,7 +102,7 @@ export function AuthorCard({
             <h3 className="font-bold text-slate-900 text-lg truncate">{authorName}</h3>
             <p className="text-sm text-slate-500 truncate">{authorJob || '사용자'}</p>
           </div>
-        </div>
+        </button>
         
         {/* 팔로우 버튼 - 유저 정보 옆에 작게 배치 */}
         {!isOwnProfile && !isChecking && followStatus !== 'BLOCKED' && (
@@ -95,6 +110,7 @@ export function AuthorCard({
             onClick={handleFollowClick}
             disabled={isLoading}
             className={`${getFollowButtonClass()} flex-shrink-0 disabled:opacity-50 flex items-center gap-1.5`}
+            type="button"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />

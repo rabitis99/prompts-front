@@ -1,232 +1,147 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { promptApi } from '@/features/prompt/api/prompt.api';
-import { likeApi } from '@/features/like/api/like.api';
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
-import { SortType, PROMPT_CATEGORY_DISPLAY_NAMES } from '@/features/prompt/types/prompt.types';
-import type { SortOption } from './homeFeed.constants';
-import { DOMAIN_OPTIONS } from './homeFeed.constants';
+/**
+ * 홈 피드 뷰 상태 관리 Hook
+ * 
+ * 기능:
+ * - 프롬프트 목록 조회 및 페이지네이션
+ * - 좋아요 상태 관리
+ * - 검색 및 필터링
+ * - URL 파라미터 동기화
+ * 
+ * Rate Limit 방지 전략:
+ * - 캐싱, 배치 요청, 중복 요청 방지, Debounce 모두 적용
+ */
 
-const PAGE_SIZE = 20;
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import type { SortOption } from './homeFeed.constants';
+import { PAGE_SIZE } from './homeFeed.constants';
+import { useAuthStore } from '@/features/auth/store/auth.store';
+import { usePromptLikes } from '../hooks/usePromptLikes';
+import { usePromptList } from '../hooks/usePromptList';
+import { useSearchParamsSync } from '../hooks/useSearchParamsSync';
+import { filterPrompts } from '../utils/promptFilter';
 
 export function useHomeFeedView() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  
+  const [searchParams] = useSearchParams();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
   // URL 파라미터에서 초기값 읽기
   const categoryParam = searchParams.get('category') || 'all';
   const sortParam = (searchParams.get('sort') as SortOption) || 'latest';
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDomain, setSelectedDomain] = useState(categoryParam);
   const [sortBy, setSortBy] = useState<SortOption>(sortParam);
   const [showFilters, setShowFilters] = useState(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
-  const [likedIds, setLikedIds] = useState<number[]>([]);
-  const [prompts, setPrompts] = useState<PromptResponseDto[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [togglingLikeIds, setTogglingLikeIds] = useState<Set<number>>(new Set());
 
-  // URL 파라미터 변경 시 상태 동기화 (브라우저 뒤로가기/앞으로가기 대응)
-  useEffect(() => {
-    const categoryParam = searchParams.get('category') || 'all';
-    const sortParam = (searchParams.get('sort') as SortOption) || 'latest';
-    
-    if (categoryParam !== selectedDomain) {
-      setSelectedDomain(categoryParam);
-    }
-    
-    if (sortParam !== sortBy) {
-      setSortBy(sortParam);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  // 좋아요 상태 관리
+  const {
+    likedIds,
+    setLikedIds,
+    checkPromptsLikes,
+    toggleLike: baseToggleLike,
+    isTogglingLike,
+  } = usePromptLikes({ isAuthenticated });
+
+  // 프롬프트 목록 조회
+  const {
+    prompts,
+    totalCount,
+    isLoading,
+    hasMore,
+    error,
+    setPrompts,
+  } = usePromptList({
+    selectedDomain,
+    sortBy,
+    page,
+  });
+
+  // URL 파라미터 동기화
+  const { updateDomainInUrl, updateSortInUrl } = useSearchParamsSync({
+    selectedDomain,
+    sortBy,
+    onDomainChange: setSelectedDomain,
+    onSortChange: setSortBy,
+  });
 
   // 도메인 필터 변경 시 페이지 리셋
   useEffect(() => {
     setPage(0);
     setPrompts([]);
-    setTotalCount(0);
-  }, [selectedDomain, sortBy]);
+    setLikedIds([]);
+  }, [selectedDomain, sortBy, setPrompts, setLikedIds]);
 
-  // API 호출
+  // 프롬프트 목록 로드 후 좋아요 상태 확인
+  const prevPromptsLengthRef = useRef(0);
   useEffect(() => {
-    const fetchPrompts = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const selectedDomainOption = DOMAIN_OPTIONS.find((d) => d.id === selectedDomain);
-        
-        // 'all' 선택 시 카테고리 필터 제외
-        const searchCondition: Parameters<typeof promptApi.getPrompts>[0] = {
-          page,
-          size: PAGE_SIZE,
-          sort: sortBy === 'latest' ? SortType.LATEST : SortType.POPULAR,
-        };
-        
-        // 특정 카테고리 선택 시에만 카테고리 필터 추가
-        if (selectedDomain !== 'all' && selectedDomainOption?.category) {
-          searchCondition.prompt_category = selectedDomainOption.category;
-        }
-        
-        const response = await promptApi.getPrompts(searchCondition);
-        
-        const newPrompts = response.data.data.content;
-        const totalElements = response.data.data.total_elements ?? 0;
-        
-        // 좋아요 상태 확인 헬퍼 함수
-        const checkPromptsLikes = async (promptsToCheck: PromptResponseDto[], append: boolean) => {
-          try {
-            const likeStatuses = await Promise.allSettled(
-              promptsToCheck.map((prompt) =>
-                likeApi.checkPromptLike(prompt.id).then((res) => ({
-                  promptId: prompt.id,
-                  isLiked: res.data.data.isLiked,
-                }))
-              )
-            );
+    if (prompts.length === 0) return;
 
-            const liked = likeStatuses
-              .filter((result): result is PromiseFulfilledResult<{ promptId: number; isLiked: boolean }> => 
-                result.status === 'fulfilled'
-              )
-              .map((result) => result.value)
-              .filter((item) => item.isLiked)
-              .map((item) => item.promptId);
+    const abortController = new AbortController();
 
-            if (append) {
-              setLikedIds((prev) => [...prev, ...liked]);
-            } else {
-              setLikedIds(liked);
-            }
-          } catch (err) {
-            console.error('Failed to check prompts like statuses:', err);
-            if (!append) {
-              setLikedIds([]);
-            }
-          }
-        };
+    // 새로 로드된 프롬프트만 확인 (이전 길이와 비교)
+    const newPrompts = prompts.slice(prevPromptsLengthRef.current);
+    prevPromptsLengthRef.current = prompts.length;
 
-        if (page === 0) {
-          setPrompts(newPrompts);
-          setTotalCount(totalElements);
-          await checkPromptsLikes(newPrompts, false);
-        } else {
-          setPrompts((prev) => [...prev, ...newPrompts]);
-          await checkPromptsLikes(newPrompts, true);
-        }
-        
-        setHasMore(newPrompts.length === PAGE_SIZE);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('프롬프트를 불러오는데 실패했습니다.'));
-        console.error('Failed to fetch prompts:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPrompts();
-  }, [selectedDomain, sortBy, page]);
-
-  // 클라이언트 사이드 검색 필터링
-  const filteredPrompts = useMemo(() => {
-    if (!searchQuery) {
-      return prompts;
+    if (newPrompts.length > 0) {
+      checkPromptsLikes(newPrompts, page > 0, abortController.signal);
     }
 
-    const query = searchQuery.toLowerCase();
-    return prompts.filter((p) => {
-      const categoryDisplayName = PROMPT_CATEGORY_DISPLAY_NAMES[p.prompt_category]?.toLowerCase() || '';
-      return (
-        p.title.toLowerCase().includes(query) ||
-        p.tags.some((t) => t.toLowerCase().includes(query)) ||
-        categoryDisplayName.includes(query)
-      );
-    });
-  }, [prompts, searchQuery]);
+    return () => {
+      abortController.abort();
+    };
+  }, [prompts.length, page, checkPromptsLikes]);
+
+  // 클라이언트 사이드 검색 필터링
+  const filteredPrompts = useMemo(
+    () => filterPrompts(prompts, searchQuery),
+    [prompts, searchQuery]
+  );
 
   const handleCopy = (id: number) => {
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  // 좋아요 토글 (like_count 업데이트 포함)
   const toggleLike = async (id: number) => {
-    if (togglingLikeIds.has(id)) return;
-
-    setTogglingLikeIds((prev) => new Set(prev).add(id));
-
     try {
-      const isCurrentlyLiked = likedIds.includes(id);
-
-      const response = isCurrentlyLiked
-        ? await likeApi.unlikePrompt(id)
-        : await likeApi.likePrompt(id);
-
-      const { isLiked, like_count } = response.data.data;
-
-      // 좋아요 아이디 목록 동기화
-      setLikedIds((prev) =>
-        isLiked 
-          ? prev.includes(id) ? prev : [...prev, id]
-          : prev.filter((i) => i !== id)
-      );
-
-      // 프롬프트 목록의 like_count를 서버 값으로 동기화
-      setPrompts((prev) =>
-        prev.map((p) =>
-          p.id === id ? { ...p, like_count } : p
-        )
-      );
+      const response = await baseToggleLike(id);
+      
+      if (response !== null && typeof response === 'object' && 'like_count' in response) {
+        const like_count = response.like_count as number;
+        // 프롬프트 목록의 like_count를 서버 값으로 동기화
+        setPrompts((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, like_count } : p))
+        );
+      }
     } catch (error) {
+      // 에러는 baseToggleLike에서 이미 처리됨
       console.error('Failed to toggle like:', error);
-      // TODO: 사용자에게 좋아요 실패에 대한 피드백 제공 (예: toast 또는 snackbar)
-      // Toast 알림 시스템이 구현되면 아래 주석을 해제하고 사용하세요:
-      // toast.error('좋아요 처리에 실패했습니다. 다시 시도해주세요.');
-    } finally {
-      setTogglingLikeIds((prev) => {
-        const updated = new Set(prev);
-        updated.delete(id);
-        return updated;
-      });
     }
   };
+
+  // 페이지네이션 리셋 헬퍼
+  const resetPagination = useCallback(() => {
+    setPage(0);
+    setPrompts([]);
+    setLikedIds([]);
+  }, [setPrompts, setLikedIds]);
 
   // 카테고리 변경 시 URL 업데이트
   const handleDomainChange = (domain: string) => {
     setSelectedDomain(domain);
-    setPage(0);
-    setPrompts([]);
-    setTotalCount(0);
-    
-    // URL 파라미터 업데이트
-    const newSearchParams = new URLSearchParams(searchParams);
-    if (domain === 'all') {
-      newSearchParams.delete('category');
-    } else {
-      newSearchParams.set('category', domain);
-    }
-    setSearchParams(newSearchParams, { replace: true });
+    resetPagination();
+    updateDomainInUrl(domain);
   };
 
   // 정렬 변경 시 URL 업데이트
   const handleSortChange = (sort: SortOption) => {
     setSortBy(sort);
-    setPage(0);
-    setPrompts([]);
-    setTotalCount(0);
-    
-    // URL 파라미터 업데이트
-    const newSearchParams = new URLSearchParams(searchParams);
-    if (sort === 'latest') {
-      newSearchParams.delete('sort');
-    } else {
-      newSearchParams.set('sort', sort);
-    }
-    setSearchParams(newSearchParams, { replace: true });
+    resetPagination();
+    updateSortInUrl(sort);
   };
 
   const handleResetFilters = () => {
@@ -257,11 +172,10 @@ export function useHomeFeedView() {
     isLoading,
     hasMore,
     error,
-    isTogglingLike: (id: number) => togglingLikeIds.has(id),
+    isTogglingLike,
     handleCopy,
     toggleLike,
     handleResetFilters,
     handleLoadMore,
   };
 }
-

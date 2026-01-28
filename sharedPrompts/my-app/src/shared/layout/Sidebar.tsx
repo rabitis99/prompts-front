@@ -1,6 +1,8 @@
-import { X, Settings, Folder, Calendar, UserRound } from "lucide-react";
+import { X, Settings, Folder, Calendar, UserRound, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useAuthStore } from "@/features/auth/store/auth.store";
+import { userApi } from "@/features/auth/api/user.api";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -9,10 +11,45 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navigate = useNavigate();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
   }, [isOpen]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const checkAdminRole = async () => {
+      if (!isAuthenticated) {
+        if (isMounted) {
+          setIsAdmin(false);
+        }
+        return;
+      }
+
+      try {
+        // UserResponseDto를 사용하여 role 정보 확인
+        // 일반 유저도 role을 받을 수 있지만, UI에는 표시하지 않음
+        const response = await userApi.getMyInfo();
+        const user = response.data.data;
+        // role이 ADMIN 또는 ROLE_ADMIN일 때만 admin 메뉴 표시
+        if (isMounted) {
+          setIsAdmin(user.role === "ADMIN" || user.role === "ROLE_ADMIN");
+        }
+      } catch (error) {
+        console.error("[Sidebar] Failed to fetch user info:", error);
+        if (isMounted) {
+          setIsAdmin(false);
+        }
+      }
+    };
+
+    checkAdminRole();
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated]);
 
   const handleNav = (path: string) => {
     navigate(path);
@@ -88,6 +125,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
               <Settings className="w-6 h-6" /> 설정
             </button>
+            {isAdmin && (
+              <button
+                onClick={() => handleNav("/admin")}
+                className="flex items-center gap-4 text-lg hover:text-[var(--color-primary)] text-purple-600"
+              >
+                <Shield className="w-6 h-6" /> 관리자
+              </button>
+            )}
           </nav>
 
           <div className="mt-auto px-8 pb-[calc(env(safe-area-inset-bottom,40px)+40px)]">

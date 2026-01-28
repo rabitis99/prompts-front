@@ -43,6 +43,7 @@ export const PROMPT_CATEGORY_DISPLAY_NAMES: Record<PromptCategory, string> = {
 export enum SortType {
   LATEST = 'LATEST',
   POPULAR = 'POPULAR',
+  COMMENTS = 'COMMENTS',
 }
 
 export enum ToneType {

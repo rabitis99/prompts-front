@@ -1,4 +1,5 @@
 import { Sparkles } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { useAuthView } from "@/features/auth/model/useAuthView";
 import { LoginView } from "@/features/auth/ui/LoginView";
 import { ForgotPasswordView } from "@/features/auth/ui/ForgotPasswordView";
@@ -7,11 +8,15 @@ import TermsModal from "@/shared/components/TermsModal";
 import { useTermsModal } from "@/shared/hooks/useTermsModal";
 
 export default function AuthPage() {
+  const [searchParams] = useSearchParams();
   const { currentView, setView } = useAuthView();
   const { termsModalType, openTermsModal, closeTermsModal } = useTermsModal();
+  
+  // URL에서 에러 파라미터 추출
+  const errorParam = searchParams.get('error');
 
-  const views = {
-    login: <LoginView onChangeView={setView} />,
+  const views: Record<string, React.ReactElement> = {
+    login: <LoginView onChangeView={setView} initialError={errorParam} />,
     forgot: <ForgotPasswordView onChangeView={setView} />,
     verify: <VerifyEmailView onChangeView={setView} />,
   };

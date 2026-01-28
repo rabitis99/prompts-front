@@ -1,3 +1,4 @@
+/* Pretendard 폰트 - npm 패키지에서 로드 (CDN 대신 로컬 패키지 사용) */
 @import "pretendard/dist/web/static/pretendard.css";
 
 @tailwind base;
