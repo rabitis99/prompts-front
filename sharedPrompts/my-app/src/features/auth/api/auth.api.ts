@@ -11,12 +11,16 @@ export const authApi = {
   login: (data: LoginRequest) =>
     api.post<TokenResponse>('/auth/login', data),
 
-  // OAuth2 callback (캐시 및 Rate Limit 스킵 - OAuth2 인증은 매번 새로운 요청이어야 함)
-  oauthCallback: (key: string, state: string) =>
-    api.get<TokenResponse>('/auth/callback', {
-      params: { key, state },
-      _skipCache: true, // OAuth2 callback은 캐시하지 않음
-      _skipRateLimit: true, // OAuth2 callback은 Rate Limit 체크 스킵
+  // OAuth2 confirm (캐시 및 Rate Limit 스킵 - OAuth2 인증은 매번 새로운 요청이어야 함)
+  // 변경: /auth/callback GET → /auth/confirm POST
+  oauthConfirm: (tempKey: string, state: string, deviceToken?: string) =>
+    api.post<TokenResponse>('/auth/confirm', {
+      temp_key: tempKey,
+      state: state,
+      device_token: deviceToken,
+    }, {
+      _skipCache: true, // OAuth2 confirm은 캐시하지 않음
+      _skipRateLimit: true, // OAuth2 confirm은 Rate Limit 체크 스킵
     }),
 
   // 토큰 갱신

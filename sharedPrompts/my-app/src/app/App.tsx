@@ -19,6 +19,9 @@ const PromptDetailPage = lazy(() => import("@/pages/PromptDetailPage"));
 const CreatePromptPage = lazy(() => import("@/pages/CreatePromptPage"));
 const AdminPage = lazy(() => import("@/pages/AdminPage"));
 const UserProfilePage = lazy(() => import("@/pages/UserProfilePage"));
+const PaymentManagementPage = lazy(() => import("@/pages/PaymentManagementPage"));
+const PaymentSuccessPage = lazy(() => import("@/pages/payment/PaymentSuccessPage"));
+const PaymentFailPage = lazy(() => import("@/pages/payment/PaymentFailPage"));
 
 function RootRedirect() {
   const navigate = useNavigate();
@@ -106,6 +109,16 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/payments"
+              element={
+                <ProtectedRoute>
+                  <PaymentManagementPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/payment/success" element={<PaymentSuccessPage />} />
+            <Route path="/payment/fail" element={<PaymentFailPage />} />
           </Route>
         </Routes>
       </Suspense>

@@ -2,6 +2,7 @@ import { authApi } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import type { LoginRequest } from '@/features/auth/model/auth.types';
 import type { TokenResponse } from '@/features/auth/model/auth.types';
+import { getFCMToken } from '@/shared/config/firebase';
 
 /**
  * 백엔드 응답에서 토큰 데이터를 추출하는 헬퍼 함수
@@ -17,13 +18,22 @@ export const useAuth = () => {
   const setLoggingOut = useAuthStore((s) => s.setLoggingOut);
 
   const login = async (data: LoginRequest) => {
-    const response = await authApi.login(data);
+    // FCM 토큰 가져오기 (실패해도 로그인 진행)
+    const deviceToken = await getFCMToken();
+
+    const response = await authApi.login({
+      ...data,
+      device_token: deviceToken || undefined,
+    });
     const tokenData = extractTokenData(response.data);
     setTokens(tokenData.access_token, tokenData.refresh_token);
   };
 
-  const oauthCallback = async (key: string, state: string) => {
-    const response = await authApi.oauthCallback(key, state);
+  const oauthCallback = async (tempKey: string, state: string, deviceToken?: string) => {
+    // deviceToken이 전달되지 않았으면 FCM 토큰 가져오기
+    const finalDeviceToken = deviceToken || (await getFCMToken()) || undefined;
+
+    const response = await authApi.oauthConfirm(tempKey, state, finalDeviceToken);
     const tokenData = extractTokenData(response.data);
     setTokens(tokenData.access_token, tokenData.refresh_token);
   };

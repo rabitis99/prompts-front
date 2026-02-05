@@ -3,7 +3,11 @@
  * 
  * 목표: 여러 개별 요청을 모아서 한 번에 처리하거나,
  * 순차적으로 배치 단위로 처리하여 Rate Limit 방지
+ * 
+ * 개선: rateLimitTracker와 통합하여 RateLimit을 고려한 배치 처리
  */
+
+import { rateLimitTracker, waitForRateLimit } from './rateLimit';
 
 interface BatchRequest<T> {
   id: string;
@@ -89,8 +93,20 @@ class BatchRequestManager {
       return;
     }
 
+    // RateLimit 체크: 사용 가능한 슬롯 확인
+    const availableSlots = rateLimitTracker.getAvailableSlots();
+    const batchSize = Math.min(
+      this.config.maxBatchSize,
+      Math.max(1, availableSlots) // 최소 1개는 처리
+    );
+
     // 배치 추출
-    const batch = this.queue.splice(0, this.config.maxBatchSize);
+    const batch = this.queue.splice(0, batchSize);
+
+    // RateLimit 대기 (배치 실행 전)
+    if (availableSlots <= 0) {
+      await waitForRateLimit();
+    }
 
     try {
       // 배치 내 요청들을 병렬 처리
@@ -107,12 +123,16 @@ class BatchRequestManager {
           item.reject(result.reason);
         }
       });
-    // Promise.allSettled는 rejection을 throw하지 않으므로 
-    // 개별 실패는 results에서 처리됨
+    } catch (error) {
+      // Promise.allSettled는 rejection을 throw하지 않으므로 
+      // 개별 실패는 results에서 처리됨
+      // 하지만 예상치 못한 에러에 대비
+      batch.forEach((item) => item.reject(error));
+    }
 
     // 다음 배치 처리 (대기 중인 요청이 있으면)
     if (this.queue.length > 0) {
-      // 배치 간 딜레이
+      // 배치 간 딜레이 (RateLimit 고려)
       await new Promise((resolve) =>
         setTimeout(resolve, this.config.delayBetweenBatches)
       );
@@ -170,17 +190,41 @@ export async function batchRequests<T>(
     batches.push(requests.slice(i, i + maxConcurrent));
   }
 
-  // 배치 순차 처리
+  // 배치 순차 처리 (RateLimit 고려)
   for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i];
+    let batch = batches[i];
+    
+    // RateLimit 체크: 사용 가능한 슬롯 확인
+    let availableSlots = rateLimitTracker.getAvailableSlots();
+    
+    // 슬롯이 부족하면 충분할 때까지 대기
+    while (availableSlots <= 0) {
+      await waitForRateLimit();
+      availableSlots = rateLimitTracker.getAvailableSlots();
+    }
+    
+    // 슬롯이 배치 크기보다 작으면 배치를 분할
+    if (availableSlots < batch.length) {
+      // 슬롯만큼만 실행하고 나머지는 다음 배치로
+      const currentBatch = batch.slice(0, availableSlots);
+      const remainingBatch = batch.slice(availableSlots);
+      
+      // 나머지를 다음 배치로 추가
+      if (remainingBatch.length > 0) {
+        batches.splice(i + 1, 0, remainingBatch);
+      }
+      
+      batch = currentBatch;
+    }
+
     const batchResults = await Promise.allSettled(
       batch.map((req) => req())
     );
 
     results.push(
       ...batchResults
-        .filter((result): result is PromiseFulfilledResult<T> => result.status === 'fulfilled')
-        .map((result) => result.value)
+        .filter((result): result is PromiseFulfilledResult<Awaited<T>> => result.status === 'fulfilled')
+        .map((result) => result.value as T)
     );
 
     // 마지막 배치가 아니면 딜레이

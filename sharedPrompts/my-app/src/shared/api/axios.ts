@@ -4,7 +4,7 @@ import { rateLimitTracker, waitForRateLimit } from '@/shared/utils/rateLimit';
 import { apiCache } from '@/shared/utils/cache';
 import { logApiError } from '@/shared/utils/errorLogger';
 import { invalidateRelatedCache } from '@/shared/utils/cacheInvalidation';
-import { getCacheTTL, getUserFriendlyErrorMessage, getRateLimitPolicy } from '@/shared/config/policy';
+import { getCacheTTL, getUserFriendlyErrorMessage } from '@/shared/config/policy';
 
 // Rate limit retry 플래그를 위한 타입 확장
 declare module 'axios' {
@@ -45,7 +45,8 @@ api.interceptors.request.use(
       return Promise.reject(new Error('로그아웃 중입니다. 요청이 취소되었습니다.'));
     }
 
-    // 회원가입/로그인 엔드포인트는 토큰을 보내지 않음 (다른 계정으로 로그인 시도 시 기존 토큰 제거)
+    // 회원가입/로그인/OAuth confirm 엔드포인트는 토큰을 보내지 않음 (다른 계정으로 로그인 시도 시 기존 토큰 제거)
+    // OAuth confirm은 temp_key/state를 body에 포함하므로 Authorization 헤더가 필요 없음
     const requestUrl = config.url || '';
     const baseURL = config.baseURL || API_BASE_URL || '';
     const fullUrl = baseURL && requestUrl 
@@ -55,10 +56,12 @@ api.interceptors.request.use(
     const isAuthEndpoint = 
       requestUrl.includes('/auth/signup') ||
       requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/confirm') ||
       fullUrl.includes('/auth/signup') ||
-      fullUrl.includes('/auth/login');
+      fullUrl.includes('/auth/login') ||
+      fullUrl.includes('/auth/confirm');
 
-    // 회원가입/로그인 엔드포인트가 아닐 때만 토큰 추가
+    // 회원가입/로그인/OAuth callback 엔드포인트가 아닐 때만 토큰 추가
     if (accessToken && !isAuthEndpoint) {
       (config.headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
     }
@@ -84,6 +87,9 @@ api.interceptors.request.use(
     }
 
     // 중복 요청 방지: 동일한 요청이 진행 중이면 기존 요청 재사용
+    // 주의: pendingRequests는 private이므로 직접 접근 불가
+    // 중복 요청 방지는 response interceptor에서 처리하거나
+    // rateLimitTracker에 public 메서드를 추가해야 함
     if (!config._skipRateLimit && config.method?.toUpperCase() === 'GET') {
       const requestKey = rateLimitTracker.createRequestKey(
         config.method,
@@ -91,24 +97,13 @@ api.interceptors.request.use(
         config.params
       );
       
-      const existingRequest = rateLimitTracker.pendingRequests.get(requestKey);
-      if (existingRequest) {
-        // 동일한 요청이 진행 중이면 기존 Promise 재사용
-        return Promise.reject({
-          __duplicate: true,
-          promise: existingRequest,
-          config,
-        } as any);
-      }
-      
-      // 요청을 pendingRequests에 등록 (실제 요청은 response interceptor에서 처리)
-      // 여기서는 플래그만 설정하여 response interceptor에서 처리하도록 함
+      // 요청 키를 설정하여 response interceptor에서 중복 체크 가능하도록 함
       config._pendingRequestKey = requestKey;
     }
 
     // Rate Limit 체크 (스킵 플래그가 없을 때만)
     if (!config._skipRateLimit) {
-      await waitForRateLimit();
+      await waitForRateLimit(config.url);
     }
 
     return config;
@@ -133,6 +128,21 @@ api.interceptors.response.use(
         config.method?.toUpperCase() || 'GET',
         config.url || ''
       );
+      
+      // 백엔드에서 제공하는 RateLimit 헤더 파싱 및 동기화
+      const rateLimitLimit = response.headers['x-ratelimit-limit'];
+      const rateLimitRemaining = response.headers['x-ratelimit-remaining'];
+      const rateLimitReset = response.headers['x-ratelimit-reset'];
+      
+      if (rateLimitLimit && rateLimitRemaining !== undefined) {
+        // 백엔드의 실제 RateLimit 정보로 프론트엔드 추적기 동기화
+        rateLimitTracker.syncWithBackend({
+          limit: parseInt(rateLimitLimit, 10),
+          remaining: parseInt(rateLimitRemaining, 10),
+          reset: rateLimitReset ? parseInt(rateLimitReset, 10) * 1000 : undefined, // 초를 밀리초로 변환
+          url: config.url,
+        });
+      }
       
       // GET 요청의 경우 pendingRequests에 추가 (중복 방지용)
       if (config.method?.toUpperCase() === 'GET' && config._pendingRequestKey) {
@@ -195,6 +205,10 @@ api.interceptors.response.use(
     // Rate limit exceeded (429) 처리
     if (axiosError.response?.status === 429) {
       const retryAfter = axiosError.response.headers['retry-after'];
+      const rateLimitLimit = axiosError.response.headers['x-ratelimit-limit'];
+      const rateLimitRemaining = axiosError.response.headers['x-ratelimit-remaining'];
+      const rateLimitReset = axiosError.response.headers['x-ratelimit-reset'];
+      
       let retryAfterSeconds = 60; // 기본값
       
       if (retryAfter) {
@@ -213,15 +227,35 @@ api.interceptors.response.use(
             // 파싱 실패 시 기본값 사용
           }
         }
+      } else if (rateLimitReset) {
+        // Retry-After가 없으면 X-RateLimit-Reset 사용
+        const resetTime = parseInt(rateLimitReset, 10) * 1000; // 초를 밀리초로 변환
+        retryAfterSeconds = Math.max(0, Math.floor((resetTime - Date.now()) / 1000));
       }
       
       console.warn(
         `Rate limit exceeded. Retry after ${retryAfterSeconds} seconds.`,
-        axiosError.response.data
+        {
+          limit: rateLimitLimit,
+          remaining: rateLimitRemaining,
+          reset: rateLimitReset,
+          retryAfter: retryAfterSeconds,
+          response: axiosError.response.data,
+        }
       );
 
-      // Rate Limit 추적기 초기화 (429 발생 시 윈도우 리셋)
-      rateLimitTracker.reset();
+      // 백엔드 RateLimit 헤더와 동기화
+      if (rateLimitLimit && rateLimitRemaining !== undefined) {
+        rateLimitTracker.syncWithBackend({
+          limit: parseInt(rateLimitLimit, 10),
+          remaining: parseInt(rateLimitRemaining, 10),
+          reset: rateLimitReset ? parseInt(rateLimitReset, 10) * 1000 : undefined,
+          url: originalRequest.url,
+        });
+      }
+
+      // Rate Limit 추적기 동적 조정 (429 발생 시 버퍼 증가)
+      rateLimitTracker.handle429Error();
 
       // 사용자에게 알림 (선택적 - toast 시스템이 있다면 사용)
       // toast.error(`요청이 너무 많습니다. ${retryAfterSeconds}초 후에 다시 시도해주세요.`);
@@ -242,13 +276,6 @@ api.interceptors.response.use(
       );
     }
 
-    // OAuth2 callback 에러는 토큰 갱신 시도하지 않음
-    // URL 또는 params에 key/state가 있으면 OAuth callback으로 간주
-    const isOAuthCallback = 
-      originalRequest.url?.includes('/auth/callback') ||
-      originalRequest.params?.key !== undefined ||
-      originalRequest.params?.state !== undefined;
-    
     // Signup/Login 엔드포인트는 토큰 갱신 시도하지 않음 (초기 인증 단계이므로)
     // 이 엔드포인트에서 401은 "인증 실패"를 의미하며, 토큰 만료가 아님
     // URL 체크: baseURL이 있을 경우 config.url은 상대 경로만 포함하므로 둘 다 확인
@@ -257,6 +284,12 @@ api.interceptors.response.use(
     const fullUrl = baseURL && requestUrl 
       ? `${baseURL.replace(/\/$/, '')}${requestUrl.startsWith('/') ? '' : '/'}${requestUrl}`
       : requestUrl || axiosError.config?.url || '';
+    
+    // OAuth2 confirm 에러는 토큰 갱신 시도하지 않음
+    // URL에 /auth/confirm이 있으면 OAuth confirm으로 간주
+    const isOAuthConfirm = 
+      originalRequest.url?.includes('/auth/confirm') ||
+      fullUrl.includes('/auth/confirm');
     
     // 다양한 URL 형식 체크
     const isAuthEndpoint = 
@@ -270,17 +303,16 @@ api.interceptors.response.use(
     const errorData = axiosError.response?.data as any;
     const errorCode = errorData?.error?.code || errorData?.code;
     
-    // OAuth2 callback은 어떤 에러든 토큰 갱신 시도하지 않음 (초기 인증 단계이므로)
-    if (isOAuthCallback) {
+    // OAuth2 confirm은 어떤 에러든 토큰 갱신 시도하지 않음 (초기 인증 단계이므로)
+    if (isOAuthConfirm) {
       if (axiosError.response?.status === 401) {
-        console.error('OAuth2 callback 401 에러 발생:', {
+        console.error('OAuth2 confirm 401 에러 발생:', {
           url: originalRequest.url,
-          params: originalRequest.params,
           errorCode,
           errorMessage: errorData?.error?.message || errorData?.message,
           possibleReasons: [
-            'OAuth 인증 과정이 너무 오래 걸려서 토큰이 만료됨',
-            '같은 토큰을 두 번 사용하려고 시도함 (새로고침/뒤로가기)',
+            'OAuth 인증 과정이 너무 오래 걸려서 tempKey가 만료됨',
+            '같은 tempKey를 두 번 사용하려고 시도함 (새로고침/뒤로가기)',
             '백엔드 세션/캐시가 만료됨',
             'OAuth provider에서 받은 인증 코드가 이미 사용됨'
           ]
@@ -364,7 +396,7 @@ api.interceptors.response.use(
     }
 
     // 401 Unauthorized 처리 (동시 refresh 요청 방지)
-    // OAuth callback은 이미 위에서 처리되었으므로 제외
+    // OAuth confirm은 이미 위에서 처리되었으므로 제외
     if (axiosError.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
