@@ -79,7 +79,8 @@ export function TossPaymentForm({
       return;
     }
 
-    if (!customerEmail.trim() || !customerEmail.includes('@')) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!customerEmail.trim() || !emailRegex.test(customerEmail)) {
       onError('올바른 이메일 주소를 입력해주세요.');
       return;
     }
@@ -133,15 +134,35 @@ export function TossPaymentForm({
         throw new Error(`유효하지 않은 결제 금액입니다: ${paymentData.amount}`);
       }
 
-      // 토스페이먼츠 orderId 정책:
-      // - 영문 대소문자, 숫자, 특수문자(-, _)만 허용
-      // - 6자 이상 64자 이하
-      // 내부 payment id(숫자)를 그대로 쓰면 "2"처럼 6자 미만이 될 수 있어 0-padding으로 보정합니다.
-      const orderId = String(paymentData.id).padStart(6, '0');
+      /**
+       * Toss Payments용 orderId 생성
+       * 
+       * 요구사항:
+       * 1. 결제 시도 단위로 유니크해야 함 (재시도 시 새로운 orderId 필요)
+       * 2. 내부 주문 ID는 유지하되, Toss 결제용 orderId는 별도로 생성
+       * 3. 사람이 보기에 의미를 추적할 수 있는 포맷
+       * 
+       * 포맷: ORDER-{내부주문ID}-{timestamp}
+       * 예시: ORDER-123-1704067200000
+       * 
+       * Toss Payments orderId 정책:
+       * - 영문 대소문자, 숫자, 특수문자(-, _)만 허용
+       * - 6자 이상 64자 이하
+       */
+      const internalOrderId = paymentData.id;
+      const timestamp = Date.now();
+      const tossOrderId = `ORDER-${internalOrderId}-${timestamp}`;
+
+      console.log('[TossPaymentForm] Toss 결제용 orderId 생성', {
+        internalOrderId,
+        tossOrderId,
+        timestamp,
+      });
 
       console.log('[TossPaymentForm] 결제창 호출', {
         amount: paymentAmount,
-        orderId,
+        orderId: tossOrderId,
+        internalOrderId,
         orderName: productName,
         customerName,
         customerEmail,
@@ -160,11 +181,11 @@ export function TossPaymentForm({
        */
       await tossPayments.requestPayment('카드', {
         amount: paymentAmount,
-        orderId,
+        orderId: tossOrderId,
         orderName: productName,
         customerName,
         customerEmail,
-        successUrl: `${window.location.origin}/payment/success?orderId=${orderId}&amount=${paymentAmount}`,
+        successUrl: `${window.location.origin}/payment/success?orderId=${tossOrderId}&internalOrderId=${internalOrderId}&amount=${paymentAmount}`,
         failUrl: `${window.location.origin}/payment/fail`,
       });
 

@@ -42,32 +42,47 @@ export default function AppLayout() {
       return;
     }
 
-    const unsubscribe = setupForegroundMessageListener((payload) => {
-      console.log('[AppLayout] FCM message received:', payload);
+    let isMounted = true;
 
-      // 알림 표시
-      if (payload.notification) {
-        const { title, body, icon } = payload.notification;
-        
-        // 브라우저 알림 표시
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification(title || '알림', {
-            body: body || '',
-            icon: icon || '/vite.svg',
-            badge: '/vite.svg',
-            tag: payload.data?.paymentId || 'notification',
-            data: payload.data,
+    const setupListener = async () => {
+      const unsubscribe = await setupForegroundMessageListener((payload) => {
+        // 개발 환경에서만 최소한의 정보만 로그 (개인정보 보호)
+        if (import.meta.env.DEV) {
+          console.log('[AppLayout] FCM message received:', {
+            hasNotification: !!payload.notification,
+            notificationTitle: payload.notification?.title,
+            hasData: !!payload.data,
+            dataKeys: payload.data ? Object.keys(payload.data) : [],
           });
         }
-      }
-    });
 
-    if (unsubscribe) {
-      unsubscribeRef.current = unsubscribe;
-    }
+        // 알림 표시
+        if (payload.notification) {
+          const { title, body, icon } = payload.notification;
+          
+          // 브라우저 알림 표시
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title || '알림', {
+              body: body || '',
+              icon: icon || '/vite.svg',
+              badge: '/vite.svg',
+              tag: payload.data?.paymentId || 'notification',
+              data: payload.data,
+            });
+          }
+        }
+      });
+
+      if (isMounted && unsubscribe) {
+        unsubscribeRef.current = unsubscribe;
+      }
+    };
+
+    setupListener();
 
     // cleanup: 컴포넌트 unmount 시 리스너 해제
     return () => {
+      isMounted = false;
       if (unsubscribeRef.current) {
         unsubscribeRef.current();
         unsubscribeRef.current = null;

@@ -293,19 +293,14 @@ def main():
 
 
 if __name__ == "__main__":
-    # requests 라이브러리 확인
-    try:
-        import requests
-    except ImportError:
-        print(f"{Colors.RED}❌ requests 라이브러리가 설치되지 않았습니다.{Colors.NC}")
-        print(f"다음 명령어로 설치하세요: pip install requests")
-        sys.exit(1)
+    # requests는 파일 상단에서 이미 import됨
+    # ImportError 발생 시 스크립트가 시작되지 않음
 
     # TOKEN 확인
     if TOKEN == "YOUR_ACCESS_TOKEN":
         print(f"{Colors.YELLOW}⚠️  경고: API_TOKEN 환경 변수가 설정되지 않았습니다.{Colors.NC}")
-        print(f"일부 테스트가 실패할 수 있습니다.\n")
-        print(f"사용법: API_TOKEN=your_token python test_backend_api.py\n")
+        print("일부 테스트가 실패할 수 있습니다.\n")
+        print("사용법: API_TOKEN=your_token python test_backend_api.py\n")
 
     try:
         main()

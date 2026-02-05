@@ -99,13 +99,17 @@ class RateLimitTracker {
     const config = url ? this.getEndpointConfig(url) : this.config;
     const effectiveBuffer = url ? config.buffer : this.adaptiveBuffer;
 
-    // 해당 엔드포인트의 요청만 필터링
+    // 해당 엔드포인트의 요청만 필터링 (엔드포인트별 windowMs 기준으로 시간 필터링)
+    const now = Date.now();
+    const windowStart = now - config.windowMs;
     const relevantRequests = url 
       ? this.requests.filter(r => {
           const pattern = this.extractEndpointPattern(r.url);
-          return pattern === this.extractEndpointPattern(url);
+          const isSameEndpoint = pattern === this.extractEndpointPattern(url);
+          const isWithinWindow = r.timestamp > windowStart;
+          return isSameEndpoint && isWithinWindow;
         })
-      : this.requests;
+      : this.requests.filter(r => r.timestamp > windowStart);
 
     const availableSlots = config.maxRequests - effectiveBuffer - relevantRequests.length;
 
@@ -197,14 +201,23 @@ class RateLimitTracker {
     if (url) {
       const config = this.getEndpointConfig(url);
       const pattern = this.extractEndpointPattern(url);
+      const now = Date.now();
+      const windowStart = now - config.windowMs;
+      // 엔드포인트별 windowMs 기준으로 시간 필터링
       const relevantRequests = this.requests.filter(r => {
         const rPattern = this.extractEndpointPattern(r.url);
-        return rPattern === pattern;
+        const isSameEndpoint = rPattern === pattern;
+        const isWithinWindow = r.timestamp > windowStart;
+        return isSameEndpoint && isWithinWindow;
       });
       return Math.max(0, config.maxRequests - config.buffer - relevantRequests.length);
     }
     
-    return Math.max(0, this.config.maxRequests - this.adaptiveBuffer - this.requests.length);
+    // 전역 설정의 경우 전역 windowMs 기준으로 필터링
+    const now = Date.now();
+    const windowStart = now - this.config.windowMs;
+    const recentRequests = this.requests.filter(r => r.timestamp > windowStart);
+    return Math.max(0, this.config.maxRequests - this.adaptiveBuffer - recentRequests.length);
   }
 
   /**
@@ -275,7 +288,42 @@ class RateLimitTracker {
     // 리셋 시간이 제공되면 오래된 요청 정리
     if (info.reset) {
       const resetTime = info.reset;
-      this.requests = this.requests.filter((r) => r.timestamp < resetTime);
+      const now = Date.now();
+      
+      if (resetTime <= now) {
+        // resetTime이 이미 지난 경우: 백엔드가 이미 리셋했으므로 모든 요청 제거
+        // 엔드포인트별 정리인 경우 해당 엔드포인트만, 전역인 경우 모두 제거
+        if (endpoint) {
+          const pattern = this.extractEndpointPattern(info.url!);
+          this.requests = this.requests.filter(r => {
+            const rPattern = this.extractEndpointPattern(r.url);
+            return rPattern !== pattern;
+          });
+        } else {
+          this.requests = [];
+        }
+      } else {
+        // resetTime이 아직 미래인 경우: 새로운 윈도우 범위 내 요청만 유지
+        // windowMs를 가져와서 resetTime - windowMs 이후의 요청만 유지
+        const config = endpoint 
+          ? this.getEndpointConfig(info.url!)
+          : this.config;
+        const windowStart = resetTime - config.windowMs;
+        
+        if (endpoint) {
+          const pattern = this.extractEndpointPattern(info.url!);
+          this.requests = this.requests.filter(r => {
+            const rPattern = this.extractEndpointPattern(r.url);
+            const isSameEndpoint = rPattern === pattern;
+            const isWithinWindow = r.timestamp > windowStart;
+            // 다른 엔드포인트는 유지, 같은 엔드포인트는 윈도우 내만 유지
+            return !isSameEndpoint || isWithinWindow;
+          });
+        } else {
+          // 전역 설정: 윈도우 내 요청만 유지
+          this.requests = this.requests.filter(r => r.timestamp > windowStart);
+        }
+      }
     }
   }
 

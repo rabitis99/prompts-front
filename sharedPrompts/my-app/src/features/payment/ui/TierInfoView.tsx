@@ -128,6 +128,7 @@ export function TierInfoView() {
     console.log('결제 성공:', paymentId);
     setIsPaymentModalOpen(false);
     // 티어 정보 새로고침
+    setPage(0);
     loadTierInfo();
     loadHistory(0);
   };

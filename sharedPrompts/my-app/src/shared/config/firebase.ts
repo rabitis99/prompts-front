@@ -17,14 +17,39 @@ const app = initializeApp(firebaseConfig);
 let messaging: ReturnType<typeof getMessaging> | null = null;
 // Service Worker 등록 상태 추적
 let serviceWorkerRegistrationPromise: Promise<ServiceWorkerRegistration | null> | null = null;
+// Messaging 초기화 Promise 추적 (경쟁 상태 방지)
+let messagingInitPromise: Promise<ReturnType<typeof getMessaging> | null> | null = null;
 
-// 브라우저 환경에서만 messaging 초기화
-if (typeof window !== 'undefined') {
-  isSupported().then((supported) => {
+/**
+ * Messaging 초기화 (경쟁 상태 방지를 위해 Promise 반환)
+ */
+function initializeMessaging(): Promise<ReturnType<typeof getMessaging> | null> {
+  // 이미 초기화 중이면 기존 Promise 반환
+  if (messagingInitPromise) {
+    return messagingInitPromise;
+  }
+
+  // 브라우저 환경이 아니면 null 반환
+  if (typeof window === 'undefined') {
+    messagingInitPromise = Promise.resolve(null);
+    return messagingInitPromise;
+  }
+
+  // 초기화 Promise 생성
+  messagingInitPromise = isSupported().then((supported) => {
     if (supported) {
       messaging = getMessaging(app);
+      return messaging;
     }
+    return null;
   });
+
+  return messagingInitPromise;
+}
+
+// 브라우저 환경에서만 messaging 초기화 시작
+if (typeof window !== 'undefined') {
+  initializeMessaging();
 }
 
 /**
@@ -44,14 +69,14 @@ async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null
 
   // 이미 등록되어 있는지 확인
   try {
-    const existingRegistration = await navigator.serviceWorker.ready;
-    if (existingRegistration) {
-      console.log('[Firebase] Service Worker already registered');
+    const existingRegistration = await navigator.serviceWorker.getRegistration('/');
+    if (existingRegistration?.active) {
+      console.log('[Firebase] Service Worker already registered:', existingRegistration.scope);
       serviceWorkerRegistrationPromise = Promise.resolve(existingRegistration);
       return existingRegistration;
     }
   } catch (error) {
-    // Service Worker가 준비되지 않았으면 새로 등록
+    console.warn('[Firebase] Error checking existing registration:', error);
   }
 
   // 새로 등록
@@ -80,9 +105,9 @@ async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null
  */
 export async function getFCMToken(): Promise<string | null> {
   try {
-    // FCM이 지원되지 않는 환경
-    const supported = await isSupported();
-    if (!supported || !messaging) {
+    // Messaging 초기화 완료 대기 (경쟁 상태 방지)
+    const initializedMessaging = await initializeMessaging();
+    if (!initializedMessaging) {
       console.warn('FCM is not supported in this browser');
       return null;
     }
@@ -99,10 +124,14 @@ export async function getFCMToken(): Promise<string | null> {
 
     // VAPID 키를 사용하여 토큰 가져오기
     const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-    const token = await getToken(messaging, { vapidKey });
+    const token = await getToken(initializedMessaging, { vapidKey });
 
     if (token) {
-      console.log('FCM token obtained:', token);
+      if (import.meta.env.DEV) {
+        console.log('FCM token obtained:', token);
+      } else {
+        console.log('FCM token obtained:', token.slice(0, 10) + '...');
+      }
       return token;
     } else {
       console.warn('No FCM token available');
@@ -119,16 +148,18 @@ export async function getFCMToken(): Promise<string | null> {
  * - 앱이 포그라운드에 있을 때 푸시 알림을 받기 위한 리스너
  * - 백그라운드 알림은 Service Worker에서 처리됩니다.
  */
-export function setupForegroundMessageListener(
+export async function setupForegroundMessageListener(
   onMessageReceived: (payload: any) => void
-): (() => void) | null {
-  if (!messaging) {
-    console.warn('[FCM] Messaging not initialized, cannot setup foreground listener');
-    return null;
-  }
-
+): Promise<(() => void) | null> {
   try {
-    const unsubscribe = onMessage(messaging, (payload) => {
+    // Messaging 초기화 완료 대기 (경쟁 상태 방지)
+    const initializedMessaging = await initializeMessaging();
+    if (!initializedMessaging) {
+      console.warn('[FCM] Messaging not initialized, cannot setup foreground listener');
+      return null;
+    }
+
+    const unsubscribe = onMessage(initializedMessaging, (payload) => {
       console.log('[FCM] Foreground message received:', payload);
       onMessageReceived(payload);
     });

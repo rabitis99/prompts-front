@@ -55,10 +55,11 @@ export interface PaymentRefundRequestDto {
 }
 
 export interface PaymentConfirmRequest {
-  order_id: string;
+  order_id: string; // 내부 주문 ID (숫자 문자열)
   amount: number;
   payment_key: string;
   pg_token?: string; // 카카오페이 결제 승인 토큰 (카카오페이 결제 시 필수)
+  toss_order_id?: string; // Toss Payments 위젯에서 사용한 orderId (선택적)
 }
 
 export interface PaymentResponseDto {

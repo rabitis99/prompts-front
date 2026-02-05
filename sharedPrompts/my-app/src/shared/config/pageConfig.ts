@@ -49,6 +49,8 @@ export const PAGE_UI_CONFIG: Record<string, PageUIConfig> = {
 
   // Payment
   "/payments": { header: true, footer: false },
+  "/payment/success": { header: false, footer: false },
+  "/payment/fail": { header: false, footer: false },
 
   // Search / Activity
   "/search": { header: true, footer: false },
@@ -86,6 +88,8 @@ export const PAGE_TITLE_CONFIG: Record<string, string> = {
   "/users/:id": "사용자 프로필",
 
   "/payments": "결제 관리",
+  "/payment/success": "결제 완료",
+  "/payment/fail": "결제 실패",
 
   "/search": "검색",
   "/bookmarks": "북마크",

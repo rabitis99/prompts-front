@@ -19,6 +19,8 @@ const POINT_TYPE_COLORS: Record<string, string> = {
   USE: 'text-red-600',
 };
 
+const PAGE_SIZE = 20;
+
 export function PointHistoryView() {
   const [points, setPoints] = useState<PointResponseDto[]>([]);
   const [balance, setBalance] = useState<number | null>(null);
@@ -39,7 +41,7 @@ export function PointHistoryView() {
       }
 
       // 포인트 내역 조회
-      const response = await pointApi.getPointHistory(pageNum, 20);
+      const response = await pointApi.getPointHistory(pageNum, PAGE_SIZE);
       const data = response.data.data;
       
       if (pageNum === 0) {
@@ -48,9 +50,14 @@ export function PointHistoryView() {
         setPoints((prev) => [...prev, ...data.content]);
       }
       
-      setHasMore(!data.last);
+      const isLast = data.last ?? data.content.length < PAGE_SIZE;
+      setHasMore(!isLast);
     } catch (err: any) {
-      setError(err.response?.data?.message || '포인트 내역을 불러오는데 실패했습니다.');
+      setError(
+        err.response?.data?.error?.message ||
+        err.message ||
+        '포인트 내역을 불러오는데 실패했습니다.'
+      );
     } finally {
       setLoading(false);
     }

@@ -29,11 +29,13 @@ export function PaypalButton({
   const [backendPaymentId, setBackendPaymentId] = useState<number | null>(null);
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
   const [userTier, setUserTier] = useState<UserTier>(propTier || UserTier.FREE);
+  const [isTierLoading, setIsTierLoading] = useState(!propTier); // propTier가 없으면 로딩 중
 
   // 사용자 티어 정보 로드 (propTier가 없을 때만)
   useEffect(() => {
     if (propTier) {
       setUserTier(propTier);
+      setIsTierLoading(false);
       return;
     }
     
@@ -46,13 +48,21 @@ export function PaypalButton({
       } catch (error) {
         console.error('[PaypalButton] 티어 정보 로드 실패:', error);
         // 실패 시 기본값 유지
+      } finally {
+        setIsTierLoading(false);
       }
     };
     loadTier();
   }, [propTier]);
 
   // 컴포넌트 마운트 시 백엔드에 결제 정보 생성
+  // 티어가 결정된 후에만 실행 (propTier가 있거나 티어 로딩이 완료된 경우)
   useEffect(() => {
+    // 티어가 아직 로딩 중이면 결제 생성을 지연
+    if (isTierLoading) {
+      return;
+    }
+
     const createPayment = async () => {
       setIsCreatingPayment(true);
       try {
@@ -83,7 +93,7 @@ export function PaypalButton({
     };
 
     createPayment();
-  }, [amount, currency, productName, userType, userTier, onError]);
+  }, [amount, currency, productName, userType, userTier, isTierLoading, onError]);
 
   if (isPending || isCreatingPayment) {
     return (

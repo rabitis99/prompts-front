@@ -1,8 +1,8 @@
 // Firebase Cloud Messaging Service Worker
 // 백그라운드 푸시 알림 수신을 위한 서비스 워커
 
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.8.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.8.0/firebase-messaging-compat.js');
 
 // Firebase 설정 (환경 변수를 사용할 수 없으므로 직접 설정 필요)
 // 주의: 이 파일은 빌드 시점에 public 폴더에서 그대로 복사되므로
@@ -46,7 +46,8 @@ self.addEventListener('notificationclick', (event) => {
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       // 이미 열려있는 창이 있으면 포커스
       for (const client of clientList) {
-        if (client.url === '/' && 'focus' in client) {
+        const url = new URL(client.url);
+        if (url.origin === self.location.origin && url.pathname === '/' && 'focus' in client) {
           return client.focus();
         }
       }

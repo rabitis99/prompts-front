@@ -36,16 +36,14 @@ export default function PaymentSuccessPage() {
     amount: number;
   } | null>(null);
   const [countdown, setCountdown] = useState(3);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   // ⭐ StrictMode / 재렌더에서도 1회 실행 보장
   const calledRef = useRef(false);
   // 카운트다운 interval 정리를 위한 ref
   const countdownIntervalRef = useRef<number | null>(null);
-  // 재시도 횟수 제한 (개발 환경에서는 제한 완화)
-  const retryCountRef = useRef(0);
   const MAX_RETRY_COUNT = import.meta.env.DEV ? 999 : 3; // 개발 환경에서는 거의 무제한
-  // 재시도 중인지 확인하는 ref
-  const isRetryingRef = useRef(false);
 
   // 금액 포맷팅
   const formatAmount = (amount: number) => {
@@ -124,7 +122,7 @@ export default function PaymentSuccessPage() {
 
         try {
           // 재시도 횟수 체크 (개발 환경에서는 제한 없음)
-          if (!import.meta.env.DEV && retryCountRef.current >= MAX_RETRY_COUNT) {
+          if (!import.meta.env.DEV && retryCount >= MAX_RETRY_COUNT) {
             setStatus('error');
             setErrorMessage(
               '결제 승인 요청이 너무 많이 시도되었습니다.\n' +
@@ -135,7 +133,7 @@ export default function PaymentSuccessPage() {
 
           // 재시도 버튼 클릭 시에는 재시도 횟수 증가
           if (isRetry) {
-            retryCountRef.current += 1;
+            setRetryCount((prev) => prev + 1);
           }
 
           console.log('[PaymentSuccessPage] 카카오페이 결제 승인 요청', {
@@ -143,7 +141,7 @@ export default function PaymentSuccessPage() {
             amount: Number(amount),
             paymentKey: tid,
             pgToken,
-            retryCount: retryCountRef.current,
+            retryCount: isRetry ? retryCount + 1 : retryCount,
             isRetry,
           });
 
@@ -166,7 +164,7 @@ export default function PaymentSuccessPage() {
           }
 
           // 성공 시 재시도 카운터 리셋
-          retryCountRef.current = 0;
+          setRetryCount(0);
 
           setPaymentData({
             orderId,
@@ -199,8 +197,7 @@ export default function PaymentSuccessPage() {
             error instanceof Error ? error.message : '결제 승인 중 오류가 발생했습니다.';
           
           // 재시도 가능 여부에 따른 메시지 추가
-          // isRetry가 true면 이미 재시도 횟수가 증가했으므로, false면 증가 전 상태
-          const currentRetryCount = isRetry ? retryCountRef.current : retryCountRef.current;
+          const currentRetryCount = retryCount;
           const retryMessage = import.meta.env.DEV
             ? `${message}\n\n[개발 모드] 재시도 ${currentRetryCount}회`
             : currentRetryCount >= MAX_RETRY_COUNT
@@ -220,13 +217,42 @@ export default function PaymentSuccessPage() {
           return;
         }
 
-        // 토스페이먼츠 orderId 정책: 6자 이상 64자 이하
-        // URL 파라미터에서 받은 orderId를 6자리로 패딩하여 최초 요청과 일치시킴
-        const paddedOrderId = String(orderId).padStart(6, '0');
+        /**
+         * Toss 결제용 orderId 파싱
+         * 
+         * 포맷: ORDER-{내부주문ID}-{timestamp}
+         * 예시: ORDER-123-1704067200000
+         * 
+         * 내부 주문 ID는 URL 파라미터에서 직접 받거나, orderId에서 파싱
+         */
+        let internalOrderId: string | null = searchParams.get('internalOrderId');
+        let tossOrderId = orderId;
+
+        // orderId가 새로운 포맷인지 확인 (ORDER-로 시작하는지)
+        if (orderId.startsWith('ORDER-')) {
+          // ORDER-{내부주문ID}-{timestamp} 형식에서 내부 주문 ID 추출
+          const parts = orderId.split('-');
+          if (parts.length >= 3 && !internalOrderId) {
+            internalOrderId = parts[1]; // 두 번째 부분이 내부 주문 ID
+          }
+        } else {
+          // 기존 포맷 (숫자만)인 경우 호환성 유지
+          // 토스페이먼츠 orderId 정책: 6자 이상 64자 이하
+          tossOrderId = String(orderId).padStart(6, '0');
+          if (!internalOrderId) {
+            internalOrderId = orderId;
+          }
+        }
+
+        console.log('[PaymentSuccessPage] Toss 결제용 orderId 파싱', {
+          originalOrderId: orderId,
+          tossOrderId,
+          internalOrderId,
+        });
 
         try {
           // 재시도 횟수 체크 (개발 환경에서는 제한 없음)
-          if (!import.meta.env.DEV && retryCountRef.current >= MAX_RETRY_COUNT) {
+          if (!import.meta.env.DEV && retryCount >= MAX_RETRY_COUNT) {
             setStatus('error');
             setErrorMessage(
               '결제 승인 요청이 너무 많이 시도되었습니다.\n' +
@@ -237,15 +263,16 @@ export default function PaymentSuccessPage() {
 
           // 재시도 버튼 클릭 시에는 재시도 횟수 증가
           if (isRetry) {
-            retryCountRef.current += 1;
+            setRetryCount((prev) => prev + 1);
           }
 
           console.log('[PaymentSuccessPage] 토스페이먼츠 결제 승인 요청', {
-            orderId: paddedOrderId,
+            tossOrderId,
+            internalOrderId,
             originalOrderId: orderId,
             amount: Number(amount),
             paymentKey,
-            retryCount: retryCountRef.current,
+            retryCount: isRetry ? retryCount + 1 : retryCount,
             isRetry,
           });
 
@@ -256,13 +283,23 @@ export default function PaymentSuccessPage() {
            * - 프론트엔드에서 토스 결제 위젯의 성공 콜백 또는 리다이렉트 URL의 쿼리 파라미터로만 획득 가능합니다.
            * - pgToken은 토스페이먼츠에서는 사용하지 않으므로 보내지 않습니다.
            * 
-           * ⚠️ orderId는 최초 결제 요청 시 사용한 값과 동일해야 합니다.
-           * - TossPaymentForm에서 6자리로 패딩하여 전달했으므로, 여기서도 동일하게 패딩합니다.
+           * ⚠️ order_id와 toss_order_id 구분:
+           * - order_id: 내부 주문 ID (숫자 문자열, 백엔드에서 getOrderIdAsLong()으로 변환)
+           * - toss_order_id: Toss Payments 위젯에서 사용한 orderId (ORDER-{내부주문ID}-{timestamp})
+           * - 백엔드는 toss_order_id가 있으면 이를 Toss Payments API에 전달하고,
+           *   없으면 payment.getId()를 사용합니다.
            */
+          if (!internalOrderId) {
+            setStatus('error');
+            setErrorMessage('내부 주문 ID를 찾을 수 없습니다.');
+            return;
+          }
+
           const response = await paymentApi.confirmPayment({
-            order_id: paddedOrderId,
+            order_id: internalOrderId, // 내부 주문 ID (숫자 문자열)
             amount: Number(amount),
             payment_key: paymentKey,
+            toss_order_id: tossOrderId, // Toss Payments용 orderId
             // pgToken은 토스페이먼츠에서 사용하지 않음
           });
 
@@ -271,10 +308,10 @@ export default function PaymentSuccessPage() {
           }
 
           // 성공 시 재시도 카운터 리셋
-          retryCountRef.current = 0;
+          setRetryCount(0);
 
           setPaymentData({
-            orderId: paddedOrderId,
+            orderId: internalOrderId || tossOrderId, // UI에는 내부 주문 ID 표시
             amount: Number(amount),
           });
           setStatus('success');
@@ -304,8 +341,7 @@ export default function PaymentSuccessPage() {
             error instanceof Error ? error.message : '결제 승인 중 오류가 발생했습니다.';
           
           // 재시도 가능 여부에 따른 메시지 추가
-          // isRetry가 true면 이미 재시도 횟수가 증가했으므로, false면 증가 전 상태
-          const currentRetryCount = isRetry ? retryCountRef.current : retryCountRef.current;
+          const currentRetryCount = retryCount;
           const retryMessage = import.meta.env.DEV
             ? `${message}\n\n[개발 모드] 재시도 ${currentRetryCount}회`
             : currentRetryCount >= MAX_RETRY_COUNT
@@ -469,31 +505,31 @@ export default function PaymentSuccessPage() {
 
             {/* 버튼 */}
             <div className="flex gap-3 pt-2">
-              {import.meta.env.DEV || retryCountRef.current < MAX_RETRY_COUNT ? (
+              {import.meta.env.DEV || retryCount < MAX_RETRY_COUNT ? (
                 <button
                   onClick={async () => {
-                    if (isRetryingRef.current) return; // 이미 재시도 중이면 무시
+                    if (isRetrying) return; // 이미 재시도 중이면 무시
                     
                     // 재시도 시 상태를 'confirming'으로 변경하고 결제 승인 로직 다시 실행
-                    isRetryingRef.current = true;
+                    setIsRetrying(true);
                     setStatus('confirming');
                     setErrorMessage('');
                     // 재시도 버튼 클릭 시 재시도 횟수는 handleConfirmPayment 내부에서 증가
                     try {
                       await handleConfirmPayment(true);
                     } finally {
-                      isRetryingRef.current = false;
+                      setIsRetrying(false);
                     }
                   }}
-                  disabled={isRetryingRef.current}
+                  disabled={isRetrying}
                   className="flex-1 py-3.5 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-all hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ArrowRight className="w-5 h-5" />
-                  {isRetryingRef.current 
+                  {isRetrying 
                     ? '재시도 중...' 
                     : import.meta.env.DEV 
-                      ? `다시 시도 (${retryCountRef.current + 1}회)` 
-                      : `다시 시도 (${retryCountRef.current + 1}/${MAX_RETRY_COUNT})`}
+                      ? `다시 시도 (${retryCount + 1}회)` 
+                      : `다시 시도 (${retryCount + 1}/${MAX_RETRY_COUNT})`}
                 </button>
               ) : (
                 <button

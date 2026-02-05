@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { useSettingsPage } from '../model/useSettingsPage';
 import { TABS } from '../constants/settings.constants';
@@ -16,6 +17,7 @@ import { LogoutModal } from './LogoutModal';
 import type { FollowUserResponseDto } from '@/features/follow/types/follow.types';
 
 export function SettingsView() {
+  const navigate = useNavigate();
   const {
     activeTab,
     isEditing,
@@ -152,10 +154,17 @@ export function SettingsView() {
             <div className="bg-white rounded-2xl border border-neutral-200 p-2">
               {TABS.map((tab) => {
                 const Icon = tab.icon;
+                const handleClick = () => {
+                  if (tab.id === 'payment') {
+                    navigate('/payments');
+                  } else {
+                    setActiveTab(tab.id);
+                  }
+                };
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={handleClick}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
                       activeTab === tab.id
                         ? 'bg-violet-50 text-violet-700'

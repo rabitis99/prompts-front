@@ -42,8 +42,15 @@ export function PaymentHistoryView() {
       }
       
       setHasMore(!data.last);
+      return true; // 성공
     } catch (err: any) {
-      setError(err.response?.data?.message || '결제 내역을 불러오는데 실패했습니다.');
+      setError(
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        err.message ||
+        '결제 내역을 불러오는데 실패했습니다.'
+      );
+      return false; // 실패
     } finally {
       setLoading(false);
     }
@@ -53,11 +60,14 @@ export function PaymentHistoryView() {
     loadPayments(0);
   }, []);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = async () => {
     if (!loading && hasMore) {
       const nextPage = page + 1;
-      setPage(nextPage);
-      loadPayments(nextPage);
+      const success = await loadPayments(nextPage);
+      // 성공한 경우에만 페이지 증가
+      if (success) {
+        setPage(nextPage);
+      }
     }
   };
 

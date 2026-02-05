@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { cashbackApi } from '../api/cashback.api';
 import type { CashbackResponseDto } from '../types/payment.types';
 import { LoadingState, EmptyState } from '@/shared/components';
@@ -13,8 +13,13 @@ export function CashbackHistoryView() {
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'unpaid'>('all');
+  // 요청 경합 방지를 위한 요청 ID 추적
+  const requestIdRef = useRef(0);
 
   const loadCashbacks = async (pageNum: number, tab: 'all' | 'unpaid') => {
+    // 새로운 요청 ID 생성
+    const currentRequestId = ++requestIdRef.current;
+    
     try {
       setLoading(true);
       setError(null);
@@ -22,7 +27,10 @@ export function CashbackHistoryView() {
       // 미지급 총액 조회
       if (pageNum === 0 && tab === 'unpaid') {
         const totalResponse = await cashbackApi.getUnpaidCashbackTotal();
-        setUnpaidTotal(totalResponse.data.data);
+        // 최신 요청인지 확인
+        if (currentRequestId === requestIdRef.current) {
+          setUnpaidTotal(totalResponse.data.data);
+        }
       }
 
       // 캐시백 내역 조회
@@ -30,6 +38,12 @@ export function CashbackHistoryView() {
         tab === 'unpaid'
           ? await cashbackApi.getUnpaidCashbacks(pageNum, 20)
           : await cashbackApi.getCashbackHistory(pageNum, 20);
+      
+      // 최신 요청인지 확인 (탭 전환 또는 추가 로딩 중 이전 요청이 늦게 도착한 경우 무시)
+      if (currentRequestId !== requestIdRef.current) {
+        return;
+      }
+      
       const data = response.data.data;
       
       if (pageNum === 0) {
@@ -40,9 +54,21 @@ export function CashbackHistoryView() {
       
       setHasMore(!data.last);
     } catch (err: any) {
-      setError(err.response?.data?.message || '캐시백 내역을 불러오는데 실패했습니다.');
+      // 최신 요청인지 확인
+      if (currentRequestId !== requestIdRef.current) {
+        return;
+      }
+      
+      setError(
+        err.response?.data?.error?.message ||
+        err.message ||
+        '캐시백 내역을 불러오는데 실패했습니다.'
+      );
     } finally {
-      setLoading(false);
+      // 최신 요청인지 확인
+      if (currentRequestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -174,6 +200,11 @@ export function CashbackHistoryView() {
             ))}
           </div>
 
+          {error && cashbacks.length > 0 && (
+            <div className="text-red-600 text-sm text-center">
+              {error}
+            </div>
+          )}
           {hasMore && (
             <button
               onClick={handleLoadMore}

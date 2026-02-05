@@ -3,12 +3,15 @@ import {
   X,
   Filter,
   ChevronDown,
+  CreditCard,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useHomeFeedView } from '@/features/prompt/model/useHomeFeedView';
 import { DOMAIN_OPTIONS, SORT_OPTIONS } from '@/features/prompt/model/homeFeed.constants';
 import { PromptCard } from './components/PromptCard';
 
 export function HomeFeedView() {
+  const navigate = useNavigate();
   const {
     searchQuery,
     setSearchQuery,
@@ -36,23 +39,32 @@ export function HomeFeedView() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Search */}
         <div className="mb-8">
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="프롬프트 검색..."
-              className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+          <div className="flex items-center gap-4 max-w-2xl mx-auto">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="프롬프트 검색..."
+                className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => navigate('/payments')}
+              className="flex items-center gap-2 px-4 py-3.5 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 transition-colors whitespace-nowrap"
+            >
+              <CreditCard className="w-5 h-5" />
+              Payment
+            </button>
           </div>
         </div>
 

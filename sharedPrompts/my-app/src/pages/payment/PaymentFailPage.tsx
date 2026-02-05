@@ -111,11 +111,11 @@ export default function PaymentFailPage() {
           {/* 버튼 */}
           <div className="flex flex-col gap-3 pt-2">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate('/payments')}
               className="w-full py-3.5 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-all hover:shadow-lg flex items-center justify-center gap-2"
             >
               <RefreshCw className="w-5 h-5" />
-              다시 시도
+              결제 내역으로 이동
             </button>
             <div className="flex gap-3">
               <button

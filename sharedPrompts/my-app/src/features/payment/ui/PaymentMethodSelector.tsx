@@ -52,6 +52,7 @@ export function PaymentMethodSelector({
 
       {paymentMethods.map(({ method, name, description, icon }) => (
         <button
+          type="button"
           key={method}
           onClick={() => onSelectMethod(method)}
           disabled={disabled}

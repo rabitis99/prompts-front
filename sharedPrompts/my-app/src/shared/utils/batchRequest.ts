@@ -192,12 +192,29 @@ export async function batchRequests<T>(
 
   // 배치 순차 처리 (RateLimit 고려)
   for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i];
+    let batch = batches[i];
     
     // RateLimit 체크: 사용 가능한 슬롯 확인
-    const availableSlots = rateLimitTracker.getAvailableSlots();
-    if (availableSlots <= 0) {
+    let availableSlots = rateLimitTracker.getAvailableSlots();
+    
+    // 슬롯이 부족하면 충분할 때까지 대기
+    while (availableSlots <= 0) {
       await waitForRateLimit();
+      availableSlots = rateLimitTracker.getAvailableSlots();
+    }
+    
+    // 슬롯이 배치 크기보다 작으면 배치를 분할
+    if (availableSlots < batch.length) {
+      // 슬롯만큼만 실행하고 나머지는 다음 배치로
+      const currentBatch = batch.slice(0, availableSlots);
+      const remainingBatch = batch.slice(availableSlots);
+      
+      // 나머지를 다음 배치로 추가
+      if (remainingBatch.length > 0) {
+        batches.splice(i + 1, 0, remainingBatch);
+      }
+      
+      batch = currentBatch;
     }
 
     const batchResults = await Promise.allSettled(
