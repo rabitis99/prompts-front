@@ -230,5 +230,171 @@ export const adminApi = {
    */
   getRebuildLikeCountsStatus: () =>
     api.get<CustomResponse<import('../types/admin.types').RebuildLikeCountsStatusResponseDto>>('/admin/maintenance/likes/rebuild/status'),
+
+  // ======================
+  //      Payment 관리
+  // ======================
+
+  /**
+   * 결제 상태 조회 (관리자용)
+   * 백엔드: GET /admin/payments/{paymentId}/status
+   */
+  getPaymentStatus: (paymentId: number) =>
+    api.get<CustomResponse<import('@/features/payment/types/payment.types').PaymentStatusResponseDto>>(`/admin/payments/${paymentId}/status`),
+
+  /**
+   * 사용자 결제 내역 조회 (관리자용)
+   * 백엔드: GET /admin/payments/users/{userId}/history
+   */
+  getUserPaymentHistory: (userId: number, page?: number, size?: number) =>
+    api.get<CustomResponse<PageResponse<import('@/features/payment/types/payment.types').PaymentResponseDto>>>(`/admin/payments/users/${userId}/history`, {
+      params: { page, size },
+    }),
+
+  /**
+   * 전체 결제 내역 조회 (관리자용)
+   * 백엔드: GET /admin/payments/history
+   */
+  getAllPaymentHistory: (page?: number, size?: number) =>
+    api.get<CustomResponse<PageResponse<import('@/features/payment/types/payment.types').PaymentResponseDto>>>('/admin/payments/history', {
+      params: { page, size },
+    }),
+
+  /**
+   * 결제 취소 (관리자용)
+   * 백엔드: POST /admin/payments/{paymentId}/cancel
+   */
+  cancelPayment: (paymentId: number, reason?: string) =>
+    api.post<CustomResponse<import('@/features/payment/types/payment.types').PaymentResponseDto>>(`/admin/payments/${paymentId}/cancel`, {
+      reason: reason || '관리자 요청',
+    }),
+
+  /**
+   * 결제 환불 (관리자용)
+   * 백엔드: POST /admin/payments/{paymentId}/refund
+   */
+  refundPayment: (paymentId: number, amount?: number, reason?: string) =>
+    api.post<CustomResponse<import('@/features/payment/types/payment.types').PaymentResponseDto>>(`/admin/payments/${paymentId}/refund`, {
+      amount,
+      reason: reason || '관리자 요청',
+    }),
+
+  /**
+   * 사용자 티어 조회 (관리자용)
+   * 백엔드: GET /admin/payments/users/{userId}/tier
+   */
+  getUserTier: (userId: number) =>
+    api.get<CustomResponse<import('@/features/payment/types/payment.types').UserTier>>(`/admin/payments/users/${userId}/tier`),
+
+  /**
+   * 사용자 티어 정보 조회 (관리자용)
+   * 백엔드: GET /admin/payments/users/{userId}/tier-info
+   */
+  getUserTierInfo: (userId: number) =>
+    api.get<CustomResponse<import('@/features/payment/types/payment.types').TierInfoResponseDto>>(`/admin/payments/users/${userId}/tier-info`),
+
+  /**
+   * 사용자 티어 변경 이력 조회 (관리자용)
+   * 백엔드: GET /admin/payments/users/{userId}/tier-history
+   */
+  getUserTierHistory: (userId: number, page?: number, size?: number) =>
+    api.get<CustomResponse<PageResponse<import('@/features/payment/types/payment.types').UserTierHistoryResponseDto>>>(`/admin/payments/users/${userId}/tier-history`, {
+      params: { page, size },
+    }),
+
+  /**
+   * 사용자 티어 변경 (관리자용)
+   * 백엔드: POST /admin/payments/users/{userId}/tier
+   */
+  changeUserTier: (userId: number, data: import('@/features/payment/types/payment.types').TierChangeRequestDto) =>
+    api.post<CustomResponse<void>>(`/admin/payments/users/${userId}/tier`, data),
+
+  // ======================
+  //      Point 관리
+  // ======================
+
+  /**
+   * 사용자 포인트 잔액 조회 (관리자용)
+   * 백엔드: GET /admin/points/users/{userId}/balance
+   */
+  getUserPointBalance: (userId: number) =>
+    api.get<CustomResponse<import('@/features/payment/types/payment.types').PointBalanceResponseDto>>(`/admin/points/users/${userId}/balance`),
+
+  /**
+   * 사용자 포인트 내역 조회 (관리자용)
+   * 백엔드: GET /admin/points/users/{userId}/history
+   */
+  getUserPointHistory: (userId: number, page?: number, size?: number) =>
+    api.get<CustomResponse<PageResponse<import('@/features/payment/types/payment.types').PointResponseDto>>>(`/admin/points/users/${userId}/history`, {
+      params: { page, size },
+    }),
+
+  /**
+   * 사용자 포인트 차감 (관리자용)
+   * 백엔드: POST /admin/points/users/{userId}/use
+   */
+  useUserPoints: (userId: number, data: import('@/features/payment/types/payment.types').PointUseRequestDto) =>
+    api.post<CustomResponse<import('@/features/payment/types/payment.types').PointBalanceResponseDto>>(`/admin/points/users/${userId}/use`, data),
+
+  /**
+   * 결제별 포인트 조회 (관리자용)
+   * 백엔드: GET /admin/points/payments/{paymentId}
+   */
+  getPointsByPayment: (paymentId: number, page?: number, size?: number) =>
+    api.get<CustomResponse<PageResponse<import('@/features/payment/types/payment.types').PointResponseDto>>>(`/admin/points/payments/${paymentId}`, {
+      params: { page, size },
+    }),
+
+  // ======================
+  //      Cashback 관리
+  // ======================
+
+  /**
+   * 사용자 캐시백 내역 조회 (관리자용)
+   * 백엔드: GET /admin/cashbacks/users/{userId}/history
+   */
+  getUserCashbackHistory: (userId: number, page?: number, size?: number) =>
+    api.get<CustomResponse<PageResponse<import('@/features/payment/types/payment.types').CashbackResponseDto>>>(`/admin/cashbacks/users/${userId}/history`, {
+      params: { page, size },
+    }),
+
+  /**
+   * 사용자 미지급 캐시백 총액 조회 (관리자용)
+   * 백엔드: GET /admin/cashbacks/users/{userId}/unpaid-total
+   */
+  getUserUnpaidCashbackTotal: (userId: number) =>
+    api.get<CustomResponse<number>>(`/admin/cashbacks/users/${userId}/unpaid-total`),
+
+  /**
+   * 사용자 미지급 캐시백 목록 조회 (관리자용)
+   * 백엔드: GET /admin/cashbacks/users/{userId}/unpaid
+   */
+  getUserUnpaidCashbacks: (userId: number, page?: number, size?: number) =>
+    api.get<CustomResponse<PageResponse<import('@/features/payment/types/payment.types').CashbackResponseDto>>>(`/admin/cashbacks/users/${userId}/unpaid`, {
+      params: { page, size },
+    }),
+
+  /**
+   * 전체 미지급 캐시백 총액 조회 (관리자용)
+   * 백엔드: GET /admin/cashbacks/unpaid-total
+   */
+  getAllUnpaidCashbackTotal: () =>
+    api.get<CustomResponse<number>>('/admin/cashbacks/unpaid-total'),
+
+  /**
+   * 전체 미지급 캐시백 목록 조회 (관리자용)
+   * 백엔드: GET /admin/cashbacks/unpaid
+   */
+  getAllUnpaidCashbacks: (page?: number, size?: number) =>
+    api.get<CustomResponse<PageResponse<import('@/features/payment/types/payment.types').CashbackResponseDto>>>('/admin/cashbacks/unpaid', {
+      params: { page, size },
+    }),
+
+  /**
+   * 캐시백 지급 (관리자용)
+   * 백엔드: POST /admin/cashbacks/{cashbackId}/pay
+   */
+  payCashback: (cashbackId: number) =>
+    api.post<CustomResponse<string>>(`/admin/cashbacks/${cashbackId}/pay`),
 };
 

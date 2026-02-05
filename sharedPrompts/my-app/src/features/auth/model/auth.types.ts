@@ -6,4 +6,5 @@ export interface TokenResponse {
 export interface LoginRequest {
   email: string;
   password: string;
+  device_token?: string;
 }

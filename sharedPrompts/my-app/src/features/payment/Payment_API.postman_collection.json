@@ -1,0 +1,419 @@
+{
+  "info": {
+    "name": "Payment API Tests",
+    "description": "결제 API 백엔드 검증용 Postman 컬렉션",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{API_TOKEN}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    },
+    {
+      "key": "API_TOKEN",
+      "value": "YOUR_ACCESS_TOKEN",
+      "type": "string"
+    },
+    {
+      "key": "PAYMENT_ID",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 결제 요청 (토스페이먼츠)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has success field\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('success');",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "});",
+              "",
+              "pm.test(\"Response has payment data\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('data');",
+              "    pm.expect(jsonData.data).to.have.property('id');",
+              "    pm.expect(jsonData.data).to.have.property('amount');",
+              "    pm.expect(jsonData.data.amount).to.equal(29900);",
+              "});",
+              "",
+              "// 결제 ID 저장",
+              "var jsonData = pm.response.json();",
+              "if (jsonData.success && jsonData.data && jsonData.data.id) {",
+              "    pm.collectionVariables.set(\"PAYMENT_ID\", jsonData.data.id);",
+              "    console.log(\"Payment ID saved:\", jsonData.data.id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 29900,\n  \"currency\": \"KRW\",\n  \"payment_method\": \"TOSS\",\n  \"user_type\": \"PERSONAL\",\n  \"metadata\": \"{\\\"product_name\\\":\\\"Premium Plan\\\",\\\"customer_name\\\":\\\"홍길동\\\",\\\"customer_email\\\":\\\"test@example.com\\\"}\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/payments",
+          "host": ["{{BASE_URL}}"],
+          "path": ["payments"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. 결제 요청 (음수 금액 - 실패)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test(\"Response has error\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('success');",
+              "    pm.expect(jsonData.success).to.be.false;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": -1000,\n  \"currency\": \"KRW\",\n  \"payment_method\": \"TOSS\",\n  \"user_type\": \"PERSONAL\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/payments",
+          "host": ["{{BASE_URL}}"],
+          "path": ["payments"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. 결제 요청 (잘못된 결제 방식 - 실패)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 29900,\n  \"currency\": \"KRW\",\n  \"payment_method\": \"INVALID_METHOD\",\n  \"user_type\": \"PERSONAL\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/payments",
+          "host": ["{{BASE_URL}}"],
+          "path": ["payments"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. 결제 승인 (토스페이먼츠)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Payment approved\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('success');",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"{{PAYMENT_ID}}\",\n  \"amount\": 29900,\n  \"paymentKey\": \"test_payment_key_abc123\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/payments/confirm",
+          "host": ["{{BASE_URL}}"],
+          "path": ["payments", "confirm"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. 결제 상태 조회",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Payment status is COMPLETED\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.have.property('status');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{BASE_URL}}/payments/{{PAYMENT_ID}}/status",
+          "host": ["{{BASE_URL}}"],
+          "path": ["payments", "{{PAYMENT_ID}}", "status"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. 존재하지 않는 결제 조회 (실패)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{BASE_URL}}/payments/999999/status",
+          "host": ["{{BASE_URL}}"],
+          "path": ["payments", "999999", "status"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. 인증 없이 결제 요청 (실패)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 401\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 29900,\n  \"currency\": \"KRW\",\n  \"payment_method\": \"TOSS\",\n  \"user_type\": \"PERSONAL\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/payments",
+          "host": ["{{BASE_URL}}"],
+          "path": ["payments"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. 결제 요청 (카카오페이)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Payment method is KAKAO_PAY\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.payment_method).to.equal('KAKAO_PAY');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 29900,\n  \"currency\": \"KRW\",\n  \"payment_method\": \"KAKAO_PAY\",\n  \"user_type\": \"PERSONAL\",\n  \"metadata\": \"{\\\"product_name\\\":\\\"Premium Plan\\\"}\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/payments",
+          "host": ["{{BASE_URL}}"],
+          "path": ["payments"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "9. 결제 요청 (PayPal)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Payment method is PAYPAL\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.payment_method).to.equal('PAYPAL');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 29.99,\n  \"currency\": \"USD\",\n  \"payment_method\": \"PAYPAL\",\n  \"user_type\": \"PERSONAL\",\n  \"metadata\": \"{\\\"product_name\\\":\\\"Premium Plan\\\"}\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/payments",
+          "host": ["{{BASE_URL}}"],
+          "path": ["payments"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10. 결제 승인 (금액 불일치 - 실패)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"{{PAYMENT_ID}}\",\n  \"amount\": 50000,\n  \"paymentKey\": \"test_key\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/payments/confirm",
+          "host": ["{{BASE_URL}}"],
+          "path": ["payments", "confirm"]
+        }
+      },
+      "response": []
+    }
+  ]
+}
