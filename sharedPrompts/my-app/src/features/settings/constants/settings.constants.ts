@@ -17,7 +17,7 @@ export const TABS: TabConfig[] = [
   { id: 'favorites', label: '즐겨찾기', icon: Bookmark },
   { id: 'follows', label: '팔로우', icon: Users },
   { id: 'reports', label: '내신고보기', icon: Flag },
-  { id: 'payment', label: 'Payment', icon: CreditCard },
+  { id: 'payment', label: '결제', icon: CreditCard },
 ];
 
 export const NOTIFICATION_OPTIONS = [

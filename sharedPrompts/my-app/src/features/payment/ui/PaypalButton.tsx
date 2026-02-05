@@ -161,9 +161,9 @@ export function PaypalButton({
 
               // 백엔드에 결제 완료 알림
               await paymentApi.confirmPayment({
-                orderId: backendPaymentId.toString(),
+                order_id: backendPaymentId.toString(),
                 amount,
-                paymentKey: order.id,
+                payment_key: order.id,
               });
 
               onSuccess(backendPaymentId);

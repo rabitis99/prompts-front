@@ -67,7 +67,10 @@ export default function AppLayout() {
               icon: icon || '/vite.svg',
               badge: '/vite.svg',
               tag: payload.data?.paymentId || 'notification',
-              data: payload.data,
+              data: payload.data ? {
+                paymentId: payload.data.paymentId,
+                type: payload.data.type,
+              } : undefined,
             });
           }
         }

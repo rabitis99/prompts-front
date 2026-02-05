@@ -54,6 +54,7 @@ export interface PaymentRefundRequestDto {
   reason?: string;
 }
 
+// 주의: PaymentConfirmRequest는 백엔드 API 스펙에 맞춰 snake_case를 사용합니다.
 export interface PaymentConfirmRequest {
   order_id: string; // 내부 주문 ID (숫자 문자열)
   amount: number;
@@ -94,6 +95,7 @@ export interface PaymentStatusResponseDto {
   updated_at: string;
 }
 
+// 주의: PaymentConfirmResponse는 Toss Payments API 응답 형식에 맞춰 camelCase를 사용합니다.
 export interface PaymentConfirmResponse {
   paymentKey: string;
   orderId: string;
@@ -155,7 +157,7 @@ export interface PointResponseDto {
   user_id: number;
   payment_id?: number;
   amount: number;
-  type: string; // 'EARNED', 'USED', 'REFUNDED', 'USE' 등
+  type: PointType; // 'EARNED', 'USED', 'REFUNDED', 'USE' 등 (백엔드가 string을 반환하지만 타입 가드 사용 권장)
   description?: string;
   balance: number;
   expired: boolean;

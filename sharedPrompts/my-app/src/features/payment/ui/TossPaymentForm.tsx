@@ -164,8 +164,7 @@ export function TossPaymentForm({
         orderId: tossOrderId,
         internalOrderId,
         orderName: productName,
-        customerName,
-        customerEmail,
+        // PII 보호: 고객 정보는 로그에서 제외
       });
 
       /**

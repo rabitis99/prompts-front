@@ -59,11 +59,12 @@ export function HomeFeedView() {
               )}
             </div>
             <button
+              type="button"
               onClick={() => navigate('/payments')}
               className="flex items-center gap-2 px-4 py-3.5 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 transition-colors whitespace-nowrap"
             >
               <CreditCard className="w-5 h-5" />
-              Payment
+              결제
             </button>
           </div>
         </div>

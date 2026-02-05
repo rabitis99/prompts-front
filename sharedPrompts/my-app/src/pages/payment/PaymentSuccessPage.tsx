@@ -120,9 +120,13 @@ export default function PaymentSuccessPage() {
           return;
         }
 
+        // 재시도 버튼 클릭 시에는 재시도 횟수 증가
+        // 로컬 변수로 계산하여 로그/메시지에서 정확한 값 사용 (try/catch 블록 모두에서 사용)
+        const nextRetryCount = isRetry ? retryCount + 1 : retryCount;
+        
         try {
           // 재시도 횟수 체크 (개발 환경에서는 제한 없음)
-          if (!import.meta.env.DEV && retryCount >= MAX_RETRY_COUNT) {
+          if (!import.meta.env.DEV && nextRetryCount >= MAX_RETRY_COUNT) {
             setStatus('error');
             setErrorMessage(
               '결제 승인 요청이 너무 많이 시도되었습니다.\n' +
@@ -131,9 +135,8 @@ export default function PaymentSuccessPage() {
             return;
           }
 
-          // 재시도 버튼 클릭 시에는 재시도 횟수 증가
           if (isRetry) {
-            setRetryCount((prev) => prev + 1);
+            setRetryCount(nextRetryCount);
           }
 
           console.log('[PaymentSuccessPage] 카카오페이 결제 승인 요청', {
@@ -141,7 +144,7 @@ export default function PaymentSuccessPage() {
             amount: Number(amount),
             paymentKey: tid,
             pgToken,
-            retryCount: isRetry ? retryCount + 1 : retryCount,
+            retryCount: nextRetryCount,
             isRetry,
           });
 
@@ -197,12 +200,12 @@ export default function PaymentSuccessPage() {
             error instanceof Error ? error.message : '결제 승인 중 오류가 발생했습니다.';
           
           // 재시도 가능 여부에 따른 메시지 추가
-          const currentRetryCount = retryCount;
+          // setRetryCount가 비동기이므로, 실제 증가된 값을 사용하기 위해 nextRetryCount 사용
           const retryMessage = import.meta.env.DEV
-            ? `${message}\n\n[개발 모드] 재시도 ${currentRetryCount}회`
-            : currentRetryCount >= MAX_RETRY_COUNT
+            ? `${message}\n\n[개발 모드] 재시도 ${nextRetryCount}회`
+            : nextRetryCount >= MAX_RETRY_COUNT
             ? `${message}\n\n재시도 횟수를 초과했습니다. 고객센터로 문의해주세요.`
-            : `${message}\n\n(재시도 가능: ${MAX_RETRY_COUNT - currentRetryCount}회 남음)`;
+            : `${message}\n\n(재시도 가능: ${MAX_RETRY_COUNT - nextRetryCount}회 남음)`;
           
           setStatus('error');
           setErrorMessage(retryMessage);

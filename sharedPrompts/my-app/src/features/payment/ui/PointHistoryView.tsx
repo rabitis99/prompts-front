@@ -67,11 +67,16 @@ export function PointHistoryView() {
     loadPoints(0);
   }, []);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = async () => {
     if (!loading && hasMore) {
       const nextPage = page + 1;
-      setPage(nextPage);
-      loadPoints(nextPage);
+      try {
+        await loadPoints(nextPage);
+        // 성공한 경우에만 페이지 증가
+        setPage(nextPage);
+      } catch {
+        // 실패 시 페이지는 증가하지 않음
+      }
     }
   };
 

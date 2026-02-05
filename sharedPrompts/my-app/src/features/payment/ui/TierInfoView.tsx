@@ -57,8 +57,11 @@ export function TierInfoView() {
       setError(null);
       const response = await paymentApi.getMyTierInfo();
       setTierInfo(response.data.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || '티어 정보를 불러오는데 실패했습니다.');
+    } catch (err: unknown) {
+      const errorMessage = err && typeof err === 'object' && 'response' in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+        : undefined;
+      setError(errorMessage || '티어 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -77,7 +80,7 @@ export function TierInfoView() {
       }
       
       setHasMore(!data.last);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('티어 변경 이력 조회 실패:', err);
     } finally {
       setHistoryLoading(false);
@@ -242,9 +245,19 @@ export function TierInfoView() {
                     </span>
                   </div>
                   <div className="text-sm text-gray-600">
-                    {format(new Date(item.created_at), 'yyyy년 MM월 dd일 HH:mm', {
-                      locale: ko,
-                    })}
+                    {(() => {
+                      try {
+                        const date = new Date(item.created_at);
+                        if (isNaN(date.getTime())) {
+                          return '날짜 형식 오류';
+                        }
+                        return format(date, 'yyyy년 MM월 dd일 HH:mm', {
+                          locale: ko,
+                        });
+                      } catch {
+                        return '날짜 형식 오류';
+                      }
+                    })()}
                   </div>
                   {item.reason && (
                     <div className="text-sm text-gray-500 mt-1">{item.reason}</div>

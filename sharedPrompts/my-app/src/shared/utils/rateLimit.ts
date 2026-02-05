@@ -49,7 +49,11 @@ class RateLimitTracker {
    */
   private pruneOldRequests(): void {
     const now = Date.now();
-    const windowStart = now - this.config.windowMs;
+    const maxWindowMs = Math.max(
+      this.config.windowMs,
+      ...Array.from(this.endpointConfigs.values(), (c) => c.windowMs)
+    );
+    const windowStart = now - maxWindowMs;
     this.requests = this.requests.filter((r) => r.timestamp > windowStart);
   }
 
@@ -102,10 +106,10 @@ class RateLimitTracker {
     // 해당 엔드포인트의 요청만 필터링 (엔드포인트별 windowMs 기준으로 시간 필터링)
     const now = Date.now();
     const windowStart = now - config.windowMs;
+    const endpointPattern = url ? this.extractEndpointPattern(url) : undefined;
     const relevantRequests = url 
       ? this.requests.filter(r => {
-          const pattern = this.extractEndpointPattern(r.url);
-          const isSameEndpoint = pattern === this.extractEndpointPattern(url);
+          const isSameEndpoint = r.endpoint === endpointPattern;
           const isWithinWindow = r.timestamp > windowStart;
           return isSameEndpoint && isWithinWindow;
         })
@@ -205,8 +209,7 @@ class RateLimitTracker {
       const windowStart = now - config.windowMs;
       // 엔드포인트별 windowMs 기준으로 시간 필터링
       const relevantRequests = this.requests.filter(r => {
-        const rPattern = this.extractEndpointPattern(r.url);
-        const isSameEndpoint = rPattern === pattern;
+        const isSameEndpoint = r.endpoint === pattern;
         const isWithinWindow = r.timestamp > windowStart;
         return isSameEndpoint && isWithinWindow;
       });
@@ -296,8 +299,7 @@ class RateLimitTracker {
         if (endpoint) {
           const pattern = this.extractEndpointPattern(info.url!);
           this.requests = this.requests.filter(r => {
-            const rPattern = this.extractEndpointPattern(r.url);
-            return rPattern !== pattern;
+            return r.endpoint !== pattern;
           });
         } else {
           this.requests = [];
@@ -313,8 +315,7 @@ class RateLimitTracker {
         if (endpoint) {
           const pattern = this.extractEndpointPattern(info.url!);
           this.requests = this.requests.filter(r => {
-            const rPattern = this.extractEndpointPattern(r.url);
-            const isSameEndpoint = rPattern === pattern;
+            const isSameEndpoint = r.endpoint === pattern;
             const isWithinWindow = r.timestamp > windowStart;
             // 다른 엔드포인트는 유지, 같은 엔드포인트는 윈도우 내만 유지
             return !isSameEndpoint || isWithinWindow;
