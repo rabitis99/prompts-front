@@ -76,7 +76,16 @@ export default function AppLayout() {
         }
       });
 
-      if (isMounted && unsubscribe) {
+      // await 이후 컴포넌트가 언마운트되었으면 즉시 리스너 해제
+      if (!isMounted) {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+        return;
+      }
+
+      // 컴포넌트가 여전히 마운트되어 있으면 unsubscribe 저장
+      if (unsubscribe) {
         unsubscribeRef.current = unsubscribe;
       }
     };

@@ -50,6 +50,7 @@ export function TierInfoView() {
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const loadTierInfo = async () => {
     try {
@@ -92,11 +93,16 @@ export function TierInfoView() {
     loadHistory(0);
   }, []);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = async () => {
     if (!historyLoading && hasMore) {
       const nextPage = page + 1;
-      setPage(nextPage);
-      loadHistory(nextPage);
+      try {
+        await loadHistory(nextPage);
+        // 성공한 경우에만 페이지 증가
+        setPage(nextPage);
+      } catch {
+        // 실패 시 페이지는 증가하지 않음
+      }
     }
   };
 
@@ -146,6 +152,13 @@ export function TierInfoView() {
         </div>
         <div className="text-sm opacity-90">{tierInfo.tier_description}</div>
       </div>
+
+      {/* 결제 에러 메시지 */}
+      {paymentError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4" role="alert">
+          <p className="text-sm text-red-700">{paymentError}</p>
+        </div>
+      )}
 
       {/* 티어 업그레이드 섹션 */}
       {nextTierInfo && (
@@ -291,6 +304,10 @@ export function TierInfoView() {
           onPaymentSuccess={handlePaymentSuccess}
           onPaymentError={(error) => {
             console.error('결제 실패:', error);
+            const errorMessage = typeof error === 'string' ? error : '결제 처리 중 오류가 발생했습니다.';
+            setPaymentError(errorMessage);
+            // 5초 후 에러 메시지 자동 제거
+            setTimeout(() => setPaymentError(null), 5000);
           }}
         />
       )}

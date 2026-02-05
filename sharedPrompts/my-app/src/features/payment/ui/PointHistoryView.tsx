@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { pointApi } from '../api/point.api';
 import type { PointResponseDto } from '../types/payment.types';
+import { normalizePointType } from '../utils/point.utils';
 import { LoadingState, EmptyState } from '@/shared/components';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -9,14 +10,12 @@ const POINT_TYPE_LABELS: Record<string, string> = {
   EARNED: '적립',
   USED: '사용',
   REFUNDED: '환불',
-  USE: '사용',
 };
 
 const POINT_TYPE_COLORS: Record<string, string> = {
   EARNED: 'text-green-600',
   USED: 'text-red-600',
   REFUNDED: 'text-blue-600',
-  USE: 'text-red-600',
 };
 
 const PAGE_SIZE = 20;
@@ -128,7 +127,7 @@ export function PointHistoryView() {
                   <div>
                     <div
                       className={`font-semibold text-lg ${
-                        POINT_TYPE_COLORS[point.type] || 'text-gray-800'
+                        POINT_TYPE_COLORS[normalizePointType(point.type)] || 'text-gray-800'
                       }`}
                     >
                       {formatAmount(point.amount)}
@@ -140,7 +139,7 @@ export function PointHistoryView() {
                     </div>
                   </div>
                   <span className="px-3 py-1 bg-gray-100 rounded-full text-xs font-medium">
-                    {POINT_TYPE_LABELS[point.type] || point.type}
+                    {POINT_TYPE_LABELS[normalizePointType(point.type)] || point.type}
                   </span>
                 </div>
 

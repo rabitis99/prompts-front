@@ -195,11 +195,16 @@ export function TossPaymentForm({
       // 실제 결제 승인은 successUrl(PaymentSuccessPage)에서 처리됩니다.
     } catch (error) {
       console.error('[TossPaymentForm] 결제 오류 발생:', error);
-      console.error('[TossPaymentForm] 에러 상세:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        name: error instanceof Error ? error.name : undefined,
-      });
+      // 개발 환경에서만 상세 스택 트레이스 로깅
+      if (import.meta.env.DEV) {
+        console.error('[TossPaymentForm] 에러 상세:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          name: error instanceof Error ? error.name : undefined,
+        });
+      }
+      // 프로덕션 환경에서는 Sentry, DataDog 등의 에러 리포팅 서비스로 전송하는 것을 권장합니다.
+      // 예: Sentry.captureException(error);
       
       const errorMessage =
         error instanceof Error ? error.message : '결제 처리 중 오류가 발생했습니다.';

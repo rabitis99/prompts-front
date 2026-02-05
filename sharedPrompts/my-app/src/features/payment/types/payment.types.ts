@@ -138,6 +138,8 @@ export interface TierChangeRequestDto {
 // ======================
 
 // PointType은 백엔드에서 string으로 반환되므로 enum 대신 string 사용
+// 주의: 백엔드에서 'USE'와 'USED'를 모두 반환할 수 있으나, 프론트엔드에서는 'USE'를 'USED'로 정규화하여 사용합니다.
+// normalizePointType() 유틸리티 함수를 사용하여 정규화하세요.
 export type PointType = 'EARNED' | 'USED' | 'REFUNDED' | 'USE';
 
 export interface PointUseRequestDto {
@@ -158,6 +160,7 @@ export interface PointResponseDto {
   payment_id?: number;
   amount: number;
   type: PointType; // 'EARNED', 'USED', 'REFUNDED', 'USE' 등 (백엔드가 string을 반환하지만 타입 가드 사용 권장)
+  // 주의: 'USE'는 UI에서 'USED'로 정규화됩니다. normalizePointType() 유틸리티 함수를 사용하세요.
   description?: string;
   balance: number;
   expired: boolean;

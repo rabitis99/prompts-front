@@ -135,7 +135,7 @@ export function PaypalButton({
             shape: 'rect',
             label: 'pay',
           }}
-          createOrder={(data, actions) => {
+          createOrder={(_data, actions) => {
             // PayPal Order 생성
             return actions.order.create({
               purchase_units: [

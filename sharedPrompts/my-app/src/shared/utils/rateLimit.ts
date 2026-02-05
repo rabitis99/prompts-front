@@ -59,10 +59,18 @@ class RateLimitTracker {
 
   /**
    * 엔드포인트 패턴 추출 (예: '/users/123' -> '/users/:id')
+   * UUID 형식도 지원 (예: '/users/550e8400-e29b-41d4-a716-446655440000' -> '/users/:id')
    */
   private extractEndpointPattern(url: string): string {
+    // UUID 패턴: 8-4-4-4-12 형식의 하이픈으로 구분된 32자리 16진수
+    const uuidPattern = /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?=\/|$)/gi;
+    // 숫자 ID 패턴
+    const numericIdPattern = /\/\d+(?=\/|$)/g;
+    
+    // UUID를 먼저 변환 (더 구체적인 패턴이므로)
+    let pattern = url.replace(uuidPattern, '/:id');
     // 숫자 ID를 :id로 변환
-    const pattern = url.replace(/\/\d+(?=\/|$)/g, '/:id');
+    pattern = pattern.replace(numericIdPattern, '/:id');
     // 쿼리 파라미터 제거
     return pattern.split('?')[0];
   }
@@ -266,14 +274,26 @@ class RateLimitTracker {
     
     if (endpoint) {
       // 엔드포인트별 설정 업데이트
-      const endpointConfig = this.getEndpointConfig(info.url!);
-      endpointConfig.maxRequests = info.limit;
+      // 캐시된 객체를 직접 수정하지 않도록 복사본 생성
+      const cachedConfig = this.getEndpointConfig(info.url!);
+      // 원본 버퍼는 정책에서 계산 (5% 버퍼)
+      const originalBuffer = Math.floor(info.limit * 0.05);
+      
+      const endpointConfig: RateLimitConfig = {
+        maxRequests: info.limit,
+        windowMs: cachedConfig.windowMs,
+        buffer: cachedConfig.buffer, // 현재 버퍼로 시작
+      };
       
       // 백엔드의 remaining이 낮으면 프론트엔드 버퍼 증가
       const usagePercent = (info.limit - info.remaining) / info.limit;
       if (usagePercent > 0.8) {
         // 80% 이상 사용 시 버퍼 증가
         endpointConfig.buffer = Math.floor(info.limit * 0.1);
+      }
+      // 사용량이 정상화되면 버퍼를 기본값으로 복구
+      else if (usagePercent <= 0.6 && endpointConfig.buffer > originalBuffer) {
+        endpointConfig.buffer = originalBuffer;
       }
       
       this.endpointConfigs.set(endpoint, endpointConfig);
@@ -374,15 +394,26 @@ export const rateLimitTracker = new RateLimitTracker();
 /**
  * Rate Limit을 고려하여 요청을 지연시키는 헬퍼
  * @param url 엔드포인트별 정책 적용 시 사용
+ * @param maxWaitMs 최대 대기 시간 (기본: 5분). 이 시간을 초과하면 에러를 throw합니다.
  */
-export async function waitForRateLimit(url?: string): Promise<void> {
+export async function waitForRateLimit(url?: string, maxWaitMs: number = 300000): Promise<void> {
   // 버퍼 복구 체크
   rateLimitTracker.recoverBuffer();
   
+  const startTime = Date.now();
+  
   while (true) {
+    const elapsed = Date.now() - startTime;
+    if (elapsed >= maxWaitMs) {
+      throw new Error(`Rate limit 대기 시간이 최대 시간(${maxWaitMs}ms)을 초과했습니다.`);
+    }
+    
     const waitTime = rateLimitTracker.canMakeRequest(url);
     if (waitTime <= 0) return;
-    await new Promise((resolve) => setTimeout(resolve, waitTime));
+    
+    // 남은 최대 대기 시간을 초과하지 않도록 조정
+    const adjustedWaitTime = Math.min(waitTime, maxWaitMs - elapsed);
+    await new Promise((resolve) => setTimeout(resolve, adjustedWaitTime));
   }
 }
 
