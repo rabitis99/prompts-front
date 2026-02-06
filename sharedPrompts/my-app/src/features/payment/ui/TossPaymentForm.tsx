@@ -97,7 +97,6 @@ export function TossPaymentForm({
         currency,
         payment_method: PaymentMethod.TOSS,
         user_type: userType,
-        tier: userTier,
         metadata: JSON.stringify({
           product_name: productName,
           customer_name: customerName,

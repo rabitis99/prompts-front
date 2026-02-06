@@ -60,11 +60,10 @@ export function HomeFeedView() {
             </div>
             <button
               type="button"
-              onClick={() => navigate('/payments')}
               className="flex items-center gap-2 px-4 py-3.5 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 transition-colors whitespace-nowrap"
             >
-              <CreditCard className="w-5 h-5" />
-              결제
+              <Search className="w-5 h-5" />
+              검색
             </button>
           </div>
         </div>
@@ -232,6 +231,16 @@ export function HomeFeedView() {
           </div>
         )}
       </main>
+
+      {/* Floating Payment Button - Bottom Left */}
+      <button
+        type="button"
+        onClick={() => navigate('/payments')}
+        className="fixed bottom-5 left-5 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 text-white z-50 bg-violet-600 hover:bg-violet-700"
+        aria-label="결제"
+      >
+        <CreditCard className="w-7 h-7" />
+      </button>
     </div>
   );
 }

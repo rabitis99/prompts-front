@@ -22,17 +22,32 @@ const messaging = firebase.messaging();
 
 // 백그라운드 메시지 수신 처리
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  console.log('[firebase-messaging-sw.js] Received background message:', {
+    hasNotification: !!payload.notification,
+    notificationTitle: payload.notification?.title,
+    notificationBody: payload.notification?.body,
+    hasData: !!payload.data,
+    dataKeys: payload.data ? Object.keys(payload.data) : [],
+    messageId: payload.messageId,
+    from: payload.from,
+  });
 
-  const notificationTitle = payload.notification?.title || 'New Message';
+  const notificationTitle = payload.notification?.title || payload.data?.title || 'New Message';
+  const notificationBody = payload.notification?.body || payload.data?.body || '';
+  const notificationIcon = payload.notification?.icon || payload.data?.icon || '/vite.svg';
+  
   const notificationOptions = {
-    body: payload.notification?.body || '',
-    icon: payload.notification?.icon || '/vite.svg',
+    body: notificationBody,
+    icon: notificationIcon,
     badge: '/vite.svg',
-    data: payload.data
+    data: payload.data || {},
+    tag: payload.data?.paymentId || 'notification',
+    requireInteraction: false,
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  console.log('[firebase-messaging-sw.js] Showing notification:', notificationTitle, notificationOptions);
+  
+  return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
 // 알림 클릭 처리

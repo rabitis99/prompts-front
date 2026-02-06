@@ -50,6 +50,17 @@ function initializeMessaging(): Promise<ReturnType<typeof getMessaging> | null> 
 // 브라우저 환경에서만 messaging 초기화 시작
 if (typeof window !== 'undefined') {
   initializeMessaging();
+  
+  // 개발 환경에서 전역 디버깅 함수 추가
+  if (import.meta.env.DEV) {
+    (window as any).checkFCMStatus = checkFCMStatus;
+    (window as any).refreshFCMToken = refreshFCMToken;
+    (window as any).getFCMToken = getFCMToken;
+    console.log('[FCM] 디버깅 함수가 전역에 추가되었습니다:');
+    console.log('  - window.checkFCMStatus() - FCM 상태 확인');
+    console.log('  - window.refreshFCMToken() - FCM 토큰 갱신');
+    console.log('  - window.getFCMToken() - FCM 토큰 가져오기');
+  }
 }
 
 /**
@@ -108,37 +119,48 @@ export async function getFCMToken(): Promise<string | null> {
     // Messaging 초기화 완료 대기 (경쟁 상태 방지)
     const initializedMessaging = await initializeMessaging();
     if (!initializedMessaging) {
-      console.warn('FCM is not supported in this browser');
+      console.warn('[FCM] FCM is not supported in this browser');
       return null;
     }
 
     // Service Worker 등록 확인 및 등록
-    await registerServiceWorker();
+    const registration = await registerServiceWorker();
+    if (!registration) {
+      console.warn('[FCM] Service Worker registration failed');
+      return null;
+    }
+    console.log('[FCM] Service Worker registered:', registration.scope);
 
     // 알림 권한 요청
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
-      console.warn('Notification permission denied');
+      console.warn('[FCM] Notification permission denied:', permission);
       return null;
     }
+    console.log('[FCM] Notification permission granted');
 
     // VAPID 키를 사용하여 토큰 가져오기
     const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+    if (!vapidKey) {
+      console.error('[FCM] VAPID key is not configured');
+      return null;
+    }
+
     const token = await getToken(initializedMessaging, { vapidKey });
 
     if (token) {
       if (import.meta.env.DEV) {
-        console.log('FCM token obtained:', token);
+        console.log('[FCM] Token obtained:', token);
       } else {
-        console.log('FCM token obtained:', token.slice(0, 10) + '...');
+        console.log('[FCM] Token obtained:', token.slice(0, 10) + '...');
       }
       return token;
     } else {
-      console.warn('No FCM token available');
+      console.warn('[FCM] No FCM token available');
       return null;
     }
   } catch (error) {
-    console.error('Error getting FCM token:', error);
+    console.error('[FCM] Error getting FCM token:', error);
     return null;
   }
 }
@@ -160,7 +182,15 @@ export async function setupForegroundMessageListener(
     }
 
     const unsubscribe = onMessage(initializedMessaging, (payload) => {
-      console.log('[FCM] Foreground message received:', payload);
+      console.log('[FCM] Foreground message received:', {
+        hasNotification: !!payload.notification,
+        notificationTitle: payload.notification?.title,
+        notificationBody: payload.notification?.body,
+        hasData: !!payload.data,
+        dataKeys: payload.data ? Object.keys(payload.data) : [],
+        messageId: payload.messageId,
+        from: payload.from,
+      });
       onMessageReceived(payload);
     });
 
@@ -168,6 +198,91 @@ export async function setupForegroundMessageListener(
     return unsubscribe;
   } catch (error) {
     console.error('[FCM] Error setting up foreground message listener:', error);
+    return null;
+  }
+}
+
+/**
+ * FCM 상태 확인 및 디버깅 유틸리티
+ */
+export async function checkFCMStatus(): Promise<{
+  isSupported: boolean;
+  messagingInitialized: boolean;
+  serviceWorkerRegistered: boolean;
+  notificationPermission: NotificationPermission;
+  hasVapidKey: boolean;
+  currentToken: string | null;
+  serviceWorkerScope: string | null;
+}> {
+  const status = {
+    isSupported: false,
+    messagingInitialized: false,
+    serviceWorkerRegistered: false,
+    notificationPermission: 'default' as NotificationPermission,
+    hasVapidKey: false,
+    currentToken: null as string | null,
+    serviceWorkerScope: null as string | null,
+  };
+
+  try {
+    // FCM 지원 여부 확인
+    if (typeof window !== 'undefined') {
+      const supported = await isSupported();
+      status.isSupported = supported;
+    }
+
+    // Messaging 초기화 확인
+    const initializedMessaging = await initializeMessaging();
+    status.messagingInitialized = !!initializedMessaging;
+
+    // Service Worker 등록 확인
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.getRegistration('/');
+      status.serviceWorkerRegistered = !!registration?.active;
+      status.serviceWorkerScope = registration?.scope || null;
+    }
+
+    // 알림 권한 확인
+    if ('Notification' in window) {
+      status.notificationPermission = Notification.permission;
+    }
+
+    // VAPID 키 확인
+    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+    status.hasVapidKey = !!vapidKey;
+
+    // 현재 토큰 가져오기
+    if (initializedMessaging && status.notificationPermission === 'granted') {
+      try {
+        const token = await getToken(initializedMessaging, { vapidKey });
+        status.currentToken = token;
+      } catch (error) {
+        console.error('[FCM] Error getting token for status check:', error);
+      }
+    }
+  } catch (error) {
+    console.error('[FCM] Error checking FCM status:', error);
+  }
+
+  return status;
+}
+
+/**
+ * FCM 토큰 갱신 및 백엔드에 업데이트
+ * 로그인 후 토큰이 변경되었을 수 있으므로 주기적으로 호출하거나
+ * 알림이 오지 않을 때 호출할 수 있습니다.
+ */
+export async function refreshFCMToken(): Promise<string | null> {
+  try {
+    const token = await getFCMToken();
+    if (token) {
+      console.log('[FCM] Token refreshed:', import.meta.env.DEV ? token : token.slice(0, 10) + '...');
+      // TODO: 백엔드에 토큰 업데이트 API 호출 (필요한 경우)
+      // await updateDeviceToken(token);
+    }
+    return token;
+  } catch (error) {
+    console.error('[FCM] Error refreshing token:', error);
     return null;
   }
 }
