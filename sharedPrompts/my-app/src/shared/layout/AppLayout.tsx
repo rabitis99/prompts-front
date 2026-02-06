@@ -82,12 +82,22 @@ export default function AppLayout() {
               body: body,
               icon: icon,
               badge: '/vite.svg',
-              tag: payload.data?.paymentId || 'notification',
+              tag: payload.data?.paymentId || payload.messageId || 'notification-' + Date.now(),
               data: payload.data ? {
                 paymentId: payload.data.paymentId,
                 type: payload.data.type,
+                url: payload.data.url,
               } : undefined,
             });
+            
+            // 포그라운드 알림 클릭 핸들러 (서비스 워커의 notificationclick과 달리 onclick 필요)
+            notification.onclick = () => {
+              window.focus();
+              const targetUrl = payload.data?.url || (payload.data?.paymentId ? '/payments' : '/');
+              window.location.href = targetUrl;
+              notification.close();
+            };
+            
             console.log('[AppLayout] Browser notification created:', notification.tag);
           } catch (error) {
             console.error('[AppLayout] Failed to create notification:', error);

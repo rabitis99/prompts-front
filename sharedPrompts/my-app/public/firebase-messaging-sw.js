@@ -41,7 +41,7 @@ messaging.onBackgroundMessage((payload) => {
     icon: notificationIcon,
     badge: '/vite.svg',
     data: payload.data || {},
-    tag: payload.data?.paymentId || 'notification',
+    tag: payload.data?.paymentId || payload.messageId || 'notification-' + Date.now(),
     requireInteraction: false,
   };
 
@@ -53,22 +53,22 @@ messaging.onBackgroundMessage((payload) => {
 // 알림 클릭 처리
 self.addEventListener('notificationclick', (event) => {
   console.log('[firebase-messaging-sw.js] Notification click received.');
-
   event.notification.close();
 
-  // 알림 클릭 시 앱으로 이동
+  const notificationData = event.notification.data || {};
+  const targetUrl = notificationData.url || (notificationData.paymentId ? '/payments' : '/');
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // 이미 열려있는 창이 있으면 포커스
       for (const client of clientList) {
         const url = new URL(client.url);
-        if (url.origin === self.location.origin && url.pathname === '/' && 'focus' in client) {
+        if (url.origin === self.location.origin && 'focus' in client) {
+          client.navigate(targetUrl);
           return client.focus();
         }
       }
-      // 열려있는 창이 없으면 새 창 열기
       if (clients.openWindow) {
-        return clients.openWindow('/');
+        return clients.openWindow(targetUrl);
       }
     })
   );
