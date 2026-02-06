@@ -187,7 +187,10 @@ export default function PaymentSuccessPage() {
                   clearInterval(countdownIntervalRef.current);
                   countdownIntervalRef.current = null;
                 }
-                navigate('/payments');
+                // navigate는 상태 업데이트와 분리하여 다음 이벤트 루프에서 실행
+                setTimeout(() => {
+                  navigate('/payments');
+                }, 0);
                 return 0;
               }
               return prev - 1;
@@ -331,7 +334,10 @@ export default function PaymentSuccessPage() {
                   clearInterval(countdownIntervalRef.current);
                   countdownIntervalRef.current = null;
                 }
-                navigate('/payments');
+                // navigate는 상태 업데이트와 분리하여 다음 이벤트 루프에서 실행
+                setTimeout(() => {
+                  navigate('/payments');
+                }, 0);
                 return 0;
               }
               return prev - 1;
@@ -374,7 +380,8 @@ export default function PaymentSuccessPage() {
         countdownIntervalRef.current = null;
       }
     };
-  }, [searchParams, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]); // navigate는 안정적이므로 의존성에서 제외
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 to-neutral-100 p-4">

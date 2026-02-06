@@ -72,7 +72,6 @@ export function KakaoPayButton({
         currency,
         payment_method: PaymentMethod.KAKAO_PAY,
         user_type: userType,
-        tier: userTier,
         metadata: JSON.stringify({
           product_name: productName,
         }),

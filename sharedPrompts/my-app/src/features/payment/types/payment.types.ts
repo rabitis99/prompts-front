@@ -38,7 +38,6 @@ export interface PaymentRequestDto {
   currency: string; // 필수 (ISO 4217 통화 코드)
   payment_method: PaymentMethod; // 필수
   user_type: PaymentUserType; // 필수
-  tier: UserTier; // 필수
   use_point_amount?: number; // 사용할 포인트 금액 (선택사항)
   metadata?: string; // 추가 메타데이터 (JSON 형태)
 }

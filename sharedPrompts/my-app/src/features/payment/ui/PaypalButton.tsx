@@ -71,7 +71,6 @@ export function PaypalButton({
           currency,
           payment_method: PaymentMethod.PAYPAL,
           user_type: userType,
-          tier: userTier,
           metadata: JSON.stringify({
             product_name: productName,
           }),
