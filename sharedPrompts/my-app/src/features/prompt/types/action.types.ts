@@ -1,7 +1,7 @@
-// Action Type 정의 - 모든 카테고리의 ActionType 값들을 포함
+// Action Type 정의 - 카테고리별 서브타입으로 구성하여 유지보수성 향상
 
-export type ActionType =
-  // ProductivityActionType
+// 카테고리별 ActionType 서브타입 정의
+export type ProductivityActionType =
   | 'WORKFLOW_OPTIMIZATION'
   | 'TIME_MANAGEMENT'
   | 'SCHEDULE_PLANNING'
@@ -16,8 +16,9 @@ export type ActionType =
   | 'EFFICIENCY_ANALYSIS'
   | 'PRODUCTIVITY_PLANNING'
   | 'PROCESS_IMPROVEMENT'
-  | 'RESOURCE_OPTIMIZATION'
-  // DevelopmentActionType
+  | 'RESOURCE_OPTIMIZATION';
+
+export type DevelopmentActionType =
   | 'ARCHITECTURE_DESIGN'
   | 'SYSTEM_DESIGN'
   | 'TECH_STACK_SELECTION'
@@ -26,8 +27,9 @@ export type ActionType =
   | 'DOCUMENTATION'
   | 'CODEBASE_ANALYSIS'
   | 'SECURITY_IMPLEMENTATION'
-  | 'SCALABILITY_PLANNING'
-  // CodingActionType
+  | 'SCALABILITY_PLANNING';
+
+export type CodingActionType =
   | 'CODE_GENERATION'
   | 'CODE_MODIFICATION'
   | 'CODE_REVIEW'
@@ -37,16 +39,18 @@ export type ActionType =
   | 'CODE_ANALYSIS'
   | 'PATTERN_APPLICATION'
   | 'CODE_OPTIMIZATION'
-  | 'LEGACY_CODE_MAINTENANCE'
-  // ProgrammingActionType
+  | 'LEGACY_CODE_MAINTENANCE';
+
+export type ProgrammingActionType =
   | 'ALGORITHM_IMPLEMENTATION'
   | 'DATA_STRUCTURE_DESIGN'
   | 'LANGUAGE_LEARNING'
   | 'SYNTAX_OPTIMIZATION'
   | 'LOGIC_DEVELOPMENT'
   | 'API_DESIGN'
-  | 'CONCURRENT_PROGRAMMING'
-  // MarketingActionType
+  | 'CONCURRENT_PROGRAMMING';
+
+export type MarketingActionType =
   | 'MARKETING_STRATEGY'
   | 'BRANDING'
   | 'AD_CAMPAIGN'
@@ -56,8 +60,9 @@ export type ActionType =
   | 'SOCIAL_MEDIA_STRATEGY'
   | 'CONTENT_MARKETING'
   | 'INFLUENCER_MARKETING'
-  | 'CONVERSION_OPTIMIZATION'
-  // CreativeActionType
+  | 'CONVERSION_OPTIMIZATION';
+
+export type CreativeActionType =
   | 'IDEA_GENERATION'
   | 'CREATIVE_WRITING'
   | 'ARTISTIC_DESIGN'
@@ -65,24 +70,25 @@ export type ActionType =
   | 'CONCEPT_DEVELOPMENT'
   | 'VISUAL_CREATION'
   | 'CHARACTER_DEVELOPMENT'
-  | 'WORLD_BUILDING'
-  // ContentActionType
+  | 'WORLD_BUILDING';
+
+export type ContentActionType =
   | 'CONTENT_CREATION'
   | 'CONTENT_REVISION'
   | 'CONTENT_PLANNING'
   | 'BLOG_WRITING'
-  | 'SNS_CONTENT'
   | 'SOCIAL_MEDIA_POST'
   | 'INSTAGRAM_CAPTION'
   | 'FACEBOOK_POST'
-  | 'TWITTER_POST'
+  | 'X_POST'
   | 'COMMENT_WRITING'
   | 'VIDEO_SCRIPT'
   | 'CONTENT_OPTIMIZATION'
   | 'MULTIMEDIA_PRODUCTION'
   | 'PODCAST_SCRIPT'
-  | 'NEWSLETTER_WRITING'
-  // AnalysisActionType
+  | 'NEWSLETTER_WRITING';
+
+export type AnalysisActionType =
   | 'DATA_ANALYSIS'
   | 'STATISTICAL_ANALYSIS'
   | 'INSIGHT_EXTRACTION'
@@ -91,8 +97,9 @@ export type ActionType =
   | 'PREDICTIVE_ANALYSIS'
   | 'COMPARATIVE_ANALYSIS'
   | 'ROOT_CAUSE_ANALYSIS'
-  | 'BUSINESS_INTELLIGENCE'
-  // StudyActionType
+  | 'BUSINESS_INTELLIGENCE';
+
+export type StudyActionType =
   | 'STUDY_PLANNING'
   | 'NOTE_TAKING'
   | 'KNOWLEDGE_ORGANIZATION'
@@ -101,8 +108,9 @@ export type ActionType =
   | 'EXAM_PREPARATION'
   | 'SKILL_DEVELOPMENT'
   | 'LEARNING_PATH_DESIGN'
-  | 'QUIZ_GENERATION'
-  // EducationActionType
+  | 'QUIZ_GENERATION';
+
+export type EducationActionType =
   | 'CURRICULUM_DESIGN'
   | 'MATERIAL_CREATION'
   | 'TEACHING_METHOD'
@@ -110,8 +118,9 @@ export type ActionType =
   | 'ASSESSMENT_DESIGN'
   | 'INTERACTIVE_CONTENT'
   | 'EDUCATIONAL_STRATEGY'
-  | 'LESSON_PLANNING'
-  // ResearchActionType
+  | 'LESSON_PLANNING';
+
+export type ResearchActionType =
   | 'RESEARCH_DESIGN'
   | 'PAPER_WRITING'
   | 'METHODOLOGY_DEVELOPMENT'
@@ -119,8 +128,9 @@ export type ActionType =
   | 'DATA_INTERPRETATION'
   | 'LITERATURE_REVIEW'
   | 'HYPOTHESIS_FORMULATION'
-  | 'STATISTICAL_MODELING'
-  // BusinessActionType
+  | 'STATISTICAL_MODELING';
+
+export type BusinessActionType =
   | 'PROPOSAL_WRITING'
   | 'REPORT_WRITING'
   | 'BUSINESS_STRATEGY'
@@ -130,8 +140,9 @@ export type ActionType =
   | 'CONTRACT_REVIEW'
   | 'RISK_ASSESSMENT'
   | 'STAKEHOLDER_MANAGEMENT'
-  | 'BUSINESS_PLAN_DEVELOPMENT'
-  // DesignActionType
+  | 'BUSINESS_PLAN_DEVELOPMENT';
+
+export type DesignActionType =
   | 'UI_DESIGN'
   | 'UX_DESIGN'
   | 'GRAPHIC_DESIGN'
@@ -141,8 +152,9 @@ export type ActionType =
   | 'PROTOTYPING'
   | 'VISUAL_IDENTITY'
   | 'INTERACTION_DESIGN'
-  | 'RESPONSIVE_DESIGN'
-  // WritingActionType
+  | 'RESPONSIVE_DESIGN';
+
+export type WritingActionType =
   | 'ARTICLE_WRITING'
   | 'ESSAY_WRITING'
   | 'TECHNICAL_WRITING'
@@ -162,8 +174,9 @@ export type ActionType =
   | 'CONDOLENCE_MESSAGE'
   | 'MESSAGE_WRITING'
   | 'TEXT_MESSAGE'
-  | 'WHATSAPP_MESSAGE'
-  // EtcActionType
+  | 'WHATSAPP_MESSAGE';
+
+export type EtcActionType =
   | 'GENERAL_CONSULTATION'
   | 'PROBLEM_SOLVING'
   | 'INFORMATION_RESEARCH'
@@ -174,7 +187,7 @@ export type ActionType =
   | 'RECIPE_CREATION'
   | 'COOKING_TIPS'
   | 'HEALTH_MANAGEMENT'
-  // SocialActionType
+  // SocialActionType (ETC 카테고리에 포함)
   | 'COMMUNITY_ENGAGEMENT'
   | 'EVENT_ORGANIZATION'
   | 'SOCIAL_CAUSE_SUPPORT'
@@ -231,7 +244,7 @@ export type ActionType =
   | 'ANNIVERSARY_MESSAGE'
   | 'HOLIDAY_GREETING'
   | 'SEASONAL_GREETING'
-  // HealthFitnessActionType
+  // HealthFitnessActionType (ETC 카테고리에 포함)
   | 'WORKOUT_PLANS'
   | 'NUTRITION_TRACKING'
   | 'MEDICAL_RECORD_MANAGEMENT'
@@ -253,7 +266,7 @@ export type ActionType =
   | 'STRESS_MANAGEMENT_HEALTH'
   | 'FITNESS_TRACKING'
   | 'WORKOUT_FORM_CORRECTION'
-  // CustomerSupportActionType
+  // CustomerSupportActionType (ETC 카테고리에 포함)
   | 'TICKET_CREATION'
   | 'TICKET_RESOLUTION'
   | 'KNOWLEDGE_BASE_MANAGEMENT'
@@ -278,7 +291,7 @@ export type ActionType =
   | 'FOLLOW_UP_EMAIL'
   | 'REJECTION_EMAIL'
   | 'CONFIRMATION_EMAIL'
-  // AiMlActionType
+  // AiMlActionType (ETC 카테고리에 포함)
   | 'MODEL_TRAINING'
   | 'PREDICTION'
   | 'DATA_PREPROCESSING'
@@ -298,7 +311,7 @@ export type ActionType =
   | 'DATA_LABELING'
   | 'MODEL_OPTIMIZATION'
   | 'EXPLAINABLE_AI'
-  // CybersecurityActionType
+  // CybersecurityActionType (ETC 카테고리에 포함)
   | 'VULNERABILITY_SCANNING'
   | 'PENETRATION_TESTING'
   | 'THREAT_ANALYSIS'
@@ -316,7 +329,7 @@ export type ActionType =
   | 'SECURITY_MONITORING'
   | 'MALWARE_ANALYSIS'
   | 'FIREWALL_CONFIGURATION'
-  // DevOpsActionType
+  // DevOpsActionType (ETC 카테고리에 포함)
   | 'CI_CD_PIPELINE'
   | 'AUTOMATED_TESTING'
   | 'INTEGRATION_TESTING'
@@ -334,7 +347,7 @@ export type ActionType =
   | 'LOG_MANAGEMENT'
   | 'PERFORMANCE_MONITORING'
   | 'INFRASTRUCTURE_MONITORING'
-  // CloudServicesActionType
+  // CloudServicesActionType (ETC 카테고리에 포함)
   | 'CLOUD_DEPLOYMENT'
   | 'CLOUD_SECURITY'
   | 'CLOUD_MONITORING'
@@ -350,4 +363,22 @@ export type ActionType =
   | 'LOAD_BALANCING'
   | 'AUTO_SCALING'
   | 'CLOUD_NETWORKING';
+
+// 모든 ActionType을 합성
+export type ActionType =
+  | ProductivityActionType
+  | DevelopmentActionType
+  | CodingActionType
+  | ProgrammingActionType
+  | MarketingActionType
+  | CreativeActionType
+  | ContentActionType
+  | AnalysisActionType
+  | StudyActionType
+  | EducationActionType
+  | ResearchActionType
+  | BusinessActionType
+  | DesignActionType
+  | WritingActionType
+  | EtcActionType;
 

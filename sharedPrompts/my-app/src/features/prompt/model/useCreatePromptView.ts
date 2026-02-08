@@ -139,7 +139,7 @@ export function useCreatePromptView() {
   };
 
   const handleDomainSelect = (domainId: string) => {
-    setFormData({ ...formData, domain: domainId });
+    setFormData({ ...formData, domain: domainId, actionType: undefined, roleType: undefined });
     setTimeout(() => setCurrentStep(2), 300);
   };
 

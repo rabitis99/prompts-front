@@ -54,15 +54,14 @@ const LANGUAGE_OPTIONS: { value: LanguageType; label: string }[] = Object.values
   label: LANGUAGE_DISPLAY_NAMES[value],
 }));
 
-interface OptionCardProps<T> {
-  value: T;
+interface OptionCardProps {
   label: string;
   description: string;
   isSelected: boolean;
   onClick: () => void;
 }
 
-function OptionCard<T>({ value, label, description, isSelected, onClick }: OptionCardProps<T>) {
+function OptionCard({ label, description, isSelected, onClick }: OptionCardProps) {
   return (
     <button
       onClick={onClick}
@@ -81,6 +80,33 @@ function OptionCard<T>({ value, label, description, isSelected, onClick }: Optio
         )}
       </div>
       <p className="text-sm text-neutral-600 leading-relaxed">{description}</p>
+    </button>
+  );
+}
+
+// description 없이 동작하는 간소화된 옵션 카드 컴포넌트
+interface SimpleOptionCardProps {
+  label: string;
+  isSelected: boolean;
+  onClick: () => void;
+}
+
+function SimpleOptionCard({ label, isSelected, onClick }: SimpleOptionCardProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`group relative text-left p-4 rounded-2xl border-2 transition-all hover:shadow-lg ${
+        isSelected
+          ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-md'
+          : 'border-neutral-200 bg-white hover:border-blue-300'
+      }`}
+    >
+      <div className="flex items-start justify-between mb-2">
+        <h4 className={`font-bold text-lg ${isSelected ? 'text-blue-700' : 'text-neutral-900'}`}>
+          {label}
+        </h4>
+        {isSelected && <Check className="w-5 h-5 text-blue-500 flex-shrink-0 ml-2" />}
+      </div>
     </button>
   );
 }
@@ -107,18 +133,21 @@ export function AdvancedOptionsStep({
 }: AdvancedOptionsStepProps) {
   const [expandedSection, setExpandedSection] = useState<'action' | 'role' | 'tone' | 'experience' | 'style' | 'language' | null>(null);
 
-  // 선택된 도메인에 맞는 ActionType과 RoleType 목록 가져오기
-  const availableActionTypes = useMemo(() => {
-    const selectedDomain = DOMAINS.find(d => d.id === formData.domain);
-    if (!selectedDomain) return [];
-    return getActionTypesForCategory(selectedDomain.category);
+  // 선택된 도메인의 카테고리 조회 (중복 제거)
+  const selectedDomainCategory = useMemo(() => {
+    return DOMAINS.find(d => d.id === formData.domain)?.category;
   }, [formData.domain]);
 
+  // 선택된 도메인에 맞는 ActionType과 RoleType 목록 가져오기
+  const availableActionTypes = useMemo(() => {
+    if (!selectedDomainCategory) return [];
+    return getActionTypesForCategory(selectedDomainCategory);
+  }, [selectedDomainCategory]);
+
   const availableRoleTypes = useMemo(() => {
-    const selectedDomain = DOMAINS.find(d => d.id === formData.domain);
-    if (!selectedDomain) return [];
-    return getRoleTypesForCategory(selectedDomain.category);
-  }, [formData.domain]);
+    if (!selectedDomainCategory) return [];
+    return getRoleTypesForCategory(selectedDomainCategory);
+  }, [selectedDomainCategory]);
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -157,24 +186,12 @@ export function AdvancedOptionsStep({
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {availableActionTypes.map((actionType) => (
-              <button
+              <SimpleOptionCard
                 key={actionType}
+                label={formatActionType(actionType)}
+                isSelected={formData.actionType === actionType}
                 onClick={() => onChangeActionType(formData.actionType === actionType ? undefined : actionType)}
-                className={`group relative text-left p-4 rounded-2xl border-2 transition-all hover:shadow-lg ${
-                  formData.actionType === actionType
-                    ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-md'
-                    : 'border-neutral-200 bg-white hover:border-blue-300'
-                }`}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className={`font-bold text-lg ${formData.actionType === actionType ? 'text-blue-700' : 'text-neutral-900'}`}>
-                    {formatActionType(actionType)}
-                  </h4>
-                  {formData.actionType === actionType && (
-                    <Check className="w-5 h-5 text-blue-500 flex-shrink-0 ml-2" />
-                  )}
-                </div>
-              </button>
+              />
             ))}
           </div>
         </div>
@@ -210,24 +227,12 @@ export function AdvancedOptionsStep({
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {availableRoleTypes.map((roleType) => (
-              <button
+              <SimpleOptionCard
                 key={roleType}
+                label={formatRoleType(roleType)}
+                isSelected={formData.roleType === roleType}
                 onClick={() => onChangeRoleType(formData.roleType === roleType ? undefined : roleType)}
-                className={`group relative text-left p-4 rounded-2xl border-2 transition-all hover:shadow-lg ${
-                  formData.roleType === roleType
-                    ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-md'
-                    : 'border-neutral-200 bg-white hover:border-blue-300'
-                }`}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className={`font-bold text-lg ${formData.roleType === roleType ? 'text-blue-700' : 'text-neutral-900'}`}>
-                    {formatRoleType(roleType)}
-                  </h4>
-                  {formData.roleType === roleType && (
-                    <Check className="w-5 h-5 text-blue-500 flex-shrink-0 ml-2" />
-                  )}
-                </div>
-              </button>
+              />
             ))}
           </div>
         </div>
@@ -264,7 +269,6 @@ export function AdvancedOptionsStep({
           {TONE_OPTIONS.map((option) => (
             <OptionCard
               key={option.value}
-              value={option.value}
               label={option.label}
               description={TONE_GUIDELINES[option.value]}
               isSelected={formData.tone === option.value}
@@ -305,7 +309,6 @@ export function AdvancedOptionsStep({
           {EXPERIENCE_OPTIONS.map((option) => (
             <OptionCard
               key={option.value}
-              value={option.value}
               label={option.label}
               description={EXPERIENCE_GUIDELINES[option.value]}
               isSelected={formData.experience === option.value}
@@ -346,7 +349,6 @@ export function AdvancedOptionsStep({
           {STYLE_OPTIONS.map((option) => (
             <OptionCard
               key={option.value}
-              value={option.value}
               label={option.label}
               description={STYLE_GUIDELINES[option.value]}
               isSelected={formData.style === option.value}

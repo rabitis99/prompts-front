@@ -43,7 +43,6 @@ export const PROMPT_CATEGORY_DISPLAY_NAMES: Record<PromptCategory, string> = {
 export enum SortType {
   LATEST = 'LATEST',
   POPULAR = 'POPULAR',
-  COMMENTS = 'COMMENTS',
 }
 
 export enum ToneType {
@@ -92,7 +91,7 @@ export enum LanguageType {
   JAPANESE = 'JAPANESE',
 }
 
-// ActionType과 RoleType은 별도 파일에서 import
+// ActionType과 RoleType import (PromptRequestDto에서 사용)
 import type { ActionType } from './action.types';
 import type { RoleType } from './role.types';
 
