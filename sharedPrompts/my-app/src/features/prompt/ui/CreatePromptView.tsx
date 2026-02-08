@@ -141,6 +141,8 @@ export function CreatePromptView() {
             onChangeExperience={(experience) => setFormData({ ...formData, experience })}
             onChangeStyle={(style) => setFormData({ ...formData, style })}
             onChangeLanguage={(language) => setFormData({ ...formData, language })}
+            onChangeActionType={(actionType) => setFormData({ ...formData, actionType })}
+            onChangeRoleType={(roleType) => setFormData({ ...formData, roleType })}
             onPrev={() => setCurrentStep(4)}
             onNext={() => setCurrentStep(6)}
           />
