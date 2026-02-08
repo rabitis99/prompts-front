@@ -92,6 +92,14 @@ export enum LanguageType {
   JAPANESE = 'JAPANESE',
 }
 
+// ActionType과 RoleType은 별도 파일에서 import
+import type { ActionType } from './action.types';
+import type { RoleType } from './role.types';
+
+// Re-export for backward compatibility
+export type { ActionType } from './action.types';
+export type { RoleType } from './role.types';
+
 // Prompt Response DTO
 export interface PromptResponseDto {
   id: number;
@@ -118,6 +126,8 @@ export interface PromptRequestDto {
   prompt_category: PromptCategory;
   tags?: string[];
   input: string;
+  action_type?: ActionType;
+  role_type?: RoleType;
   tone?: ToneType;
   experience?: ExperienceLevel;
   style?: StyleType;
@@ -140,5 +150,6 @@ export interface PromptSearchCondition {
   sort?: SortType;
   prompt_category?: PromptCategory;
 }
+
 
 

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { promptApi } from '@/features/prompt/api/prompt.api';
-import type { PromptCategory, ToneType, ExperienceLevel, StyleType, LanguageType } from '@/features/prompt/types/prompt.types';
+import type { ToneType, ExperienceLevel, StyleType, LanguageType } from '@/features/prompt/types/prompt.types';
+import type { ActionType, RoleType } from '@/features/prompt/types';
 import { DOMAINS, CATEGORY_EXAMPLES } from './createPrompt.constants';
 
 export interface CreatePromptFormData {
@@ -11,6 +12,8 @@ export interface CreatePromptFormData {
   domain: string;
   tags: string[];
   isPublic: boolean;
+  actionType?: ActionType;
+  roleType?: RoleType;
   tone?: ToneType;
   experience?: ExperienceLevel;
   style?: StyleType;
@@ -24,6 +27,8 @@ const INITIAL_FORM_DATA: CreatePromptFormData = {
   domain: '',
   tags: [],
   isPublic: true,
+  actionType: undefined,
+  roleType: undefined,
   tone: undefined,
   experience: undefined,
   style: undefined,
@@ -69,6 +74,8 @@ export function useCreatePromptView() {
         tags: formData.tags.length > 0 ? formData.tags : undefined,
         input: formData.input,
         is_public: formData.isPublic,
+        action_type: formData.actionType,
+        role_type: formData.roleType,
         tone: formData.tone,
         experience: formData.experience,
         style: formData.style,
@@ -105,6 +112,14 @@ export function useCreatePromptView() {
 
   const handleChangeLanguage = (language?: LanguageType) => {
     setFormData({ ...formData, language });
+  };
+
+  const handleChangeActionType = (actionType?: ActionType) => {
+    setFormData({ ...formData, actionType });
+  };
+
+  const handleChangeRoleType = (roleType?: RoleType) => {
+    setFormData({ ...formData, roleType });
   };
 
   const handleChangePublic = (isPublic: boolean) => {
@@ -155,6 +170,8 @@ export function useCreatePromptView() {
     handleChangeExperience,
     handleChangeStyle,
     handleChangeLanguage,
+    handleChangeActionType,
+    handleChangeRoleType,
     handleChangePublic,
     canGoNext,
   };

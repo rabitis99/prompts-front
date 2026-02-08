@@ -1,2 +1,5 @@
-export * from '@/features/prompt/types/prompt.types';
+export * from './prompt.types';
+export * from './action.types';
+export * from './role.types';
+export * from './category-mapping.types';
 

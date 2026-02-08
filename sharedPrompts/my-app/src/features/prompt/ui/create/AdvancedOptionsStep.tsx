@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Info, Check } from 'lucide-react';
 import type { CreatePromptFormData } from '@/features/prompt/model/useCreatePromptView';
 import { ToneType, ExperienceLevel, StyleType, LanguageType } from '@/features/prompt/types/prompt.types';
+import type { ActionType, RoleType } from '@/features/prompt/types';
+import { DOMAINS } from '@/features/prompt/model/createPrompt.constants';
+import { getActionTypesForCategory, getRoleTypesForCategory } from '@/features/prompt/types/category-mapping.types';
 import {
   TONE_DISPLAY_NAMES,
   EXPERIENCE_DISPLAY_NAMES,
@@ -13,6 +16,10 @@ import {
   EXPERIENCE_GUIDELINES,
   STYLE_GUIDELINES,
 } from '@/features/prompt/model/enumGuidelines';
+import {
+  ACTION_TYPE_DISPLAY_NAMES_KO,
+  ROLE_TYPE_DISPLAY_NAMES_KO,
+} from '@/features/prompt/model/actionRoleDisplayNames';
 
 interface AdvancedOptionsStepProps {
   formData: CreatePromptFormData;
@@ -20,6 +27,8 @@ interface AdvancedOptionsStepProps {
   onChangeExperience: (experience?: ExperienceLevel) => void;
   onChangeStyle: (style?: StyleType) => void;
   onChangeLanguage: (language?: LanguageType) => void;
+  onChangeActionType: (actionType?: ActionType) => void;
+  onChangeRoleType: (roleType?: RoleType) => void;
   onPrev: () => void;
   onNext: () => void;
 }
@@ -76,16 +85,40 @@ function OptionCard<T>({ value, label, description, isSelected, onClick }: Optio
   );
 }
 
+// ActionType과 RoleType을 한국어로 표시하기 위한 헬퍼 함수
+function formatActionType(value: ActionType): string {
+  return ACTION_TYPE_DISPLAY_NAMES_KO[value] || value;
+}
+
+function formatRoleType(value: RoleType): string {
+  return ROLE_TYPE_DISPLAY_NAMES_KO[value] || value;
+}
+
 export function AdvancedOptionsStep({
   formData,
   onChangeTone,
   onChangeExperience,
   onChangeStyle,
   onChangeLanguage,
+  onChangeActionType,
+  onChangeRoleType,
   onPrev,
   onNext,
 }: AdvancedOptionsStepProps) {
-  const [expandedSection, setExpandedSection] = useState<'tone' | 'experience' | 'style' | 'language' | null>(null);
+  const [expandedSection, setExpandedSection] = useState<'action' | 'role' | 'tone' | 'experience' | 'style' | 'language' | null>(null);
+
+  // 선택된 도메인에 맞는 ActionType과 RoleType 목록 가져오기
+  const availableActionTypes = useMemo(() => {
+    const selectedDomain = DOMAINS.find(d => d.id === formData.domain);
+    if (!selectedDomain) return [];
+    return getActionTypesForCategory(selectedDomain.category);
+  }, [formData.domain]);
+
+  const availableRoleTypes = useMemo(() => {
+    const selectedDomain = DOMAINS.find(d => d.id === formData.domain);
+    if (!selectedDomain) return [];
+    return getRoleTypesForCategory(selectedDomain.category);
+  }, [formData.domain]);
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -93,6 +126,112 @@ export function AdvancedOptionsStep({
         <h2 className="text-3xl font-bold text-neutral-900 mb-3">추가 옵션을 선택하세요</h2>
         <p className="text-neutral-600 text-lg">선택사항입니다. 각 옵션을 클릭하면 설명을 확인할 수 있어요</p>
       </div>
+
+      {/* Action Type */}
+      {availableActionTypes.length > 0 && (
+        <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-blue-100">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-neutral-900 flex items-center gap-2">
+              <span>액션 타입 (Action Type)</span>
+              <button
+                onClick={() => setExpandedSection(expandedSection === 'action' ? null : 'action')}
+                className="p-1 hover:bg-blue-50 rounded-lg transition-colors"
+                title="설명 보기"
+              >
+                <Info className="w-4 h-4 text-blue-500" />
+              </button>
+            </h3>
+            {formData.actionType && (
+              <span className="text-sm text-blue-600 font-medium">
+                선택됨: {formatActionType(formData.actionType)}
+              </span>
+            )}
+          </div>
+          {expandedSection === 'action' && (
+            <div className="mb-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <p className="text-sm text-blue-800">
+                <strong>액션 타입이란?</strong> 프롬프트가 수행할 구체적인 작업 유형을 의미합니다. 
+                예를 들어 "코드 생성", "문서 작성", "데이터 분석" 등이 있습니다.
+              </p>
+            </div>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {availableActionTypes.map((actionType) => (
+              <button
+                key={actionType}
+                onClick={() => onChangeActionType(formData.actionType === actionType ? undefined : actionType)}
+                className={`group relative text-left p-4 rounded-2xl border-2 transition-all hover:shadow-lg ${
+                  formData.actionType === actionType
+                    ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-md'
+                    : 'border-neutral-200 bg-white hover:border-blue-300'
+                }`}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className={`font-bold text-lg ${formData.actionType === actionType ? 'text-blue-700' : 'text-neutral-900'}`}>
+                    {formatActionType(actionType)}
+                  </h4>
+                  {formData.actionType === actionType && (
+                    <Check className="w-5 h-5 text-blue-500 flex-shrink-0 ml-2" />
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Role Type */}
+      {availableRoleTypes.length > 0 && (
+        <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-blue-100">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-neutral-900 flex items-center gap-2">
+              <span>역할 타입 (Role Type)</span>
+              <button
+                onClick={() => setExpandedSection(expandedSection === 'role' ? null : 'role')}
+                className="p-1 hover:bg-blue-50 rounded-lg transition-colors"
+                title="설명 보기"
+              >
+                <Info className="w-4 h-4 text-blue-500" />
+              </button>
+            </h3>
+            {formData.roleType && (
+              <span className="text-sm text-blue-600 font-medium">
+                선택됨: {formatRoleType(formData.roleType)}
+              </span>
+            )}
+          </div>
+          {expandedSection === 'role' && (
+            <div className="mb-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <p className="text-sm text-blue-800">
+                <strong>역할 타입이란?</strong> AI가 맡을 역할이나 전문가의 관점을 의미합니다. 
+                예를 들어 "백엔드 개발자", "마케팅 전략가", "콘텐츠 작가" 등이 있습니다.
+              </p>
+            </div>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {availableRoleTypes.map((roleType) => (
+              <button
+                key={roleType}
+                onClick={() => onChangeRoleType(formData.roleType === roleType ? undefined : roleType)}
+                className={`group relative text-left p-4 rounded-2xl border-2 transition-all hover:shadow-lg ${
+                  formData.roleType === roleType
+                    ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-md'
+                    : 'border-neutral-200 bg-white hover:border-blue-300'
+                }`}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className={`font-bold text-lg ${formData.roleType === roleType ? 'text-blue-700' : 'text-neutral-900'}`}>
+                    {formatRoleType(roleType)}
+                  </h4>
+                  {formData.roleType === roleType && (
+                    <Check className="w-5 h-5 text-blue-500 flex-shrink-0 ml-2" />
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tone */}
       <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-blue-100">
