@@ -252,7 +252,7 @@ export async function checkFCMStatus(): Promise<{
     status.hasVapidKey = !!vapidKey;
 
     // 현재 토큰 가져오기
-    if (initializedMessaging && status.notificationPermission === 'granted') {
+    if (initializedMessaging && status.notificationPermission === 'granted' && status.hasVapidKey) {
       try {
         const token = await getToken(initializedMessaging, { vapidKey });
         status.currentToken = token;

@@ -6,12 +6,14 @@ import {
   CreditCard,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
 import { useHomeFeedView } from '@/features/prompt/model/useHomeFeedView';
 import { DOMAIN_OPTIONS, SORT_OPTIONS } from '@/features/prompt/model/homeFeed.constants';
 import { PromptCard } from './components/PromptCard';
 
 export function HomeFeedView() {
   const navigate = useNavigate();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const {
     searchQuery,
     setSearchQuery,
@@ -43,6 +45,7 @@ export function HomeFeedView() {
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
+                ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -60,6 +63,7 @@ export function HomeFeedView() {
             </div>
             <button
               type="button"
+              onClick={() => searchInputRef.current?.focus()}
               className="flex items-center gap-2 px-4 py-3.5 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 transition-colors whitespace-nowrap"
             >
               <Search className="w-5 h-5" />
