@@ -176,6 +176,18 @@ export type WritingActionType =
   | 'TEXT_MESSAGE'
   | 'WHATSAPP_MESSAGE';
 
+export type EmailActionType =
+  | 'EMAIL_WRITING'
+  | 'BUSINESS_EMAIL'
+  | 'PERSONAL_EMAIL'
+  | 'THANK_YOU_EMAIL'
+  | 'APOLOGY_EMAIL'
+  | 'INQUIRY_EMAIL'
+  | 'INVITATION_EMAIL'
+  | 'FOLLOW_UP_EMAIL'
+  | 'REJECTION_EMAIL'
+  | 'CONFIRMATION_EMAIL';
+
 export type EtcActionType =
   | 'GENERAL_CONSULTATION'
   | 'PROBLEM_SOLVING'
@@ -281,6 +293,7 @@ export type EtcActionType =
   | 'SUPPORT_TRAINING'
   | 'REMOTE_SUPPORT'
   | 'CUSTOMER_SATISFACTION'
+  // EmailActionType (ETC 카테고리에 포함)
   | 'EMAIL_WRITING'
   | 'BUSINESS_EMAIL'
   | 'PERSONAL_EMAIL'
@@ -380,5 +393,6 @@ export type ActionType =
   | BusinessActionType
   | DesignActionType
   | WritingActionType
+  | EmailActionType
   | EtcActionType;
 

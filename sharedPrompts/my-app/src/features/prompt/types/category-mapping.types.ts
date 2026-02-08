@@ -286,6 +286,7 @@ export const CATEGORY_ACTION_TYPES: Record<PromptCategory, readonly ActionType[]
     'SUPPORT_TRAINING',
     'REMOTE_SUPPORT',
     'CUSTOMER_SATISFACTION',
+    // EmailActionType
     'EMAIL_WRITING',
     'BUSINESS_EMAIL',
     'PERSONAL_EMAIL',

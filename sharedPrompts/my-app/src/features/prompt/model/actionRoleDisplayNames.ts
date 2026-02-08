@@ -270,6 +270,7 @@ export const ACTION_TYPE_DISPLAY_NAMES_KO: Record<ActionType, string> = {
   SUPPORT_TRAINING: '지원 교육',
   REMOTE_SUPPORT: '원격 지원',
   CUSTOMER_SATISFACTION: '고객 만족도',
+  // EmailActionType
   EMAIL_WRITING: '이메일 작성',
   BUSINESS_EMAIL: '비즈니스 이메일',
   PERSONAL_EMAIL: '개인 이메일',
