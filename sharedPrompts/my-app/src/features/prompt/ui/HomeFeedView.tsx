@@ -49,7 +49,7 @@ export function HomeFeedView() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="프롬프트 검색..."
+                placeholder="제목·설명·태그로 검색..."
                 className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
               />
               {searchQuery && (

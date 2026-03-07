@@ -23,6 +23,8 @@ import {
 
 interface AdvancedOptionsStepProps {
   formData: CreatePromptFormData;
+  /** SIMPLE이면 톤·스타일·언어·경력만, ADVANCED면 액션/역할 포함 전체 */
+  variant: 'simple' | 'advanced';
   onChangeTone: (tone?: ToneType) => void;
   onChangeExperience: (experience?: ExperienceLevel) => void;
   onChangeStyle: (style?: StyleType) => void;
@@ -122,6 +124,7 @@ function formatRoleType(value: RoleType): string {
 
 export function AdvancedOptionsStep({
   formData,
+  variant,
   onChangeTone,
   onChangeExperience,
   onChangeStyle,
@@ -131,6 +134,7 @@ export function AdvancedOptionsStep({
   onPrev,
   onNext,
 }: AdvancedOptionsStepProps) {
+  const showActionAndRole = variant === 'advanced';
   const [expandedSection, setExpandedSection] = useState<'action' | 'role' | 'tone' | 'experience' | 'style' | 'language' | null>(null);
 
   // 선택된 도메인의 카테고리 조회 (중복 제거)
@@ -156,8 +160,8 @@ export function AdvancedOptionsStep({
         <p className="text-neutral-600 text-lg">선택사항입니다. 각 옵션을 클릭하면 설명을 확인할 수 있어요</p>
       </div>
 
-      {/* Action Type */}
-      {availableActionTypes.length > 0 && (
+      {/* Action Type - ADVANCED만 */}
+      {showActionAndRole && availableActionTypes.length > 0 && (
         <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-blue-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold text-neutral-900 flex items-center gap-2">
@@ -197,8 +201,8 @@ export function AdvancedOptionsStep({
         </div>
       )}
 
-      {/* Role Type */}
-      {availableRoleTypes.length > 0 && (
+      {/* Role Type - ADVANCED만 */}
+      {showActionAndRole && availableRoleTypes.length > 0 && (
         <div className="bg-white rounded-3xl p-6 shadow-xl border-2 border-blue-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold text-neutral-900 flex items-center gap-2">

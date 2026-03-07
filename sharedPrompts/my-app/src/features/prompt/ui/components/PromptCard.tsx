@@ -1,12 +1,24 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Copy, Check } from 'lucide-react';
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
+import type { PromptSummaryResponse, PromptDetailResponse, PromptResponseDto } from '@/features/prompt/types/prompt.types';
 import { PROMPT_CATEGORY_DISPLAY_NAMES } from '@/features/prompt/types/prompt.types';
 import { getAvatarGradient } from '@/features/prompt/ui/utils';
 
+type PromptCardItem = PromptSummaryResponse | PromptDetailResponse | PromptResponseDto;
+
+function getAuthorFromPrompt(prompt: PromptCardItem): { id: number; nickname?: string } | null {
+  if ('user_response_dto' in prompt && prompt.user_response_dto) {
+    return prompt.user_response_dto;
+  }
+  if ('author_id' in prompt) {
+    return { id: prompt.author_id, nickname: prompt.author_nickname };
+  }
+  return null;
+}
+
 interface PromptCardProps {
-  prompt: PromptResponseDto;
+  prompt: PromptCardItem;
   isLiked?: boolean;
   isCopied?: boolean;
   onToggleLike?: (promptId: number) => void;
@@ -32,10 +44,15 @@ function PromptCardComponent({
 
   const handleCopyClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onCopy) {
+    if (onCopy && 'content' in prompt && prompt.content) {
       onCopy(prompt.id, prompt.content);
     }
   };
+
+  const author = getAuthorFromPrompt(prompt);
+  const hasContent = 'content' in prompt && !!prompt.content;
+  const description = 'description' in prompt ? prompt.description : undefined;
+  const commentCount = 'comment_count' in prompt && typeof prompt.comment_count === 'number' ? prompt.comment_count : 0;
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -47,8 +64,8 @@ function PromptCardComponent({
   const handleUserClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (prompt.user_response_dto?.id) {
-      navigate(`/users/${prompt.user_response_dto.id}`);
+    if (author?.id) {
+      navigate(`/users/${author.id}`);
     }
   };
 
@@ -86,10 +103,12 @@ function PromptCardComponent({
         {prompt.title}
       </h3>
 
-      {/* Description */}
-      <p className={`text-slate-600 text-sm leading-relaxed mb-5 ${isCompact ? 'line-clamp-2' : ''}`}>
-        {prompt.description}
-      </p>
+      {/* Description (목록 응답에는 없을 수 있음) */}
+      {description != null && (
+        <p className={`text-slate-600 text-sm leading-relaxed mb-5 ${isCompact ? 'line-clamp-2' : ''}`}>
+          {description}
+        </p>
+      )}
 
       {/* Tags */}
       {prompt.tags && prompt.tags.length > 0 && (
@@ -130,31 +149,31 @@ function PromptCardComponent({
             )}
             <span className="flex items-center gap-1.5 text-slate-400">
               <MessageCircle className="w-4 h-4" />
-              <span className="text-xs font-semibold">{prompt.comment_count}</span>
+              <span className="text-xs font-semibold">{commentCount}</span>
             </span>
           </div>
           
-          {/* User Info */}
-          {prompt.user_response_dto && (
+          {/* User Info (목록은 author_id/author_nickname, 상세/다른 모듈은 user_response_dto) */}
+          {author && (
             <button
               onClick={handleUserClick}
               className="flex items-center gap-2 ml-auto hover:opacity-80 transition-opacity flex-shrink-0"
-              aria-label={`${prompt.user_response_dto.nickname} 프로필 보기`}
+              aria-label={`${author.nickname ?? '사용자'} 프로필 보기`}
             >
               <div
                 className={`w-6 h-6 rounded-full bg-gradient-to-br ${getAvatarGradient(
-                  prompt.user_response_dto.id
+                  author.id
                 )} flex items-center justify-center text-white text-xs font-bold`}
               >
-                {prompt.user_response_dto.nickname?.[0] || '?'}
+                {author.nickname?.[0] || '?'}
               </div>
               <span className="text-xs font-medium text-slate-600 truncate max-w-[100px]">
-                {prompt.user_response_dto.nickname}
+                {author.nickname ?? ''}
               </span>
             </button>
           )}
         </div>
-        {onCopy && (
+        {onCopy && hasContent && (
           <button
             onClick={handleCopyClick}
             aria-label="프롬프트 복사"
@@ -178,14 +197,14 @@ export const PromptCard = React.memo(PromptCardComponent, (prevProps, nextProps)
   return (
     prevProps.prompt.id === nextProps.prompt.id &&
     prevProps.prompt.title === nextProps.prompt.title &&
-    prevProps.prompt.description === nextProps.prompt.description &&
-    prevProps.prompt.content === nextProps.prompt.content &&
+    ('description' in prevProps.prompt ? prevProps.prompt.description : '') === ('description' in nextProps.prompt ? nextProps.prompt.description : '') &&
+    ('content' in prevProps.prompt ? prevProps.prompt.content : '') === ('content' in nextProps.prompt ? nextProps.prompt.content : '') &&
     prevProps.prompt.like_count === nextProps.prompt.like_count &&
-    prevProps.prompt.comment_count === nextProps.prompt.comment_count &&
+    ('comment_count' in prevProps.prompt ? prevProps.prompt.comment_count : 0) === ('comment_count' in nextProps.prompt ? nextProps.prompt.comment_count : 0) &&
     prevProps.prompt.prompt_category === nextProps.prompt.prompt_category &&
     JSON.stringify(prevProps.prompt.tags) === JSON.stringify(nextProps.prompt.tags) &&
-    prevProps.prompt.user_response_dto?.id === nextProps.prompt.user_response_dto?.id &&
-    prevProps.prompt.user_response_dto?.nickname === nextProps.prompt.user_response_dto?.nickname &&
+    getAuthorFromPrompt(prevProps.prompt)?.id === getAuthorFromPrompt(nextProps.prompt)?.id &&
+    getAuthorFromPrompt(prevProps.prompt)?.nickname === getAuthorFromPrompt(nextProps.prompt)?.nickname &&
     prevProps.isLiked === nextProps.isLiked &&
     prevProps.isCopied === nextProps.isCopied &&
     prevProps.variant === nextProps.variant &&

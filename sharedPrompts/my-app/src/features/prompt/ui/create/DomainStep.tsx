@@ -4,9 +4,10 @@ import { DOMAINS } from '@/features/prompt/model/createPrompt.constants';
 interface DomainStepProps {
   formData: CreatePromptFormData;
   onSelectDomain: (domainId: string) => void;
+  onPrev?: () => void;
 }
 
-export function DomainStep({ formData, onSelectDomain }: DomainStepProps) {
+export function DomainStep({ formData, onSelectDomain, onPrev }: DomainStepProps) {
   return (
     <div className="space-y-6 animate-fadeIn">
       <div className="text-center mb-8">
@@ -29,6 +30,16 @@ export function DomainStep({ formData, onSelectDomain }: DomainStepProps) {
           </button>
         ))}
       </div>
+      {onPrev && (
+        <div className="flex justify-center pt-4">
+          <button
+            onClick={onPrev}
+            className="py-3 px-6 bg-white text-neutral-600 rounded-2xl font-medium hover:bg-neutral-50 border-2 border-neutral-200"
+          >
+            ← 이전 (타입 다시 선택)
+          </button>
+        </div>
+      )}
     </div>
   );
 }

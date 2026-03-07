@@ -1,12 +1,14 @@
-// Prompt 관련 타입 정의
+// Prompt 관련 타입 정의 (백엔드 DTO 문서 기준)
 
 import type { UserResponseDto } from '@/features/auth/types/user';
+import type { ActionType } from './action.types';
+import type { RoleType } from './role.types';
+
+// ========== Enum (문서 §3) ==========
 
 export const PromptCategory = {
   PRODUCTIVITY: 'PRODUCTIVITY',
   DEVELOPMENT: 'DEVELOPMENT',
-  CODING: 'CODING',
-  PROGRAMMING: 'PROGRAMMING',
   ANALYSIS: 'ANALYSIS',
   MARKETING: 'MARKETING',
   CONTENT: 'CONTENT',
@@ -20,14 +22,11 @@ export const PromptCategory = {
   ETC: 'ETC',
 } as const;
 
-export type PromptCategory = typeof PromptCategory[keyof typeof PromptCategory];
+export type PromptCategory = (typeof PromptCategory)[keyof typeof PromptCategory];
 
-// PromptCategory displayName 매핑
 export const PROMPT_CATEGORY_DISPLAY_NAMES: Record<PromptCategory, string> = {
   [PromptCategory.PRODUCTIVITY]: '생산성',
   [PromptCategory.DEVELOPMENT]: '개발',
-  [PromptCategory.CODING]: '코딩',
-  [PromptCategory.PROGRAMMING]: '프로그래밍',
   [PromptCategory.ANALYSIS]: '분석',
   [PromptCategory.MARKETING]: '마케팅',
   [PromptCategory.CONTENT]: '콘텐츠 제작',
@@ -41,13 +40,32 @@ export const PROMPT_CATEGORY_DISPLAY_NAMES: Record<PromptCategory, string> = {
   [PromptCategory.ETC]: '기타',
 };
 
-
+/** 목록 정렬: LATEST(최신순), POPULAR(인기순) */
 export const SortType = {
   LATEST: 'LATEST',
   POPULAR: 'POPULAR',
 } as const;
 
-export type SortType = typeof SortType[keyof typeof SortType];
+export type SortType = (typeof SortType)[keyof typeof SortType];
+
+/** SIMPLE/ADVANCED 요청 시 의도 (ActionIntent) */
+export const ActionIntent = {
+  GENERATE: 'GENERATE',
+  REWRITE: 'REWRITE',
+  SUMMARIZE: 'SUMMARIZE',
+  EXPLAIN: 'EXPLAIN',
+  PLAN: 'PLAN',
+  ANALYZE: 'ANALYZE',
+  EVALUATE: 'EVALUATE',
+  EXTRACT: 'EXTRACT',
+  CLASSIFY: 'CLASSIFY',
+  DECIDE: 'DECIDE',
+  DEBUG: 'DEBUG',
+  DESIGN: 'DESIGN',
+  CODE: 'CODE',
+} as const;
+
+export type ActionIntent = (typeof ActionIntent)[keyof typeof ActionIntent];
 
 export const ToneType = {
   FRIENDLY: 'FRIENDLY',
@@ -57,15 +75,15 @@ export const ToneType = {
   CASUAL: 'CASUAL',
   PROFESSIONAL: 'PROFESSIONAL',
   EMPATHETIC: 'EMPATHETIC',
-  SARCASTIC: 'SARCASTIC',
   POSITIVE: 'POSITIVE',
-  NEGATIVE: 'NEGATIVE',
   INSPIRATIONAL: 'INSPIRATIONAL',
   NEUTRAL: 'NEUTRAL',
   ENTHUSIASTIC: 'ENTHUSIASTIC',
+  SARCASTIC: 'SARCASTIC',
+  NEGATIVE: 'NEGATIVE',
 } as const;
 
-export type ToneType = typeof ToneType[keyof typeof ToneType];
+export type ToneType = (typeof ToneType)[keyof typeof ToneType];
 
 export const StyleType = {
   NARRATIVE: 'NARRATIVE',
@@ -84,7 +102,7 @@ export const StyleType = {
   DETAILED: 'DETAILED',
 } as const;
 
-export type StyleType = typeof StyleType[keyof typeof StyleType];
+export type StyleType = (typeof StyleType)[keyof typeof StyleType];
 
 export const ExperienceLevel = {
   BEGINNER: 'BEGINNER',
@@ -93,7 +111,7 @@ export const ExperienceLevel = {
   EXPERT: 'EXPERT',
 } as const;
 
-export type ExperienceLevel = typeof ExperienceLevel[keyof typeof ExperienceLevel];
+export type ExperienceLevel = (typeof ExperienceLevel)[keyof typeof ExperienceLevel];
 
 export const LanguageType = {
   KOREAN: 'KOREAN',
@@ -101,17 +119,110 @@ export const LanguageType = {
   JAPANESE: 'JAPANESE',
 } as const;
 
-export type LanguageType = typeof LanguageType[keyof typeof LanguageType];
+export type LanguageType = (typeof LanguageType)[keyof typeof LanguageType];
 
-// ActionType과 RoleType import (PromptRequestDto에서 사용)
-import type { ActionType } from './action.types';
-import type { RoleType } from './role.types';
+/** 통합 생성 API 요청 종류 */
+export const RequestType = {
+  SIMPLE: 'SIMPLE',
+  EXTRACTION: 'EXTRACTION',
+  ADVANCED: 'ADVANCED',
+} as const;
+
+export type RequestTypeValue = (typeof RequestType)[keyof typeof RequestType];
+
+/** 엔진 모드: AUTO | V2 | V3 */
+export const EngineMode = {
+  AUTO: 'AUTO',
+  V2: 'V2',
+  V3: 'V3',
+} as const;
+
+export type EngineMode = (typeof EngineMode)[keyof typeof EngineMode];
+
+/** 스타일 축 (메타데이터 응답용) */
+export const StyleAxis = {
+  STRUCTURE: 'STRUCTURE',
+  DEPTH: 'DEPTH',
+  FORMAT: 'FORMAT',
+  FUNCTION: 'FUNCTION',
+} as const;
+
+export type StyleAxis = (typeof StyleAxis)[keyof typeof StyleAxis];
 
 // Re-export for backward compatibility
 export type { ActionType } from './action.types';
 export type { RoleType } from './role.types';
 
-// Prompt Response DTO
+// ========== Response DTOs (문서 §2) ==========
+
+/** 품질 배지 (통합 생성 응답) */
+export interface BadgeDto {
+  code: string;
+  display_name: string;
+}
+
+/** 통합 프롬프트 생성 API 응답 */
+export interface UnifiedGeneratePromptResponse {
+  output: string;
+  requested_engine_mode: EngineMode;
+  effective_engine_mode: EngineMode;
+  engine_profile: string; // EngineProfile: QUALITY_PIPELINE | FAST_PIPELINE | JSON_STRICT | AUTO
+  resolved_domain: string; // TaskDomain
+  objective: string; // PromptObjective
+  output_needs: string; // OutputNeeds
+  intent: ActionIntent;
+  variant: string | null;
+  core_role: string | null;
+  domain_role: string | null;
+  quality_badges: BadgeDto[];
+  verify_passed: boolean;
+  repair_count: number;
+  finally_passed: boolean;
+  schema_contract_failed: boolean;
+  schema_failure_reasons: string[];
+  applied_rule_ids: string[];
+  routing_reasons: string[];
+  /** 생성 후 저장된 프롬프트 ID (백엔드가 반환할 경우 PATCH 등에 사용) */
+  id?: number;
+}
+
+/** 목록 조회 항목 (GET /prompts, /prompts/me, /prompts/users/{userId}) */
+export interface PromptSummaryResponse {
+  id: number;
+  title: string;
+  prompt_category: PromptCategory;
+  tags: string[];
+  author_id: number;
+  author_nickname: string;
+  like_count: number;
+  view_count: number;
+  created_at: string;
+  /** 목록에서 일부 API가 반환할 수 있음 */
+  description?: string;
+  content?: string;
+  comment_count?: number;
+}
+
+/** 상세 조회/수정 응답 (GET /prompts/{id}, PATCH /prompts/{id}) */
+export interface PromptDetailResponse {
+  id: number;
+  title: string;
+  description: string;
+  content: string;
+  prompt_category: PromptCategory;
+  tags: string[];
+  author_id: number;
+  author_nickname: string;
+  like_count: number;
+  view_count: number;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+  /** 백엔드가 반환할 경우 댓글 수 (문서에 없을 수 있음) */
+  comment_count?: number;
+}
+
+/** 즐겨찾기 등 다른 모듈용 프롬프트 응답 (user_response_dto 포함) */
 export interface PromptResponseDto {
   id: number;
   title: string;
@@ -120,7 +231,7 @@ export interface PromptResponseDto {
   is_public: boolean;
   prompt_category: PromptCategory;
   tags: string[];
-  user_response_dto: UserResponseDto;
+  user_response_dto: UserResponseDto | null;
   view_count: number;
   comment_count: number;
   like_count: number;
@@ -129,7 +240,84 @@ export interface PromptResponseDto {
   updated_at?: string;
 }
 
-// Prompt Request DTO
+// ========== Request DTOs (문서 §1, JSON snake_case) ==========
+
+/** SIMPLE 요청 (category, intent 필수) — 백엔드 DTO는 camelCase "category" 사용 */
+export interface SimpleGeneratePromptRequest {
+  request_type: 'SIMPLE';
+  category: PromptCategory;
+  intent: ActionIntent;
+  variant?: string;
+  input: string;
+  tone?: ToneType;
+  style?: StyleType;
+  language?: LanguageType;
+  experience?: ExperienceLevel;
+  tags?: string[];
+  title?: string;
+  description?: string;
+}
+
+/** EXTRACTION 요청 (json_schema 필수) */
+export interface ExtractionGeneratePromptRequest {
+  request_type: 'EXTRACTION';
+  input: string;
+  json_schema: string;
+  language?: LanguageType;
+  tags?: string[];
+  title?: string;
+  description?: string;
+}
+
+/** ADVANCED 요청 (action_type, role_type은 도메인별 문자열) — 백엔드 DTO는 camelCase "category" 사용 */
+export interface AdvancedGeneratePromptRequest {
+  request_type: 'ADVANCED';
+  category: PromptCategory;
+  intent: ActionIntent;
+  variant?: string;
+  input: string;
+  json_schema?: string;
+  engine_mode?: EngineMode;
+  tone?: ToneType;
+  style?: StyleType;
+  language?: LanguageType;
+  experience?: ExperienceLevel;
+  disable_quality_pipeline?: boolean;
+  action_type?: string;
+  role_type?: string;
+  core_role?: string;
+  domain_role?: string;
+  tags?: string[];
+  title?: string;
+  description?: string;
+}
+
+export type GeneratePromptRequestDto =
+  | SimpleGeneratePromptRequest
+  | ExtractionGeneratePromptRequest
+  | AdvancedGeneratePromptRequest;
+
+/** PATCH /prompts/{id} body */
+export interface PromptUpdateDto {
+  title?: string;
+  description?: string;
+  is_public?: boolean;
+  prompt_category?: PromptCategory;
+  tags?: string[];
+}
+
+/** 목록 API 쿼리 (page, size, sort, prompt_category, keyword) */
+export interface PromptSearchCondition {
+  page?: number;
+  size?: number;
+  sort?: SortType;
+  prompt_category?: PromptCategory;
+  keyword?: string;
+}
+
+// ========== Legacy (deprecated) ==========
+
+/** @deprecated 통합 generatePrompt 사용 권장 */
 export interface PromptRequestDto {
   title: string;
   description: string;
@@ -145,22 +333,5 @@ export interface PromptRequestDto {
   language?: LanguageType;
 }
 
-// Prompt Update DTO
-export interface PromptUpdateDto {
-  title?: string;
-  description?: string;
-  is_public?: boolean;
-  prompt_category?: PromptCategory;
-  tags?: string[];
-}
-
-// Prompt Search Condition
-export interface PromptSearchCondition {
-  page?: number;
-  size?: number;
-  sort?: SortType;
-  prompt_category?: PromptCategory;
-}
-
-
-
+/** 목록/상세 카드에서 공통으로 쓸 수 있는 타입 (Summary + 선택적 상세 필드) */
+export type PromptListItem = PromptSummaryResponse | PromptDetailResponse | PromptResponseDto;

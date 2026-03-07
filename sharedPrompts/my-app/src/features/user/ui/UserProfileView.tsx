@@ -5,7 +5,7 @@ import { userApi } from '@/features/auth/api/user.api';
 import { promptApi } from '@/features/prompt/api/prompt.api';
 import { likeApi } from '@/features/like/api/like.api';
 import type { UserPublicProfileDto } from '@/features/auth/types/user';
-import type { PromptResponseDto, PromptSearchCondition } from '@/features/prompt/types/prompt.types';
+import type { PromptSummaryResponse, PromptSearchCondition } from '@/features/prompt/types/prompt.types';
 import { SortType } from '@/features/prompt/types/prompt.types';
 import type { PageResponse } from '@/shared/types/api';
 import { PromptCard } from '@/features/prompt/ui/components/PromptCard';
@@ -19,7 +19,7 @@ export function UserProfileView() {
   const currentUserId = useAuthStore((s) => s.user?.id);
 
   const [profile, setProfile] = useState<UserPublicProfileDto | null>(null);
-  const [prompts, setPrompts] = useState<PromptResponseDto[]>([]);
+  const [prompts, setPrompts] = useState<PromptSummaryResponse[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [totalPromptCount, setTotalPromptCount] = useState(0);
@@ -105,7 +105,7 @@ export function UserProfileView() {
         };
 
         const response = await promptApi.getUserPrompts(Number(userId), condition);
-        const data: PageResponse<PromptResponseDto> = response.data.data;
+        const data: PageResponse<PromptSummaryResponse> = response.data.data;
 
         if (page === 0) {
           setPrompts(data.content);

@@ -5,8 +5,11 @@ import { useFollowActions } from '@/features/follow/hooks/useFollowActions';
 import type { UserResponseDto } from '@/features/auth/types/user';
 import { getAvatarGradient } from '../utils';
 
+/** 상세 API는 author_id, author_nickname만 반환할 수 있음 */
+export type AuthorInfoProp = UserResponseDto | { id: number; nickname?: string; job?: string };
+
 interface AuthorInfoProps {
-  author: UserResponseDto;
+  author: AuthorInfoProp;
   currentUserId?: number | null;
 }
 

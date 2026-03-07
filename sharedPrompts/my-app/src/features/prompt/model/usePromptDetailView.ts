@@ -74,10 +74,10 @@ export function usePromptDetailView() {
     setPrompt
   );
 
-  // 댓글 작성 후 프롬프트 댓글 수 업데이트
+  // 댓글 작성 후 프롬프트 댓글 수 업데이트 (comment_count는 선택 필드)
   const handleSubmitCommentWithUpdate = async () => {
     const success = await handleSubmitComment();
-    if (success && prompt) {
+    if (success && prompt && 'comment_count' in prompt && typeof prompt.comment_count === 'number') {
       setPrompt({
         ...prompt,
         comment_count: prompt.comment_count + 1,
@@ -128,8 +128,8 @@ export function usePromptDetailView() {
     }
   };
 
-  // 작성자 본인 확인
-  const isOwner = prompt && currentUserId ? prompt.user_response_dto.id === currentUserId : false;
+  // 작성자 본인 확인 (PromptDetailResponse는 author_id 사용)
+  const isOwner = prompt && currentUserId ? prompt.author_id === currentUserId : false;
 
   // 신고 모달 열기 (프롬프트)
   const handleOpenReportModal = () => {

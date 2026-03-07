@@ -47,7 +47,7 @@ export function TagsStep({
               </button>
             </span>
           ))}
-          {formData.tags.length < 5 && (
+          {formData.tags.length < 20 && (
             <input
               type="text"
               value={tagInput}
@@ -99,7 +99,7 @@ export function TagsStep({
           disabled={isSaving || !canSubmit}
           className="flex-1 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {isSaving ? '저장 중...' : '완료하기'}
+          {isSaving ? '생성 중...' : '완료하기'}
         </button>
       </div>
     </div>

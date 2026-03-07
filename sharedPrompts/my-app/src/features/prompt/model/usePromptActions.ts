@@ -1,4 +1,4 @@
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
+import type { PromptDetailResponse } from '@/features/prompt/types/prompt.types';
 import { usePromptLike } from '../hooks/usePromptLike';
 import { usePromptFavorite } from '../hooks/usePromptFavorite';
 import { usePromptCopy } from '../hooks/usePromptCopy';
@@ -9,8 +9,8 @@ import { usePromptCopy } from '../hooks/usePromptCopy';
  */
 export function usePromptActions(
   promptId: number | null,
-  prompt: PromptResponseDto | null,
-  setPrompt: (prompt: PromptResponseDto | null) => void
+  prompt: PromptDetailResponse | null,
+  setPrompt: (prompt: PromptDetailResponse | null) => void
 ) {
   const { liked, isProcessing, toggleLike } = usePromptLike({ promptId, prompt, setPrompt });
   const { isFavorite, toggleFavorite } = usePromptFavorite({ promptId, prompt, setPrompt });

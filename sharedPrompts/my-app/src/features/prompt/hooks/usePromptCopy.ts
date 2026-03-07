@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
+import type { PromptDetailResponse } from '@/features/prompt/types/prompt.types';
 
 interface UsePromptCopyOptions {
-  prompt: PromptResponseDto | null;
+  prompt: PromptDetailResponse | null;
 }
 
 export function usePromptCopy({ prompt }: UsePromptCopyOptions) {

@@ -33,8 +33,6 @@ export const CATEGORY_ACTION_TYPES: Record<PromptCategory, readonly ActionType[]
     'CODEBASE_ANALYSIS',
     'SECURITY_IMPLEMENTATION',
     'SCALABILITY_PLANNING',
-  ] as const,
-  [PromptCategory.CODING]: [
     'CODE_GENERATION',
     'CODE_MODIFICATION',
     'CODE_REVIEW',
@@ -45,8 +43,6 @@ export const CATEGORY_ACTION_TYPES: Record<PromptCategory, readonly ActionType[]
     'PATTERN_APPLICATION',
     'CODE_OPTIMIZATION',
     'LEGACY_CODE_MAINTENANCE',
-  ] as const,
-  [PromptCategory.PROGRAMMING]: [
     'ALGORITHM_IMPLEMENTATION',
     'DATA_STRUCTURE_DESIGN',
     'LANGUAGE_LEARNING',
@@ -383,8 +379,6 @@ export const CATEGORY_ROLE_TYPES: Record<PromptCategory, readonly RoleType[]> = 
     'CLOUD_ARCHITECT',
     'SITE_RELIABILITY_ENGINEER',
   ] as const,
-  [PromptCategory.CODING]: [] as const,
-  [PromptCategory.PROGRAMMING]: [] as const,
   [PromptCategory.ANALYSIS]: [] as const,
   [PromptCategory.MARKETING]: [
     'MARKETING_STRATEGIST',

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { promptApi } from '@/features/prompt/api/prompt.api';
-import type { PromptResponseDto, PromptCategory } from '@/features/prompt/types/prompt.types';
+import type { PromptDetailResponse, PromptSummaryResponse } from '@/features/prompt/types/prompt.types';
 
-export function useRelatedPrompts(prompt: PromptResponseDto | null) {
-  const [relatedPrompts, setRelatedPrompts] = useState<PromptResponseDto[]>([]);
+export function useRelatedPrompts(prompt: PromptDetailResponse | null) {
+  const [relatedPrompts, setRelatedPrompts] = useState<PromptSummaryResponse[]>([]);
 
   useEffect(() => {
     if (!prompt) return;

@@ -12,8 +12,6 @@ export interface DomainOption {
 export const DOMAINS: DomainOption[] = [
   { id: 'productivity', label: '생산성', icon: Zap, emoji: '⚡', category: 'PRODUCTIVITY' as PromptCategory },
   { id: 'development', label: '개발', icon: Code, emoji: '🔧', category: 'DEVELOPMENT' as PromptCategory },
-  { id: 'coding', label: '코딩', icon: Code, emoji: '💻', category: 'CODING' as PromptCategory },
-  { id: 'programming', label: '프로그래밍', icon: Code, emoji: '⌨️', category: 'PROGRAMMING' as PromptCategory },
   { id: 'analysis', label: '분석', icon: BarChart3, emoji: '📊', category: 'ANALYSIS' as PromptCategory },
   { id: 'marketing', label: '마케팅', icon: TrendingUp, emoji: '📈', category: 'MARKETING' as PromptCategory },
   { id: 'content', label: '콘텐츠 제작', icon: Mic, emoji: '🎙️', category: 'CONTENT' as PromptCategory },

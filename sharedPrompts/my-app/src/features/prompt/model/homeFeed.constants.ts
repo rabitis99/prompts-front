@@ -24,8 +24,6 @@ export interface DomainOption {
 const CATEGORY_ICON_MAP: Partial<Record<PromptCategory, LucideIcon>> = {
   [PromptCategory.PRODUCTIVITY]: Sparkles,
   [PromptCategory.DEVELOPMENT]: Code,
-  [PromptCategory.CODING]: Code,
-  [PromptCategory.PROGRAMMING]: Code,
   [PromptCategory.ANALYSIS]: TrendingUp,
   [PromptCategory.MARKETING]: TrendingUp,
   [PromptCategory.CONTENT]: PenTool,
@@ -54,12 +52,11 @@ export const DOMAIN_OPTIONS: DomainOption[] = [
   ),
 ];
 
-export type SortOption = 'latest' | 'popular' | 'comments';
+export type SortOption = 'latest' | 'popular';
 
 export const SORT_OPTIONS = {
   latest: '최신순',
   popular: '인기순',
-  comments: '댓글순',
 } as const;
 
 // 페이지네이션 상수
