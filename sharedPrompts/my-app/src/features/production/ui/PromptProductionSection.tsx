@@ -14,7 +14,9 @@ export function PromptProductionSection({ promptId }: PromptProductionSectionPro
   const [error, setError] = useState<string | null>(null);
 
   const handleProduceText = async () => {
-    if (!userInput.trim()) {
+    const normalizedInput = userInput.trim();
+
+    if (!normalizedInput) {
       setError('생성에 사용할 추가 설명을 입력해 주세요.');
       return;
     }
@@ -23,7 +25,7 @@ export function PromptProductionSection({ promptId }: PromptProductionSectionPro
     setError(null);
 
     try {
-      const res = await productionApi.produceText(promptId, { userInput });
+      const res = await productionApi.produceText(promptId, { userInput: normalizedInput });
       setLastJob(res.data.data);
     } catch (e) {
       console.error('Failed to request text production', e);
@@ -44,9 +46,14 @@ export function PromptProductionSection({ promptId }: PromptProductionSectionPro
         아래에 원하는 톤이나 상황을 간단히 적어 주시면, 이 프롬프트를 기반으로 백엔드에서 텍스트를 비동기로 생성해 드려요.
       </p>
 
+      <label htmlFor="production-user-input" className="sr-only">
+        생성에 사용할 추가 설명
+      </label>
       <textarea
+        id="production-user-input"
         value={userInput}
         onChange={(e) => setUserInput(e.target.value)}
+        aria-label="생성에 사용할 추가 설명"
         placeholder="예: 이 프롬프트로 블로그 초안 만들어줘 / 마케팅 카피 버전으로 다시 써줘 등"
         rows={3}
         className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none resize-none text-sm"

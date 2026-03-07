@@ -12,6 +12,11 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
   const [liked, setLiked] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const processingRef = useRef(false);
+  const latestPromptIdRef = useRef<number | null>(promptId);
+
+  useEffect(() => {
+    latestPromptIdRef.current = promptId;
+  }, [promptId]);
 
   // 프롬프트 로드 시 좋아요 상태 확인
   useEffect(() => {
@@ -20,6 +25,8 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
     const checkLikeStatus = async () => {
       try {
         const response = await likeApi.checkPromptLike(promptId);
+        if (latestPromptIdRef.current !== promptId) return;
+
         const { isLiked, like_count } = response.data.data;
         setLiked(isLiked);
 
@@ -56,6 +63,8 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
       const response = liked
         ? await likeApi.unlikePrompt(promptId)
         : await likeApi.likePrompt(promptId);
+
+      if (latestPromptIdRef.current !== promptId) return;
 
       const { isLiked, like_count } = response.data.data;
       setLiked(isLiked);

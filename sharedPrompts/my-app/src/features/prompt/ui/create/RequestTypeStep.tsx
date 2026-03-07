@@ -42,6 +42,7 @@ export function RequestTypeStep({ selectedType, onSelect, onNext }: RequestTypeS
             key={type}
             type="button"
             onClick={() => onSelect(type)}
+            aria-pressed={selectedType === type}
             className={`text-left p-8 rounded-3xl border-2 transition-all hover:shadow-xl ${
               selectedType === type
                 ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50 shadow-lg'

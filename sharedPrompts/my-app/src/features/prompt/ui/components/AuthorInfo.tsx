@@ -15,6 +15,7 @@ interface AuthorInfoProps {
 
 export function AuthorInfo({ author, currentUserId }: AuthorInfoProps) {
   const navigate = useNavigate();
+  const nickname = author.nickname ?? '알 수 없는 사용자';
   const {
     followStatus,
     isLoading,
@@ -96,17 +97,17 @@ export function AuthorInfo({ author, currentUserId }: AuthorInfoProps) {
       <button
         onClick={handleProfileClick}
         className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-        aria-label={`${author.nickname} 프로필 보기`}
+        aria-label={`${nickname} 프로필 보기`}
       >
         <div
           className={`w-8 h-8 rounded-full bg-gradient-to-br ${getAvatarGradient(
             author.id
           )} shadow-sm flex items-center justify-center text-white text-sm font-bold flex-shrink-0`}
         >
-          {author.nickname?.[0] || '?'}
+          {nickname[0] || '?'}
         </div>
         <div className="flex flex-col min-w-0">
-          <span className="text-sm font-medium text-slate-900 truncate">{author.nickname}</span>
+          <span className="text-sm font-medium text-slate-900 truncate">{nickname}</span>
           {author.job && (
             <span className="text-xs text-slate-500 truncate">{author.job}</span>
           )}

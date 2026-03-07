@@ -29,8 +29,8 @@ interface AdvancedOptionsStepProps {
   onChangeExperience: (experience?: ExperienceLevel) => void;
   onChangeStyle: (style?: StyleType) => void;
   onChangeLanguage: (language?: LanguageType) => void;
-  onChangeActionType: (actionType?: ActionType) => void;
-  onChangeRoleType: (roleType?: RoleType) => void;
+  onChangeActionType?: (actionType?: ActionType) => void;
+  onChangeRoleType?: (roleType?: RoleType) => void;
   onPrev: () => void;
   onNext: () => void;
 }
@@ -194,7 +194,7 @@ export function AdvancedOptionsStep({
                 key={actionType}
                 label={formatActionType(actionType)}
                 isSelected={formData.actionType === actionType}
-                onClick={() => onChangeActionType(formData.actionType === actionType ? undefined : actionType)}
+                onClick={() => onChangeActionType?.(formData.actionType === actionType ? undefined : actionType)}
               />
             ))}
           </div>
@@ -235,7 +235,7 @@ export function AdvancedOptionsStep({
                 key={roleType}
                 label={formatRoleType(roleType)}
                 isSelected={formData.roleType === roleType}
-                onClick={() => onChangeRoleType(formData.roleType === roleType ? undefined : roleType)}
+                onClick={() => onChangeRoleType?.(formData.roleType === roleType ? undefined : roleType)}
               />
             ))}
           </div>
@@ -421,12 +421,14 @@ export function AdvancedOptionsStep({
 
       <div className="flex gap-3">
         <button
+          type="button"
           onClick={onPrev}
           className="flex-1 py-4 bg-white text-neutral-700 rounded-2xl font-semibold hover:bg-neutral-50 transition-all border-2 border-neutral-200"
         >
           이전
         </button>
         <button
+          type="button"
           onClick={onNext}
           className="flex-1 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg"
         >

@@ -116,19 +116,23 @@ export function PromptDetailCard({
             <Heart className={`w-5 h-5 ${liked ? 'fill-red-500' : ''}`} />
             {prompt.like_count}
           </button>
-          <div className="flex items-center gap-2 text-slate-500 font-medium">
-            <MessageCircle className="w-5 h-5" />
-            <span>{'comment_count' in prompt && typeof prompt.comment_count === 'number' ? prompt.comment_count : 0}</span>
-          </div>
+          {'comment_count' in prompt && typeof prompt.comment_count === 'number' && (
+            <div className="flex items-center gap-2 text-slate-500 font-medium">
+              <MessageCircle className="w-5 h-5" />
+              <span>{prompt.comment_count}</span>
+            </div>
+          )}
         </div>
-        <button
-          type="button"
-          onClick={onUseWithAi}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-violet-500/30"
-        >
-          <ExternalLink className="w-4 h-4" />
-          AI로 바로 사용하기
-        </button>
+        {onUseWithAi && (
+          <button
+            type="button"
+            onClick={onUseWithAi}
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-violet-500/30"
+          >
+            <ExternalLink className="w-4 h-4" />
+            AI로 바로 사용하기
+          </button>
+        )}
       </div>
     </div>
   );

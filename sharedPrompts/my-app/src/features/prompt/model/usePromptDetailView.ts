@@ -77,11 +77,15 @@ export function usePromptDetailView() {
   // 댓글 작성 후 프롬프트 댓글 수 업데이트 (comment_count는 선택 필드)
   const handleSubmitCommentWithUpdate = async () => {
     const success = await handleSubmitComment();
-    if (success && prompt && 'comment_count' in prompt && typeof prompt.comment_count === 'number') {
-      setPrompt({
-        ...prompt,
-        comment_count: prompt.comment_count + 1,
-      });
+    if (success) {
+      setPrompt((prev) =>
+        prev && typeof prev.comment_count === 'number'
+          ? {
+              ...prev,
+              comment_count: prev.comment_count + 1,
+            }
+          : prev
+      );
     }
   };
 

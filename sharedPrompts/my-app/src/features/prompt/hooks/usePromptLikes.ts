@@ -9,10 +9,11 @@
 
 import { useState, useCallback } from 'react';
 import { likeApi } from '@/features/like/api/like.api';
-import type { PromptSummaryResponse } from '@/features/prompt/types/prompt.types';
 import { rateLimitTracker } from '@/shared/utils/rateLimit';
 import { apiCache } from '@/shared/utils/cache';
 import { batchRequests } from '@/shared/utils/batchRequest';
+
+type PromptLikeTarget = { id: number };
 
 interface UsePromptLikesOptions {
   isAuthenticated: boolean;
@@ -22,7 +23,7 @@ interface UsePromptLikesReturn {
   likedIds: number[];
   setLikedIds: React.Dispatch<React.SetStateAction<number[]>>;
   checkPromptsLikes: (
-    prompts: PromptSummaryResponse[],
+    prompts: PromptLikeTarget[],
     append: boolean,
     abortSignal?: AbortSignal
   ) => Promise<void>;
@@ -45,7 +46,7 @@ export function usePromptLikes(
    */
   const checkPromptsLikes = useCallback(
     async (
-      promptsToCheck: PromptSummaryResponse[],
+      promptsToCheck: PromptLikeTarget[],
       append: boolean,
       abortSignal?: AbortSignal
     ) => {
@@ -60,7 +61,7 @@ export function usePromptLikes(
       try {
         // 캐시에서 먼저 확인
         const cachedLikedIds: number[] = [];
-        const uncachedPrompts: PromptSummaryResponse[] = [];
+        const uncachedPrompts: PromptLikeTarget[] = [];
 
         for (const prompt of promptsToCheck) {
           const cached = apiCache.get<{ data: { data: { isLiked: boolean } } }>(

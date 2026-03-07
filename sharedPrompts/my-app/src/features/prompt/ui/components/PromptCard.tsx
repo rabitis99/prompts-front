@@ -52,7 +52,10 @@ function PromptCardComponent({
   const author = getAuthorFromPrompt(prompt);
   const hasContent = 'content' in prompt && !!prompt.content;
   const description = 'description' in prompt ? prompt.description : undefined;
-  const commentCount = 'comment_count' in prompt && typeof prompt.comment_count === 'number' ? prompt.comment_count : 0;
+  const commentCount =
+    'comment_count' in prompt && typeof prompt.comment_count === 'number'
+      ? prompt.comment_count
+      : null;
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -147,10 +150,12 @@ function PromptCardComponent({
                 <span className="text-xs font-semibold">{prompt.like_count}</span>
               </span>
             )}
-            <span className="flex items-center gap-1.5 text-slate-400">
-              <MessageCircle className="w-4 h-4" />
-              <span className="text-xs font-semibold">{commentCount}</span>
-            </span>
+            {commentCount != null && (
+              <span className="flex items-center gap-1.5 text-slate-400">
+                <MessageCircle className="w-4 h-4" />
+                <span className="text-xs font-semibold">{commentCount}</span>
+              </span>
+            )}
           </div>
           
           {/* User Info (목록은 author_id/author_nickname, 상세/다른 모듈은 user_response_dto) */}
@@ -200,7 +205,12 @@ export const PromptCard = React.memo(PromptCardComponent, (prevProps, nextProps)
     ('description' in prevProps.prompt ? prevProps.prompt.description : '') === ('description' in nextProps.prompt ? nextProps.prompt.description : '') &&
     ('content' in prevProps.prompt ? prevProps.prompt.content : '') === ('content' in nextProps.prompt ? nextProps.prompt.content : '') &&
     prevProps.prompt.like_count === nextProps.prompt.like_count &&
-    ('comment_count' in prevProps.prompt ? prevProps.prompt.comment_count : 0) === ('comment_count' in nextProps.prompt ? nextProps.prompt.comment_count : 0) &&
+    (('comment_count' in prevProps.prompt && typeof prevProps.prompt.comment_count === 'number')
+      ? prevProps.prompt.comment_count
+      : null) ===
+      (('comment_count' in nextProps.prompt && typeof nextProps.prompt.comment_count === 'number')
+        ? nextProps.prompt.comment_count
+        : null) &&
     prevProps.prompt.prompt_category === nextProps.prompt.prompt_category &&
     JSON.stringify(prevProps.prompt.tags) === JSON.stringify(nextProps.prompt.tags) &&
     getAuthorFromPrompt(prevProps.prompt)?.id === getAuthorFromPrompt(nextProps.prompt)?.id &&

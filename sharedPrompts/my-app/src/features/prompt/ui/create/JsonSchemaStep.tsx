@@ -28,9 +28,14 @@ export function JsonSchemaStep({
         </p>
       </div>
       <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-blue-100">
+        <label htmlFor="prompt-json-schema" className="sr-only">
+          JSON 스키마 입력
+        </label>
         <textarea
+          id="prompt-json-schema"
           value={formData.jsonSchema}
           onChange={(e) => onChangeJsonSchema(e.target.value)}
+          aria-label="JSON 스키마 입력"
           placeholder='예: { "type": "object", "properties": { "name": { "type": "string" }, "age": { "type": "number" } }, "required": ["name"] }'
           rows={14}
           className="w-full font-mono text-sm text-neutral-900 outline-none resize-none placeholder:text-neutral-400 leading-relaxed border border-neutral-200 rounded-xl p-4"

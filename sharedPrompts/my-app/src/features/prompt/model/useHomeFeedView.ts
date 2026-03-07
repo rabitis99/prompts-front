@@ -81,7 +81,8 @@ export function useHomeFeedView() {
   useEffect(() => {
     setPage(0);
     setPrompts([]);
-  }, [debouncedSearchQuery, setPrompts]);
+    setLikedIds([]);
+  }, [debouncedSearchQuery, setPrompts, setLikedIds]);
 
   // 프롬프트 목록 로드 후 좋아요 상태 확인
   const prevPromptsLengthRef = useRef(0);

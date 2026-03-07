@@ -118,7 +118,28 @@ export type ImageArtifactDto = {
   cdn_url?: string | null;
 };
 
-export type ArtifactDto = TextArtifactDto | FileArtifactDto | ImageArtifactDto;
+export type HtmlArtifactDto = {
+  type: 'HTML';
+  content: string;
+};
+
+export type MarkdownArtifactDto = {
+  type: 'MARKDOWN';
+  content: string;
+};
+
+export type JsonArtifactDto = {
+  type: 'JSON';
+  content: string;
+};
+
+export type ArtifactDto =
+  | TextArtifactDto
+  | FileArtifactDto
+  | ImageArtifactDto
+  | HtmlArtifactDto
+  | MarkdownArtifactDto
+  | JsonArtifactDto;
 
 // ProductionResponseDto (ProductionResponseDto.java)
 export type ProductionStatus = 'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED';

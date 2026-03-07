@@ -6,7 +6,7 @@ export function useRelatedPrompts(prompt: PromptDetailResponse | null) {
   const [relatedPrompts, setRelatedPrompts] = useState<PromptSummaryResponse[]>([]);
 
   useEffect(() => {
-    if (!prompt) return;
+    if (!prompt?.prompt_category || !prompt?.id) return;
 
     const fetchRelatedPrompts = async () => {
       try {
@@ -27,7 +27,7 @@ export function useRelatedPrompts(prompt: PromptDetailResponse | null) {
     };
 
     fetchRelatedPrompts();
-  }, [prompt]);
+  }, [prompt?.prompt_category, prompt?.id]);
 
   return { relatedPrompts };
 }

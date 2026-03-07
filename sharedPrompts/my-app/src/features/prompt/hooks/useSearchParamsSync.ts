@@ -10,6 +10,12 @@ import { useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { SortOption } from '../model/homeFeed.constants';
 
+const VALID_SORT_OPTIONS: SortOption[] = ['latest', 'popular'];
+
+function isValidSortOption(value: string | null): value is SortOption {
+  return value !== null && VALID_SORT_OPTIONS.includes(value as SortOption);
+}
+
 interface UseSearchParamsSyncOptions {
   selectedDomain: string;
   sortBy: SortOption;
@@ -31,12 +37,6 @@ export function useSearchParamsSync(
 
   // URL 파라미터 변경 시 상태 동기화 (브라우저 뒤로가기/앞으로가기 대응)
   useEffect(() => {
-    const VALID_SORT_OPTIONS: SortOption[] = ['latest', 'popular'];
-    
-    function isValidSortOption(value: string | null): value is SortOption {
-      return value !== null && VALID_SORT_OPTIONS.includes(value as SortOption);
-    }
-    
     const categoryParam = searchParams.get('category') || 'all';
     const sortRaw = searchParams.get('sort');
     const sortParam: SortOption = isValidSortOption(sortRaw) ? sortRaw : 'latest';

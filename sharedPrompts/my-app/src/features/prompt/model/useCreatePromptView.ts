@@ -96,9 +96,19 @@ export function useCreatePromptView() {
 
   const handleAddTag = (tag: string) => {
     const trimmed = tag.trim().toLowerCase();
-    if (!trimmed || formData.tags.includes(trimmed)) return;
-    if (trimmed.length > 50) return; // 스펙: 각 태그 1~50자
-    if (formData.tags.length >= 20) return; // 스펙: 최대 20개
+    if (!trimmed) return;
+    if (formData.tags.includes(trimmed)) {
+      // toast.warn('이미 추가된 태그입니다.');
+      return;
+    }
+    if (trimmed.length > 50) {
+      // toast.warn('태그는 50자 이내로 입력해주세요.');
+      return;
+    }
+    if (formData.tags.length >= 20) {
+      // toast.warn('태그는 최대 20개까지 추가할 수 있습니다.');
+      return;
+    }
     setFormData({ ...formData, tags: [...formData.tags, trimmed] });
     setTagInput('');
   };
@@ -254,12 +264,12 @@ export function useCreatePromptView() {
 
   const handleDomainSelect = (domainId: string) => {
     setFormData({ ...formData, domain: domainId, actionType: undefined, roleType: undefined });
-    setTimeout(() => setCurrentStep(s => s + 1), 300);
+    setCurrentStep(s => s + 1);
   };
 
   const handleRequestTypeSelect = (requestType: CreatePromptRequestType) => {
     setFormData({ ...formData, requestType });
-    setTimeout(() => setCurrentStep(1), 300);
+    setCurrentStep(1);
   };
 
   const handleLoadExample = () => {

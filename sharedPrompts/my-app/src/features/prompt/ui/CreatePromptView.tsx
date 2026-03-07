@@ -67,7 +67,8 @@ export function CreatePromptView() {
     formData.domain && POPULAR_TAGS[formData.domain] ? POPULAR_TAGS[formData.domain] : [];
 
   const goPrev = () => setCurrentStep((s) => Math.max(0, s - 1));
-  const goNext = () => setCurrentStep((s) => s + 1);
+  const goNext = () =>
+    setCurrentStep((s) => Math.min(s + 1, Math.max(0, totalSteps - 1)));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
@@ -75,7 +76,9 @@ export function CreatePromptView() {
         <div className="max-w-3xl mx-auto px-4 py-6">
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={handleBack}
+              aria-label="뒤로가기"
               className="p-2 hover:bg-blue-50 rounded-xl transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-neutral-600" />
@@ -213,12 +216,12 @@ export function CreatePromptView() {
           <AdvancedOptionsStep
             formData={formData}
             variant={formData.requestType === 'SIMPLE' ? 'simple' : 'advanced'}
-            onChangeTone={(t) => setFormData({ ...formData, tone: t })}
-            onChangeExperience={(e) => setFormData({ ...formData, experience: e })}
-            onChangeStyle={(s) => setFormData({ ...formData, style: s })}
-            onChangeLanguage={(l) => setFormData({ ...formData, language: l })}
-            onChangeActionType={(a) => setFormData({ ...formData, actionType: a })}
-            onChangeRoleType={(r) => setFormData({ ...formData, roleType: r })}
+            onChangeTone={handleChangeTone}
+            onChangeExperience={handleChangeExperience}
+            onChangeStyle={handleChangeStyle}
+            onChangeLanguage={handleChangeLanguage}
+            onChangeActionType={handleChangeActionType}
+            onChangeRoleType={handleChangeRoleType}
             onPrev={goPrev}
             onNext={goNext}
           />
@@ -228,7 +231,7 @@ export function CreatePromptView() {
         {stepId === 'public' && (
           <PublicStep
             formData={formData}
-            onChangePublic={(isPublic) => setFormData({ ...formData, isPublic })}
+            onChangePublic={handleChangePublic}
             onPrev={goPrev}
             onNext={goNext}
           />

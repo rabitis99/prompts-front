@@ -51,12 +51,14 @@ export function LanguageStep({ formData, onChangeLanguage, onPrev, onNext }: Lan
       </div>
       <div className="flex gap-3">
         <button
+          type="button"
           onClick={onPrev}
           className="flex-1 py-4 bg-white text-neutral-700 rounded-2xl font-semibold hover:bg-neutral-50 transition-all border-2 border-neutral-200"
         >
           이전
         </button>
         <button
+          type="button"
           onClick={onNext}
           className="flex-1 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg"
         >

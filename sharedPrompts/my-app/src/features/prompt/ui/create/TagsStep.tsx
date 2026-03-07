@@ -48,19 +48,26 @@ export function TagsStep({
             </span>
           ))}
           {formData.tags.length < 20 && (
-            <input
-              type="text"
-              value={tagInput}
-              onChange={(e) => onChangeTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  onAddTag(tagInput);
-                }
-              }}
-              placeholder="태그 입력 후 Enter"
-              className="flex-1 min-w-[150px] px-4 py-2 rounded-xl border-2 border-dashed border-blue-200 outline-none text-sm focus:border-blue-400"
-            />
+            <>
+              <label htmlFor="prompt-tag-input" className="sr-only">
+                태그 입력
+              </label>
+              <input
+                id="prompt-tag-input"
+                type="text"
+                aria-label="태그 입력"
+                value={tagInput}
+                onChange={(e) => onChangeTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    onAddTag(tagInput);
+                  }
+                }}
+                placeholder="태그 입력 후 Enter"
+                className="flex-1 min-w-[150px] px-4 py-2 rounded-xl border-2 border-dashed border-blue-200 outline-none text-sm focus:border-blue-400"
+              />
+            </>
           )}
         </div>
         {popularTags.length > 0 && (
