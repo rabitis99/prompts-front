@@ -2,10 +2,10 @@ import { MessageCircle, Send, Heart, ChevronDown, ChevronUp, Edit, Trash2, X, Ch
 import { useNavigate } from 'react-router-dom';
 import type { MouseEvent } from 'react';
 import type { CommentResponseDto } from '@/features/comment/types/comment.types';
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
+import type { PromptDetailResponse } from '@/features/prompt/types/prompt.types';
 
 interface CommentsSectionProps {
-  prompt: PromptResponseDto;
+  prompt: PromptDetailResponse;
   comments: CommentResponseDto[];
   allCommentsCount: number;
   commentText: string;
@@ -69,7 +69,7 @@ export function CommentsSection({
     <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-6 sm:p-8">
       <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
         <MessageCircle className="w-5 h-5 text-indigo-500" />
-        댓글 {prompt.comment_count}개
+        댓글 {prompt.comment_count ?? 0}개
       </h2>
 
       {/* Comment Input */}

@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { promptApi } from '@/features/prompt/api/prompt.api';
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
+import type { PromptSummaryResponse } from '@/features/prompt/types/prompt.types';
 import { SortType } from '@/features/prompt/types/prompt.types';
 import type { SortOption } from '../model/homeFeed.constants';
 import { DOMAIN_OPTIONS, PAGE_SIZE } from '../model/homeFeed.constants';
@@ -20,22 +20,25 @@ interface UsePromptListOptions {
   selectedDomain: string;
   sortBy: SortOption;
   page: number;
+  /** 제목·설명·태그 검색어 (Postman: keyword) */
+  keyword?: string;
 }
 
 interface UsePromptListReturn {
-  prompts: PromptResponseDto[];
+  prompts: PromptSummaryResponse[];
   totalCount: number;
   isLoading: boolean;
   hasMore: boolean;
   error: Error | null;
-  setPrompts: React.Dispatch<React.SetStateAction<PromptResponseDto[]>>;
+  setPrompts: React.Dispatch<React.SetStateAction<PromptSummaryResponse[]>>;
   fetchPrompts: (
     pageNum: number,
     domain: string,
     sort: SortOption,
-    abortSignal: AbortSignal
+    abortSignal: AbortSignal,
+    keyword?: string
   ) => Promise<{
-    prompts: PromptResponseDto[];
+    prompts: PromptSummaryResponse[];
     totalCount: number;
   } | null>;
 }
@@ -46,8 +49,8 @@ interface UsePromptListReturn {
 export function usePromptList(
   options: UsePromptListOptions
 ): UsePromptListReturn {
-  const { selectedDomain, sortBy, page } = options;
-  const [prompts, setPrompts] = useState<PromptResponseDto[]>([]);
+  const { selectedDomain, sortBy, page, keyword } = options;
+  const [prompts, setPrompts] = useState<PromptSummaryResponse[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -57,6 +60,7 @@ export function usePromptList(
   // Debounce된 필터 값
   const debouncedDomain = useDebounce(selectedDomain, 300);
   const debouncedSort = useDebounce(sortBy, 300);
+  const debouncedKeyword = useDebounce(keyword ?? '', 400);
 
   /**
    * 프롬프트 목록 조회 (캐싱 + 중복 요청 방지)
@@ -66,17 +70,17 @@ export function usePromptList(
       pageNum: number,
       domain: string,
       sort: SortOption,
-      abortSignal: AbortSignal
+      abortSignal: AbortSignal,
+      searchKeyword?: string
     ) => {
-      // 요청 키 생성 (중복 체크용)
       const requestKey = rateLimitTracker.createRequestKey('GET', '/prompts', {
         page: pageNum,
         size: PAGE_SIZE,
-        sort: sort === 'latest' ? SortType.LATEST : sort === 'comments' ? SortType.COMMENTS : SortType.POPULAR,
+        sort: sort === 'latest' ? SortType.LATEST : SortType.POPULAR,
         prompt_category: domain !== 'all' ? domain : undefined,
+        keyword: searchKeyword || undefined,
       });
 
-      // 동일한 요청이 진행 중이면 기존 Promise 재사용
       const response = await rateLimitTracker.getOrCreateRequest(
         requestKey,
         async () => {
@@ -85,7 +89,8 @@ export function usePromptList(
           const searchCondition: Parameters<typeof promptApi.getPrompts>[0] = {
             page: pageNum,
             size: PAGE_SIZE,
-            sort: sort === 'latest' ? SortType.LATEST : sort === 'comments' ? SortType.COMMENTS : SortType.POPULAR,
+            sort: sort === 'latest' ? SortType.LATEST : SortType.POPULAR,
+            ...(searchKeyword?.trim() && { keyword: searchKeyword.trim() }),
           };
 
           if (domain !== 'all' && selectedDomainOption?.category) {
@@ -93,12 +98,9 @@ export function usePromptList(
           }
 
           return promptApi.getPrompts(searchCondition);
-          // Note: abortSignal을 API 레이어에서 지원하려면 promptApi.getPrompts에 signal 옵션 추가 필요
-          // 현재는 응답 후 abortSignal.aborted 확인으로 처리
         }
       );
 
-      // 요청이 취소되었는지 확인
       if (abortSignal.aborted) {
         return null;
       }
@@ -133,7 +135,8 @@ export function usePromptList(
           page,
           debouncedDomain,
           debouncedSort,
-          abortController.signal
+          abortController.signal,
+          debouncedKeyword || undefined
         );
 
         if (!result || abortController.signal.aborted) {
@@ -172,7 +175,7 @@ export function usePromptList(
     return () => {
       abortController.abort();
     };
-  }, [debouncedDomain, debouncedSort, page, fetchPrompts]);
+  }, [debouncedDomain, debouncedSort, debouncedKeyword, page, fetchPrompts]);
 
   // 필터 변경 시 리셋은 외부에서 처리 (useHomeFeedView에서)
 

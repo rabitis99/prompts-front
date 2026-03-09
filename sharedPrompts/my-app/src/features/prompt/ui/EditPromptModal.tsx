@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
+import type { PromptDetailResponse } from '@/features/prompt/types/prompt.types';
 import { PromptCategory, PROMPT_CATEGORY_DISPLAY_NAMES } from '@/features/prompt/types/prompt.types';
 
 interface EditPromptModalProps {
   isOpen: boolean;
-  prompt: PromptResponseDto | null;
+  prompt: PromptDetailResponse | null;
   onClose: () => void;
   onSave: (data: { title?: string; description?: string; is_public?: boolean; prompt_category?: string; tags?: string[] }) => void;
 }

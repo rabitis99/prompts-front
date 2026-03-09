@@ -47,23 +47,30 @@ export function TagsStep({
               </button>
             </span>
           ))}
-          {formData.tags.length < 5 && (
-            <input
-              type="text"
-              value={tagInput}
-              onChange={(e) => onChangeTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  onAddTag(tagInput);
-                }
-              }}
-              placeholder="태그 입력 후 Enter"
-              className="flex-1 min-w-[150px] px-4 py-2 rounded-xl border-2 border-dashed border-blue-200 outline-none text-sm focus:border-blue-400"
-            />
+          {formData.tags.length < 20 && (
+            <>
+              <label htmlFor="prompt-tag-input" className="sr-only">
+                태그 입력
+              </label>
+              <input
+                id="prompt-tag-input"
+                type="text"
+                aria-label="태그 입력"
+                value={tagInput}
+                onChange={(e) => onChangeTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    onAddTag(tagInput);
+                  }
+                }}
+                placeholder="태그 입력 후 Enter"
+                className="flex-1 min-w-[150px] px-4 py-2 rounded-xl border-2 border-dashed border-blue-200 outline-none text-sm focus:border-blue-400"
+              />
+            </>
           )}
         </div>
-        {popularTags.length > 0 && (
+        {popularTags.length > 0 && formData.tags.length < 20 && (
           <div>
             <p className="text-sm text-neutral-500 mb-3 font-medium">추천 태그:</p>
             <div className="flex flex-wrap gap-2">
@@ -99,7 +106,7 @@ export function TagsStep({
           disabled={isSaving || !canSubmit}
           className="flex-1 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {isSaving ? '저장 중...' : '완료하기'}
+          {isSaving ? '생성 중...' : '완료하기'}
         </button>
       </div>
     </div>

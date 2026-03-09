@@ -1,18 +1,23 @@
 import { useState, useEffect } from 'react';
 import { promptApi } from '@/features/prompt/api/prompt.api';
-import type { PromptResponseDto, PromptCategory } from '@/features/prompt/types/prompt.types';
+import type { PromptDetailResponse, PromptSummaryResponse } from '@/features/prompt/types/prompt.types';
 
-export function useRelatedPrompts(prompt: PromptResponseDto | null) {
-  const [relatedPrompts, setRelatedPrompts] = useState<PromptResponseDto[]>([]);
+export function useRelatedPrompts(prompt: PromptDetailResponse | null) {
+  const [relatedPrompts, setRelatedPrompts] = useState<PromptSummaryResponse[]>([]);
 
   useEffect(() => {
-    if (!prompt) return;
+    if (!prompt?.prompt_category || prompt?.id == null) {
+      setRelatedPrompts([]);
+      return;
+    }
+
+    let cancelled = false;
 
     const fetchRelatedPrompts = async () => {
       try {
         const response = await promptApi.getPrompts({
           page: 0,
-          size: 3,
+          size: 4,
           prompt_category: prompt.prompt_category,
         });
         
@@ -20,14 +25,21 @@ export function useRelatedPrompts(prompt: PromptResponseDto | null) {
           .filter((p) => p.id !== prompt.id)
           .slice(0, 3);
         
-        setRelatedPrompts(related);
+        if (!cancelled) {
+          setRelatedPrompts(related);
+        }
       } catch (err) {
-        console.error('Failed to fetch related prompts:', err);
+        if (!cancelled) {
+          console.error('Failed to fetch related prompts:', err);
+        }
       }
     };
 
     fetchRelatedPrompts();
-  }, [prompt]);
+    return () => {
+      cancelled = true;
+    };
+  }, [prompt?.prompt_category, prompt?.id]);
 
   return { relatedPrompts };
 }

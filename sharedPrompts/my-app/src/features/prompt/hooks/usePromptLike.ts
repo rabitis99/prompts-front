@@ -1,17 +1,21 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from 'react';
 import { likeApi } from '@/features/like/api/like.api';
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
 
-interface UsePromptLikeOptions {
+interface UsePromptLikeOptions<T> {
   promptId: number | null;
-  prompt: PromptResponseDto | null;
-  setPrompt: (prompt: PromptResponseDto | null | ((prev: PromptResponseDto | null) => PromptResponseDto | null)) => void;
+  prompt: T | null;
+  setPrompt: Dispatch<SetStateAction<T | null>>;
 }
 
-export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOptions) {
+export function usePromptLike<T extends { id: number; like_count?: number }>({ promptId, prompt, setPrompt }: UsePromptLikeOptions<T>) {
   const [liked, setLiked] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const processingRef = useRef(false);
+  const latestPromptIdRef = useRef<number | null>(promptId);
+
+  useEffect(() => {
+    latestPromptIdRef.current = promptId;
+  }, [promptId]);
 
   // 프롬프트 로드 시 좋아요 상태 확인
   useEffect(() => {
@@ -20,22 +24,25 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
     const checkLikeStatus = async () => {
       try {
         const response = await likeApi.checkPromptLike(promptId);
+        if (latestPromptIdRef.current !== promptId) return;
+
         const { isLiked, like_count } = response.data.data;
         setLiked(isLiked);
 
         // 서버에서 내려준 최신 like_count로 동기화
         // 프롬프트 전환 시 응답 레이스 컨디션 방지: 현재 promptId와 일치하는 경우에만 업데이트
         if (typeof like_count === 'number') {
-          setPrompt((prev: PromptResponseDto | null) =>
+          setPrompt((prev) =>
             prev && prev.id === promptId
               ? {
                   ...prev,
                   like_count,
-                }
+                } as T
               : prev,
           );
         }
       } catch (err) {
+        if (latestPromptIdRef.current !== promptId) return;
         console.error('Failed to check prompt like status:', err);
         setLiked(false);
       }
@@ -56,6 +63,8 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
       const response = liked
         ? await likeApi.unlikePrompt(promptId)
         : await likeApi.likePrompt(promptId);
+
+      if (latestPromptIdRef.current !== promptId) return;
 
       const { isLiked, like_count } = response.data.data;
       setLiked(isLiked);

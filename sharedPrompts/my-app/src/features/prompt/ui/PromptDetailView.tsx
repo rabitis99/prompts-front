@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { usePromptDetailView } from '@/features/prompt/model/usePromptDetailView';
 import { PromptDetailHeader } from './PromptDetailHeader';
 import { PromptDetailCard } from './PromptDetailCard';
@@ -7,6 +8,7 @@ import { formatDate, getAvatarGradient } from './utils';
 import { EditPromptModal } from './EditPromptModal';
 import { DeletePromptModal } from './DeletePromptModal';
 import { ReportModal } from '@/features/report/ui/ReportModal';
+import { PromptProductionSection } from '@/features/production/ui/PromptProductionSection';
 
 export function PromptDetailView() {
   const {
@@ -61,6 +63,14 @@ export function PromptDetailView() {
     isLiking,
   } = usePromptDetailView();
 
+  const productionSectionRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToProductionSection = () => {
+    if (productionSectionRef.current) {
+      productionSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
@@ -112,7 +122,13 @@ export function PromptDetailView() {
               onToggleLike={toggleLike}
               onCopy={handleCopy}
               formatDate={formatDate}
+              onUseWithAi={scrollToProductionSection}
             />
+
+            {/* Production 모듈 연동 섹션 (텍스트 생성 베타) */}
+            <div ref={productionSectionRef} id="prompt-production-section">
+              <PromptProductionSection promptId={prompt.id} />
+            </div>
 
             <CommentsSection
               prompt={prompt}

@@ -1,10 +1,19 @@
 import { Heart, MessageCircle, Copy, Check, ExternalLink, Clock, Eye, Sparkles } from 'lucide-react';
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
+import type { PromptDetailResponse, PromptResponseDto } from '@/features/prompt/types/prompt.types';
 import { PROMPT_CATEGORY_DISPLAY_NAMES } from '@/features/prompt/types/prompt.types';
 import { AuthorInfo } from './components/AuthorInfo';
 
+type PromptDetailLike = PromptDetailResponse | PromptResponseDto;
+
+function getAuthorFromPrompt(prompt: PromptDetailLike): { id: number; nickname?: string; job?: string } {
+  if ('user_response_dto' in prompt && prompt.user_response_dto) {
+    return prompt.user_response_dto;
+  }
+  return { id: prompt.author_id, nickname: prompt.author_nickname };
+}
+
 interface PromptDetailCardProps {
-  prompt: PromptResponseDto;
+  prompt: PromptDetailLike;
   liked: boolean;
   isLiking?: boolean;
   copied: boolean;
@@ -12,6 +21,7 @@ interface PromptDetailCardProps {
   onToggleLike: () => void;
   onCopy: () => void;
   formatDate: (dateString: string) => string;
+  onUseWithAi?: () => void;
 }
 
 export function PromptDetailCard({
@@ -23,6 +33,7 @@ export function PromptDetailCard({
   isLiking,
   onCopy,
   formatDate,
+  onUseWithAi,
 }: PromptDetailCardProps) {
   return (
     <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 overflow-hidden">
@@ -44,7 +55,7 @@ export function PromptDetailCard({
           )}
           
           {/* 작성자 정보 - 메타 정보 우측에 배치 */}
-          <AuthorInfo author={prompt.user_response_dto} currentUserId={currentUserId} />
+          <AuthorInfo author={getAuthorFromPrompt(prompt)} currentUserId={currentUserId} />
         </div>
 
         {/* Title & Description */}
@@ -81,7 +92,7 @@ export function PromptDetailCard({
               }`}
             >
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copied ? '복사완료!' : '복사하기'}
+              {copied ? '복사 완료' : '복사하기'}
             </button>
           </div>
           <pre className="p-6 text-sm text-slate-100 overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed">
@@ -105,15 +116,23 @@ export function PromptDetailCard({
             <Heart className={`w-5 h-5 ${liked ? 'fill-red-500' : ''}`} />
             {prompt.like_count}
           </button>
-          <div className="flex items-center gap-2 text-slate-500 font-medium">
-            <MessageCircle className="w-5 h-5" />
-            <span>{prompt.comment_count}</span>
-          </div>
+          {'comment_count' in prompt && typeof prompt.comment_count === 'number' && (
+            <div className="flex items-center gap-2 text-slate-500 font-medium">
+              <MessageCircle className="w-5 h-5" />
+              <span>{prompt.comment_count}</span>
+            </div>
+          )}
         </div>
-        <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-violet-500/30">
-          <ExternalLink className="w-4 h-4" />
-          AI에서 사용
-        </button>
+        {onUseWithAi && (
+          <button
+            type="button"
+            onClick={onUseWithAi}
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-violet-500/30"
+          >
+            <ExternalLink className="w-4 h-4" />
+            AI로 바로 사용하기
+          </button>
+        )}
       </div>
     </div>
   );

@@ -11,7 +11,7 @@
  * - 캐싱, 배치 요청, 중복 요청 방지, Debounce 모두 적용
  */
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { SortOption } from './homeFeed.constants';
 import { PAGE_SIZE } from './homeFeed.constants';
@@ -19,7 +19,7 @@ import { useAuthStore } from '@/features/auth/store/auth.store';
 import { usePromptLikes } from '../hooks/usePromptLikes';
 import { usePromptList } from '../hooks/usePromptList';
 import { useSearchParamsSync } from '../hooks/useSearchParamsSync';
-import { filterPrompts } from '../utils/promptFilter';
+import { useDebounce } from '@/shared/hooks/useDebounce';
 
 export function useHomeFeedView() {
   const [searchParams] = useSearchParams();
@@ -36,6 +36,8 @@ export function useHomeFeedView() {
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [page, setPage] = useState(0);
 
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
+
   // 좋아요 상태 관리
   const {
     likedIds,
@@ -45,7 +47,7 @@ export function useHomeFeedView() {
     isTogglingLike,
   } = usePromptLikes({ isAuthenticated });
 
-  // 프롬프트 목록 조회
+  // 프롬프트 목록 조회 (키워드 검색은 서버 API 사용)
   const {
     prompts,
     totalCount,
@@ -57,6 +59,7 @@ export function useHomeFeedView() {
     selectedDomain,
     sortBy,
     page,
+    keyword: debouncedSearchQuery || undefined,
   });
 
   // URL 파라미터 동기화
@@ -73,6 +76,13 @@ export function useHomeFeedView() {
     setPrompts([]);
     setLikedIds([]);
   }, [selectedDomain, sortBy, setPrompts, setLikedIds]);
+
+  // 검색 키워드 변경 시 페이지 리셋
+  useEffect(() => {
+    setPage(0);
+    setPrompts([]);
+    setLikedIds([]);
+  }, [debouncedSearchQuery, setPrompts, setLikedIds]);
 
   // 프롬프트 목록 로드 후 좋아요 상태 확인
   const prevPromptsLengthRef = useRef(0);
@@ -94,11 +104,8 @@ export function useHomeFeedView() {
     };
   }, [prompts.length, page, checkPromptsLikes]);
 
-  // 클라이언트 사이드 검색 필터링
-  const filteredPrompts = useMemo(
-    () => filterPrompts(prompts, searchQuery),
-    [prompts, searchQuery]
-  );
+  // 서버에서 키워드로 필터링된 결과 사용 (제목·설명·태그 검색)
+  const filteredPrompts = prompts;
 
   const handleCopy = (id: number) => {
     setCopiedId(id);

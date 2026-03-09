@@ -1,14 +1,31 @@
 import { ArrowLeft } from 'lucide-react';
-import { useCreatePromptView } from '@/features/prompt/model/useCreatePromptView';
+import { useCreatePromptView, getCurrentStepId, getTotalStepCount } from '@/features/prompt/model/useCreatePromptView';
 import { DOMAINS, POPULAR_TAGS, CATEGORY_EXAMPLES } from '@/features/prompt/model/createPrompt.constants';
 import { CreatePromptSuccess } from '@/features/prompt/ui/create/CreatePromptSuccess';
+import { RequestTypeStep } from '@/features/prompt/ui/create/RequestTypeStep';
 import { DomainStep } from '@/features/prompt/ui/create/DomainStep';
 import { TitleStep } from '@/features/prompt/ui/create/TitleStep';
 import { BodyStep } from '@/features/prompt/ui/create/BodyStep';
 import { InputStep } from '@/features/prompt/ui/create/InputStep';
+import { JsonSchemaStep } from '@/features/prompt/ui/create/JsonSchemaStep';
+import { LanguageStep } from '@/features/prompt/ui/create/LanguageStep';
 import { AdvancedOptionsStep } from '@/features/prompt/ui/create/AdvancedOptionsStep';
 import { PublicStep } from '@/features/prompt/ui/create/PublicStep';
 import { TagsStep } from '@/features/prompt/ui/create/TagsStep';
+
+const STEP_LABELS: Record<string, string> = {
+  type: '생성 타입',
+  domain: '분야',
+  title: '제목',
+  body: '내용',
+  input: '입력값',
+  jsonSchema: 'JSON 스키마',
+  description: '설명',
+  language: '언어',
+  advanced: '추가 옵션',
+  public: '공개 설정',
+  tags: '태그',
+};
 
 export function CreatePromptView() {
   const {
@@ -26,7 +43,15 @@ export function CreatePromptView() {
     handleReset,
     handleBack,
     handleDomainSelect,
+    handleRequestTypeSelect,
     handleLoadExample,
+    handleChangeTone,
+    handleChangeExperience,
+    handleChangeStyle,
+    handleChangeLanguage,
+    handleChangeActionType,
+    handleChangeRoleType,
+    handleChangePublic,
     canGoNext,
   } = useCreatePromptView();
 
@@ -34,19 +59,26 @@ export function CreatePromptView() {
     return <CreatePromptSuccess onReset={handleReset} />;
   }
 
+  const stepId = getCurrentStepId(formData.requestType, currentStep);
+  const totalSteps = getTotalStepCount(formData.requestType);
   const selectedDomain = DOMAINS.find((d) => d.id === formData.domain);
   const categoryExample = formData.domain ? CATEGORY_EXAMPLES[formData.domain] : null;
   const popularTagsForDomain =
     formData.domain && POPULAR_TAGS[formData.domain] ? POPULAR_TAGS[formData.domain] : [];
 
+  const goPrev = () => setCurrentStep((s) => Math.max(0, s - 1));
+  const goNext = () =>
+    setCurrentStep((s) => Math.min(s + 1, Math.max(0, totalSteps - 1)));
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
-      {/* Simple Header */}
       <header className="bg-white border-b border-blue-100">
         <div className="max-w-3xl mx-auto px-4 py-6">
           <div className="flex items-center gap-3">
-            <button 
+            <button
+              type="button"
               onClick={handleBack}
+              aria-label="뒤로가기"
               className="p-2 hover:bg-blue-50 rounded-xl transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-neutral-600" />
@@ -60,106 +92,155 @@ export function CreatePromptView() {
         {/* Progress */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-4 overflow-x-auto pb-2">
-            {[1, 2, 3, 4, 5, 6, 7].map(step => (
-              <div key={step} className="flex items-center flex-shrink-0">
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold transition-all text-sm ${
-                  currentStep >= step 
-                    ? 'bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-lg' 
-                    : 'bg-white text-neutral-400 border-2 border-neutral-200'
-                }`}>
-                  {step}
+            {Array.from({ length: totalSteps }, (_, i) => (
+              <div key={i} className="flex items-center flex-shrink-0">
+                <div
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold transition-all text-sm ${
+                    currentStep >= i
+                      ? 'bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-lg'
+                      : 'bg-white text-neutral-400 border-2 border-neutral-200'
+                  }`}
+                >
+                  {i + 1}
                 </div>
-                {step < 7 && (
-                  <div className={`w-8 sm:w-12 h-1 mx-1 sm:mx-2 rounded-full transition-all ${
-                    currentStep > step ? 'bg-blue-500' : 'bg-neutral-200'
-                  }`} />
+                {i < totalSteps - 1 && (
+                  <div
+                    className={`w-8 sm:w-12 h-1 mx-1 sm:mx-2 rounded-full transition-all ${
+                      currentStep > i ? 'bg-blue-500' : 'bg-neutral-200'
+                    }`}
+                  />
                 )}
               </div>
             ))}
           </div>
           <div className="text-center">
             <p className="text-sm text-neutral-500 font-medium">
-              {currentStep === 1 && '어떤 분야의 프롬프트인가요?'}
-              {currentStep === 2 && '프롬프트 제목을 입력하세요'}
-              {currentStep === 3 && '프롬프트 내용을 작성하세요'}
-              {currentStep === 4 && '입력값을 입력하세요'}
-              {currentStep === 5 && '추가 옵션을 선택하세요 (선택)'}
-              {currentStep === 6 && '공개 설정을 선택하세요'}
-              {currentStep === 7 && '태그를 추가하세요 (선택)'}
+              {stepId ? STEP_LABELS[stepId] ?? stepId : '생성 타입을 선택하세요'}
             </p>
           </div>
         </div>
 
-        {/* Step 1: Domain */}
-        {currentStep === 1 && (
-          <DomainStep formData={formData} onSelectDomain={handleDomainSelect} />
+        {/* Step 0: 타입 선택 */}
+        {stepId === 'type' && (
+          <RequestTypeStep
+            selectedType={formData.requestType}
+            onSelect={handleRequestTypeSelect}
+            onNext={goNext}
+          />
         )}
 
-        {/* Step 2: Title */}
-        {currentStep === 2 && (
+        {/* SIMPLE / ADVANCED: Domain */}
+        {stepId === 'domain' && (
+          <DomainStep
+            formData={formData}
+            onSelectDomain={handleDomainSelect}
+            onPrev={goPrev}
+          />
+        )}
+
+        {/* Title (SIMPLE, EXTRACTION, ADVANCED) */}
+        {stepId === 'title' && (
           <TitleStep
             formData={formData}
             currentDomain={selectedDomain}
             example={categoryExample}
-            onChangeTitle={(title) => setFormData({ ...formData, title })}
-            onPrev={() => setCurrentStep(1)}
-            onNext={() => setCurrentStep(3)}
+            onChangeTitle={(title) => setFormData((prev) => ({ ...prev, title }))}
+            onPrev={goPrev}
+            onNext={goNext}
             canNext={canGoNext()}
           />
         )}
 
-        {/* Step 3: Prompt Body */}
-        {currentStep === 3 && (
+        {/* Body (SIMPLE, ADVANCED) / Description (EXTRACTION) */}
+        {stepId === 'body' && (
           <BodyStep
+            variant="body"
             formData={formData}
             currentDomain={selectedDomain}
             example={categoryExample}
-            onChangeBody={(body) => setFormData({ ...formData, promptBody: body })}
-            onPrev={() => setCurrentStep(2)}
-            onNext={() => setCurrentStep(4)}
+            onChangeBody={(body) => setFormData((prev) => ({ ...prev, promptBody: body }))}
+            onPrev={goPrev}
+            onNext={goNext}
             onLoadExample={handleLoadExample}
             canNext={canGoNext()}
           />
         )}
 
-        {/* Step 4: Input */}
-        {currentStep === 4 && (
-          <InputStep
+        {stepId === 'description' && (
+          <BodyStep
+            variant="description"
             formData={formData}
-            onChangeInput={(input) => setFormData({ ...formData, input })}
-            onPrev={() => setCurrentStep(3)}
-            onNext={() => setCurrentStep(5)}
+            currentDomain={undefined}
+            example={null}
+            onChangeBody={(body) => setFormData((prev) => ({ ...prev, promptBody: body }))}
+            onPrev={goPrev}
+            onNext={goNext}
+            onLoadExample={() => {}}
             canNext={canGoNext()}
           />
         )}
 
-        {/* Step 5: Advanced Options */}
-        {currentStep === 5 && (
+        {/* Input */}
+        {stepId === 'input' && (
+          <InputStep
+            formData={formData}
+            onChangeInput={(input) => setFormData((prev) => ({ ...prev, input }))}
+            onPrev={goPrev}
+            onNext={goNext}
+            canNext={canGoNext()}
+          />
+        )}
+
+        {/* JSON Schema (EXTRACTION 필수, ADVANCED 선택) */}
+        {stepId === 'jsonSchema' && (
+          <JsonSchemaStep
+            formData={formData}
+            required={formData.requestType === 'EXTRACTION'}
+            onChangeJsonSchema={(v) => setFormData((prev) => ({ ...prev, jsonSchema: v }))}
+            onPrev={goPrev}
+            onNext={goNext}
+            canNext={canGoNext()}
+          />
+        )}
+
+        {/* EXTRACTION: Language만 */}
+        {stepId === 'language' && formData.requestType === 'EXTRACTION' && (
+          <LanguageStep
+            formData={formData}
+            onChangeLanguage={handleChangeLanguage}
+            onPrev={goPrev}
+            onNext={goNext}
+          />
+        )}
+
+        {/* SIMPLE: 톤/스타일/언어/경력만 | ADVANCED: 전체 */}
+        {stepId === 'advanced' && (
           <AdvancedOptionsStep
             formData={formData}
-            onChangeTone={(tone) => setFormData({ ...formData, tone })}
-            onChangeExperience={(experience) => setFormData({ ...formData, experience })}
-            onChangeStyle={(style) => setFormData({ ...formData, style })}
-            onChangeLanguage={(language) => setFormData({ ...formData, language })}
-            onChangeActionType={(actionType) => setFormData({ ...formData, actionType })}
-            onChangeRoleType={(roleType) => setFormData({ ...formData, roleType })}
-            onPrev={() => setCurrentStep(4)}
-            onNext={() => setCurrentStep(6)}
+            variant={formData.requestType === 'SIMPLE' ? 'simple' : 'advanced'}
+            onChangeTone={handleChangeTone}
+            onChangeExperience={handleChangeExperience}
+            onChangeStyle={handleChangeStyle}
+            onChangeLanguage={handleChangeLanguage}
+            onChangeActionType={handleChangeActionType}
+            onChangeRoleType={handleChangeRoleType}
+            onPrev={goPrev}
+            onNext={goNext}
           />
         )}
 
-        {/* Step 6: Public Setting */}
-        {currentStep === 6 && (
+        {/* Public */}
+        {stepId === 'public' && (
           <PublicStep
             formData={formData}
-            onChangePublic={(isPublic) => setFormData({ ...formData, isPublic })}
-            onPrev={() => setCurrentStep(5)}
-            onNext={() => setCurrentStep(7)}
+            onChangePublic={handleChangePublic}
+            onPrev={goPrev}
+            onNext={goNext}
           />
         )}
 
-        {/* Step 7: Tags */}
-        {currentStep === 7 && (
+        {/* Tags */}
+        {stepId === 'tags' && (
           <TagsStep
             formData={formData}
             tagInput={tagInput}
@@ -169,7 +250,7 @@ export function CreatePromptView() {
             onChangeTagInput={setTagInput}
             onAddTag={handleAddTag}
             onRemoveTag={handleRemoveTag}
-            onPrev={() => setCurrentStep(6)}
+            onPrev={goPrev}
             onSubmit={handleSubmit}
           />
         )}
@@ -177,4 +258,3 @@ export function CreatePromptView() {
     </div>
   );
 }
-

@@ -12,7 +12,7 @@ export function CreatePromptSuccess({ onReset }: CreatePromptSuccessProps) {
           <Check className="w-10 h-10 text-white" strokeWidth={3} />
         </div>
         <h1 className="text-3xl font-bold text-neutral-900 mb-3">완료!</h1>
-        <p className="text-neutral-500 text-lg mb-8">프롬프트가 등록되었어요</p>
+        <p className="text-neutral-500 text-lg mb-8">프롬프트가 생성되었어요</p>
         <button
           onClick={onReset}
           className="w-full py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg"

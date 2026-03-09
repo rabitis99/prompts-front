@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { promptApi } from '@/features/prompt/api/prompt.api';
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
+import type { PromptDetailResponse } from '@/features/prompt/types/prompt.types';
 
 export function usePromptDetail(promptId: number | null) {
-  const [prompt, setPrompt] = useState<PromptResponseDto | null>(null);
+  const [prompt, setPrompt] = useState<PromptDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 

@@ -2,7 +2,7 @@
  * 프롬프트 검색 필터링 유틸리티
  */
 
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
+import type { PromptSummaryResponse } from '@/features/prompt/types/prompt.types';
 import { PROMPT_CATEGORY_DISPLAY_NAMES } from '@/features/prompt/types/prompt.types';
 
 /**
@@ -13,9 +13,9 @@ import { PROMPT_CATEGORY_DISPLAY_NAMES } from '@/features/prompt/types/prompt.ty
  * @returns 필터링된 프롬프트 목록
  */
 export function filterPrompts(
-  prompts: PromptResponseDto[],
+  prompts: PromptSummaryResponse[],
   searchQuery: string
-): PromptResponseDto[] {
+): PromptSummaryResponse[] {
   if (!searchQuery) {
     return prompts;
   }

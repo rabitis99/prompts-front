@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Sparkles, Heart } from 'lucide-react';
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
+import type { PromptSummaryResponse } from '@/features/prompt/types/prompt.types';
 import { PROMPT_CATEGORY_DISPLAY_NAMES } from '@/features/prompt/types/prompt.types';
 
 interface RelatedPromptsProps {
-  relatedPrompts: PromptResponseDto[];
+  relatedPrompts: PromptSummaryResponse[];
 }
 
 export function RelatedPrompts({ relatedPrompts }: RelatedPromptsProps) {
