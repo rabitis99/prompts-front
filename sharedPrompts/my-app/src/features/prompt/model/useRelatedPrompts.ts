@@ -12,7 +12,7 @@ export function useRelatedPrompts(prompt: PromptDetailResponse | null) {
       try {
         const response = await promptApi.getPrompts({
           page: 0,
-          size: 3,
+          size: 4,
           prompt_category: prompt.prompt_category,
         });
         

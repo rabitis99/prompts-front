@@ -52,7 +52,8 @@ export const DOMAIN_OPTIONS: DomainOption[] = [
   ),
 ];
 
-export type SortOption = 'latest' | 'popular';
+export const VALID_SORT_OPTIONS = ['latest', 'popular'] as const;
+export type SortOption = typeof VALID_SORT_OPTIONS[number];
 
 export const SORT_OPTIONS = {
   latest: '최신순',

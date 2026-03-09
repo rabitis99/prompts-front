@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { favoriteApi } from '@/features/favorite/api/favorite.api';
-import type { PromptDetailResponse } from '@/features/prompt/types/prompt.types';
+import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
 
 interface UsePromptFavoriteOptions {
   promptId: number | null;
-  prompt: PromptDetailResponse | null;
-  setPrompt: Dispatch<SetStateAction<PromptDetailResponse | null>>;
+  prompt: PromptResponseDto | null;
+  setPrompt: Dispatch<SetStateAction<PromptResponseDto | null>>;
 }
 
 export function usePromptFavorite({ promptId, prompt, setPrompt }: UsePromptFavoriteOptions) {

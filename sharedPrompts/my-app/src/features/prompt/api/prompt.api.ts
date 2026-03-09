@@ -17,7 +17,7 @@ export const promptApi = {
     api.post<CustomResponse<UnifiedGeneratePromptResponse>>('/prompts/generate', data),
 
   /** @deprecated generatePrompt 사용 권장. 레거시 create는 /prompts 로 전송 */
-  createPrompt: (data: PromptRequestDto) =>
+  createPromptLegacy: (data: PromptRequestDto) =>
     api.post<CustomResponse<PromptResponseDto>>('/prompts', data),
 
   /** 목록: PageResponse<PromptSummaryResponse> */

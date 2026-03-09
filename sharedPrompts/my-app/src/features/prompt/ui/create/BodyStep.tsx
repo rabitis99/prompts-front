@@ -2,6 +2,7 @@ import type { CreatePromptFormData } from '@/features/prompt/model/useCreateProm
 import type { DomainOption, CategoryExample } from '@/features/prompt/model/createPrompt.constants';
 
 interface BodyStepProps {
+  variant?: 'body' | 'description';
   formData: CreatePromptFormData;
   currentDomain?: DomainOption;
   example?: CategoryExample | null;
@@ -13,6 +14,7 @@ interface BodyStepProps {
 }
 
 export function BodyStep({
+  variant = 'body',
   formData,
   currentDomain,
   example,
@@ -25,9 +27,13 @@ export function BodyStep({
   return (
     <div className="space-y-6 animate-fadeIn">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-neutral-900 mb-3">프롬프트 설명을 작성하세요</h2>
+        <h2 className="text-3xl font-bold text-neutral-900 mb-3">
+          {variant === 'description' ? '프롬프트 설명을 작성하세요' : '프롬프트 내용을 작성하세요'}
+        </h2>
         <p className="text-neutral-600 text-lg">
-          이 프롬프트가 어떤 상황에서, 어떤 용도로 쓰이는지 나중에 다시 봐도 이해될 정도로만 간단히 적어주세요
+          {variant === 'description'
+            ? '이 프롬프트가 어떤 상황에서, 어떤 용도로 쓰이는지 나중에 다시 봐도 이해될 정도로만 간단히 적어주세요'
+            : 'AI에게 지시할 프롬프트의 구체적인 내용을 작성해주세요'}
         </p>
       </div>
       <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-blue-100">

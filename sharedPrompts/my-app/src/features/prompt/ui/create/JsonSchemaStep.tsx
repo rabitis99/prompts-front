@@ -28,9 +28,6 @@ export function JsonSchemaStep({
         </p>
       </div>
       <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-blue-100">
-        <label htmlFor="prompt-json-schema" className="sr-only">
-          JSON 스키마 입력
-        </label>
         <textarea
           id="prompt-json-schema"
           value={formData.jsonSchema}
@@ -38,6 +35,7 @@ export function JsonSchemaStep({
           aria-label="JSON 스키마 입력"
           placeholder='예: { "type": "object", "properties": { "name": { "type": "string" }, "age": { "type": "number" } }, "required": ["name"] }'
           rows={14}
+          maxLength={20000}
           className="w-full font-mono text-sm text-neutral-900 outline-none resize-none placeholder:text-neutral-400 leading-relaxed border border-neutral-200 rounded-xl p-4"
         />
         <div className="mt-4 flex items-center justify-between pt-4 border-t border-neutral-100">
@@ -62,12 +60,14 @@ export function JsonSchemaStep({
       </div>
       <div className="flex gap-3">
         <button
+          type="button"
           onClick={onPrev}
           className="flex-1 py-4 bg-white text-neutral-700 rounded-2xl font-semibold hover:bg-neutral-50 transition-all border-2 border-neutral-200"
         >
           이전
         </button>
         <button
+          type="button"
           onClick={onNext}
           disabled={required ? !canNext : false}
           className="flex-1 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"

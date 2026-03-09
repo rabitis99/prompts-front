@@ -173,7 +173,7 @@ function PromptCardComponent({
                 {author.nickname?.[0] || '?'}
               </div>
               <span className="text-xs font-medium text-slate-600 truncate max-w-[100px]">
-                {author.nickname ?? ''}
+                {author.nickname ?? '사용자'}
               </span>
             </button>
           )}

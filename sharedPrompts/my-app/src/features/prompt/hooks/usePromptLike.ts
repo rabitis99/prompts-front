@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from 'react';
 import { likeApi } from '@/features/like/api/like.api';
 import type { PromptDetailResponse } from '@/features/prompt/types/prompt.types';
 
 interface UsePromptLikeOptions {
   promptId: number | null;
   prompt: PromptDetailResponse | null;
-  setPrompt: (prompt: PromptDetailResponse | null | ((prev: PromptDetailResponse | null) => PromptDetailResponse | null)) => void;
+  setPrompt: Dispatch<SetStateAction<PromptDetailResponse | null>>;
 }
 
 export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOptions) {
@@ -33,7 +33,7 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
         // 서버에서 내려준 최신 like_count로 동기화
         // 프롬프트 전환 시 응답 레이스 컨디션 방지: 현재 promptId와 일치하는 경우에만 업데이트
         if (typeof like_count === 'number') {
-          setPrompt((prev: PromptDetailResponse | null) =>
+          setPrompt((prev) =>
             prev && prev.id === promptId
               ? {
                   ...prev,

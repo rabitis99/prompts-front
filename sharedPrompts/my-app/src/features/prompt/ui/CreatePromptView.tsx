@@ -154,6 +154,7 @@ export function CreatePromptView() {
         {/* Body (SIMPLE, ADVANCED) / Description (EXTRACTION) */}
         {stepId === 'body' && (
           <BodyStep
+            variant="body"
             formData={formData}
             currentDomain={selectedDomain}
             example={categoryExample}
@@ -167,6 +168,7 @@ export function CreatePromptView() {
 
         {stepId === 'description' && (
           <BodyStep
+            variant="description"
             formData={formData}
             currentDomain={undefined}
             example={null}

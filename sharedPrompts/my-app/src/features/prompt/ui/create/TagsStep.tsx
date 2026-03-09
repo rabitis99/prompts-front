@@ -70,7 +70,7 @@ export function TagsStep({
             </>
           )}
         </div>
-        {popularTags.length > 0 && (
+        {popularTags.length > 0 && formData.tags.length < 20 && (
           <div>
             <p className="text-sm text-neutral-500 mb-3 font-medium">추천 태그:</p>
             <div className="flex flex-wrap gap-2">
