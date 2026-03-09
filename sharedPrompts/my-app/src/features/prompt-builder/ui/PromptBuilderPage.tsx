@@ -20,32 +20,37 @@ export const PromptBuilderPage: React.FC = () => {
 
   const [generationResult, setGenerationResult] = useState<UnifiedGeneratePromptResponse | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
+    setGenerationError(null);
+    setGenerationResult(null);
     try {
       const response = await generateConfirmedPrompt({
         request_mode: 'SIMPLE',
         category: state.category || 'GENERAL', // Backend may require category
-        intent: state.selectedAxes.intent,
-        role_type: state.selectedAxes.roleType,
-        action_type: state.selectedAxes.actionType,
-        tone: state.selectedAxes.tone,
-        style: state.selectedAxes.style,
-        language: state.selectedAxes.language,
-        experience: state.selectedAxes.experience,
-        input: state.rawInput,
+        intent: state.selectedAxes.intent.trim(),
+        role_type: state.selectedAxes.roleType || undefined,
+        action_type: state.selectedAxes.actionType || undefined,
+        tone: state.selectedAxes.tone || undefined,
+        style: state.selectedAxes.style || undefined,
+        language: state.selectedAxes.language || undefined,
+        experience: state.selectedAxes.experience || undefined,
+        input: state.rawInput.trim(),
       });
       setGenerationResult(response);
     } catch (error) {
       console.error('Failed to generate prompt', error);
-      // Fallback UI error handling goes here
+      setGenerationError('Failed to generate prompt. Please try again.');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const canGenerate = state.rawInput.trim().length > 0;
+  const canGenerate =
+    state.rawInput.trim().length > 0 &&
+    state.selectedAxes.intent.trim().length > 0;
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8 min-h-screen bg-gray-50/50">
@@ -80,6 +85,11 @@ export const PromptBuilderPage: React.FC = () => {
 
         {/* Right Column: Preview & Output */}
         <div className="lg:col-span-5 h-[calc(100vh-12rem)] sticky top-8">
+          {generationError && (
+            <div className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-md border border-red-200">
+              {generationError}
+            </div>
+          )}
           <PromptResultPanel
             generationResult={generationResult}
             isLoading={isGenerating}

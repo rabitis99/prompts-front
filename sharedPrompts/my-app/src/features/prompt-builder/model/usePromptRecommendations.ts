@@ -77,7 +77,15 @@ export function usePromptRecommendations() {
       });
 
       if (recommendations.axis_sources) {
-        setAxisSources(recommendations.axis_sources);
+        setAxisSources(prev => {
+          const userSelected = Object.fromEntries(
+            Object.entries(prev).filter(([_, val]) => val === 'USER_SELECTED')
+          );
+          return {
+            ...recommendations.axis_sources,
+            ...userSelected,
+          };
+        });
       }
     }
   }, [recommendations, overrides]);
@@ -97,7 +105,8 @@ export function usePromptRecommendations() {
     }));
     setOverrides(prev => ({ ...prev, [field]: true }));
     // Optimistically mark as User Selected, matching backend's potential terminology
-    setAxisSources(prev => ({ ...prev, [field]: 'USER_SELECTED' }));
+    const backendKey = field === 'roleType' ? 'role' : field === 'actionType' ? 'action' : field;
+    setAxisSources(prev => ({ ...prev, [backendKey]: 'USER_SELECTED' }));
   }, []);
 
   const resetBuilder = useCallback(() => {
