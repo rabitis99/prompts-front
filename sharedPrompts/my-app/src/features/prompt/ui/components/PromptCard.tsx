@@ -198,11 +198,14 @@ function PromptCardComponent({
 
 // React.memo로 메모이제이션하여 불필요한 리렌더링 방지
 export const PromptCard = React.memo(PromptCardComponent, (prevProps, nextProps) => {
+  const prevDescription = 'description' in prevProps.prompt ? prevProps.prompt.description : undefined;
+  const nextDescription = 'description' in nextProps.prompt ? nextProps.prompt.description : undefined;
+
   // 프롬프트 데이터가 변경되지 않았고, 좋아요/복사 상태도 동일하면 리렌더링 방지
   return (
     prevProps.prompt.id === nextProps.prompt.id &&
     prevProps.prompt.title === nextProps.prompt.title &&
-    ('description' in prevProps.prompt ? prevProps.prompt.description : '') === ('description' in nextProps.prompt ? nextProps.prompt.description : '') &&
+    prevDescription === nextDescription &&
     ('content' in prevProps.prompt ? prevProps.prompt.content : '') === ('content' in nextProps.prompt ? nextProps.prompt.content : '') &&
     prevProps.prompt.like_count === nextProps.prompt.like_count &&
     (('comment_count' in prevProps.prompt && typeof prevProps.prompt.comment_count === 'number')
@@ -217,6 +220,8 @@ export const PromptCard = React.memo(PromptCardComponent, (prevProps, nextProps)
     getAuthorFromPrompt(prevProps.prompt)?.nickname === getAuthorFromPrompt(nextProps.prompt)?.nickname &&
     prevProps.isLiked === nextProps.isLiked &&
     prevProps.isCopied === nextProps.isCopied &&
+    prevProps.onToggleLike === nextProps.onToggleLike &&
+    prevProps.onCopy === nextProps.onCopy &&
     prevProps.variant === nextProps.variant &&
     prevProps.showCategoryBadge === nextProps.showCategoryBadge
   );

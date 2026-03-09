@@ -1,14 +1,13 @@
 import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from 'react';
 import { likeApi } from '@/features/like/api/like.api';
-import type { PromptDetailResponse } from '@/features/prompt/types/prompt.types';
 
-interface UsePromptLikeOptions {
+interface UsePromptLikeOptions<T> {
   promptId: number | null;
-  prompt: PromptDetailResponse | null;
-  setPrompt: Dispatch<SetStateAction<PromptDetailResponse | null>>;
+  prompt: T | null;
+  setPrompt: Dispatch<SetStateAction<T | null>>;
 }
 
-export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOptions) {
+export function usePromptLike<T extends { id: number; like_count?: number }>({ promptId, prompt, setPrompt }: UsePromptLikeOptions<T>) {
   const [liked, setLiked] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const processingRef = useRef(false);
@@ -38,11 +37,12 @@ export function usePromptLike({ promptId, prompt, setPrompt }: UsePromptLikeOpti
               ? {
                   ...prev,
                   like_count,
-                }
+                } as T
               : prev,
           );
         }
       } catch (err) {
+        if (latestPromptIdRef.current !== promptId) return;
         console.error('Failed to check prompt like status:', err);
         setLiked(false);
       }

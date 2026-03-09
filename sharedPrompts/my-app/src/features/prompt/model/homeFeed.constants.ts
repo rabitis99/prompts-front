@@ -52,13 +52,13 @@ export const DOMAIN_OPTIONS: DomainOption[] = [
   ),
 ];
 
-export const VALID_SORT_OPTIONS = ['latest', 'popular'] as const;
-export type SortOption = typeof VALID_SORT_OPTIONS[number];
-
 export const SORT_OPTIONS = {
   latest: '최신순',
   popular: '인기순',
 } as const;
+
+export type SortOption = keyof typeof SORT_OPTIONS;
+export const VALID_SORT_OPTIONS = Object.keys(SORT_OPTIONS) as SortOption[];
 
 // 페이지네이션 상수
 export const PAGE_SIZE = 20;

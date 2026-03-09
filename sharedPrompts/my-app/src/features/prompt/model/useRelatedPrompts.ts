@@ -6,7 +6,12 @@ export function useRelatedPrompts(prompt: PromptDetailResponse | null) {
   const [relatedPrompts, setRelatedPrompts] = useState<PromptSummaryResponse[]>([]);
 
   useEffect(() => {
-    if (!prompt?.prompt_category || !prompt?.id) return;
+    if (!prompt?.prompt_category || prompt?.id == null) {
+      setRelatedPrompts([]);
+      return;
+    }
+
+    let cancelled = false;
 
     const fetchRelatedPrompts = async () => {
       try {
@@ -20,13 +25,20 @@ export function useRelatedPrompts(prompt: PromptDetailResponse | null) {
           .filter((p) => p.id !== prompt.id)
           .slice(0, 3);
         
-        setRelatedPrompts(related);
+        if (!cancelled) {
+          setRelatedPrompts(related);
+        }
       } catch (err) {
-        console.error('Failed to fetch related prompts:', err);
+        if (!cancelled) {
+          console.error('Failed to fetch related prompts:', err);
+        }
       }
     };
 
     fetchRelatedPrompts();
+    return () => {
+      cancelled = true;
+    };
   }, [prompt?.prompt_category, prompt?.id]);
 
   return { relatedPrompts };

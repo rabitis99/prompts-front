@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { favoriteApi } from '@/features/favorite/api/favorite.api';
-import type { PromptResponseDto } from '@/features/prompt/types/prompt.types';
 
-interface UsePromptFavoriteOptions {
+interface UsePromptFavoriteOptions<T> {
   promptId: number | null;
-  prompt: PromptResponseDto | null;
-  setPrompt: Dispatch<SetStateAction<PromptResponseDto | null>>;
+  prompt: T | null;
+  setPrompt: Dispatch<SetStateAction<T | null>>;
 }
 
-export function usePromptFavorite({ promptId, prompt, setPrompt }: UsePromptFavoriteOptions) {
+export function usePromptFavorite<T extends { favorite_count?: number }>({ promptId, prompt, setPrompt }: UsePromptFavoriteOptions<T>) {
   const [isFavorite, setIsFavorite] = useState(false);
 
   // 프롬프트 로드 시 즐겨찾기 상태 확인
@@ -43,7 +42,7 @@ export function usePromptFavorite({ promptId, prompt, setPrompt }: UsePromptFavo
       return {
         ...prev,
         favorite_count: wasFavorite ? Math.max(0, count - 1) : count + 1,
-      };
+      } as T;
     });
 
     try {
@@ -61,7 +60,7 @@ export function usePromptFavorite({ promptId, prompt, setPrompt }: UsePromptFavo
         return {
           ...prev,
           favorite_count: wasFavorite ? count + 1 : Math.max(0, count - 1),
-        };
+        } as T;
       });
       console.error('Failed to toggle favorite:', error);
     }

@@ -255,8 +255,20 @@ export function useCreatePromptView() {
     if (stepId === 'body') return formData.promptBody.length >= 10;
     if (stepId === 'input') return formData.input.length >= 10;
     if (stepId === 'jsonSchema') {
-      if (formData.requestType === 'EXTRACTION') return formData.jsonSchema.trim().length >= 10;
-      return true; // ADVANCED는 선택
+      const isJsonValid = (() => {
+        if (!formData.jsonSchema.trim()) return true;
+        try {
+          JSON.parse(formData.jsonSchema);
+          return true;
+        } catch {
+          return false;
+        }
+      })();
+
+      if (formData.requestType === 'EXTRACTION') {
+        return formData.jsonSchema.trim().length >= 10 && isJsonValid;
+      }
+      return isJsonValid; // ADVANCED는 선택이지만, 값이 있다면 유효한 JSON이어야 함
     }
     if (stepId === 'description') return formData.promptBody.length >= 10;
     return true;

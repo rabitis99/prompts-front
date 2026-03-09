@@ -1,5 +1,15 @@
 import type { CreatePromptFormData } from '@/features/prompt/model/useCreatePromptView';
 
+const isValidJson = (str: string): boolean => {
+  if (!str.trim()) return true;
+  try {
+    JSON.parse(str);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 interface JsonSchemaStepProps {
   formData: CreatePromptFormData;
   required: boolean;
@@ -17,6 +27,8 @@ export function JsonSchemaStep({
   onNext,
   canNext,
 }: JsonSchemaStepProps) {
+  const isJsonValid = isValidJson(formData.jsonSchema);
+
   return (
     <div className="space-y-6 animate-fadeIn">
       <div className="text-center mb-8">
@@ -41,10 +53,18 @@ export function JsonSchemaStep({
         <div className="mt-4 flex items-center justify-between pt-4 border-t border-neutral-100">
           <span
             className={`text-sm font-medium ${
-              required ? (formData.jsonSchema.trim().length >= 10 ? 'text-emerald-600' : 'text-amber-600') : 'text-neutral-400'
+              !isJsonValid
+                ? 'text-red-600'
+                : required
+                ? formData.jsonSchema.trim().length >= 10
+                  ? 'text-emerald-600'
+                  : 'text-amber-600'
+                : 'text-neutral-400'
             }`}
           >
-            {required
+            {!isJsonValid
+              ? '유효하지 않은 JSON 형식입니다'
+              : required
               ? formData.jsonSchema.trim().length >= 10
                 ? '✓ 스키마가 입력되었어요'
                 : '최소 10자 이상 입력 (필수)'
@@ -69,7 +89,7 @@ export function JsonSchemaStep({
         <button
           type="button"
           onClick={onNext}
-          disabled={required ? !canNext : false}
+          disabled={(required ? !canNext : false) || !isJsonValid}
           className="flex-1 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           다음

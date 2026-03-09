@@ -38,6 +38,7 @@ export function BodyStep({
       </div>
       <div className="bg-white rounded-3xl p-8 shadow-xl border-2 border-blue-100">
         <textarea
+          aria-label={variant === 'description' ? '프롬프트 설명 입력' : '프롬프트 내용 입력'}
           value={formData.promptBody}
           onChange={(e) => onChangeBody(e.target.value)}
           placeholder={example?.prompt || '프롬프트를 입력하세요...'}

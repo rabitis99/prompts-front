@@ -144,7 +144,7 @@ export function CreatePromptView() {
             formData={formData}
             currentDomain={selectedDomain}
             example={categoryExample}
-            onChangeTitle={(title) => setFormData({ ...formData, title })}
+            onChangeTitle={(title) => setFormData((prev) => ({ ...prev, title }))}
             onPrev={goPrev}
             onNext={goNext}
             canNext={canGoNext()}
@@ -158,7 +158,7 @@ export function CreatePromptView() {
             formData={formData}
             currentDomain={selectedDomain}
             example={categoryExample}
-            onChangeBody={(body) => setFormData({ ...formData, promptBody: body })}
+            onChangeBody={(body) => setFormData((prev) => ({ ...prev, promptBody: body }))}
             onPrev={goPrev}
             onNext={goNext}
             onLoadExample={handleLoadExample}
@@ -172,7 +172,7 @@ export function CreatePromptView() {
             formData={formData}
             currentDomain={undefined}
             example={null}
-            onChangeBody={(body) => setFormData({ ...formData, promptBody: body })}
+            onChangeBody={(body) => setFormData((prev) => ({ ...prev, promptBody: body }))}
             onPrev={goPrev}
             onNext={goNext}
             onLoadExample={() => {}}
@@ -184,7 +184,7 @@ export function CreatePromptView() {
         {stepId === 'input' && (
           <InputStep
             formData={formData}
-            onChangeInput={(input) => setFormData({ ...formData, input })}
+            onChangeInput={(input) => setFormData((prev) => ({ ...prev, input }))}
             onPrev={goPrev}
             onNext={goNext}
             canNext={canGoNext()}
@@ -196,7 +196,7 @@ export function CreatePromptView() {
           <JsonSchemaStep
             formData={formData}
             required={formData.requestType === 'EXTRACTION'}
-            onChangeJsonSchema={(v) => setFormData({ ...formData, jsonSchema: v })}
+            onChangeJsonSchema={(v) => setFormData((prev) => ({ ...prev, jsonSchema: v }))}
             onPrev={goPrev}
             onNext={goNext}
             canNext={canGoNext()}

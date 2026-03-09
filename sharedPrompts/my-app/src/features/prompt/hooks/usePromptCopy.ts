@@ -1,11 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { PromptDetailResponse } from '@/features/prompt/types/prompt.types';
 
-interface UsePromptCopyOptions {
-  prompt: PromptDetailResponse | null;
+interface UsePromptCopyOptions<T> {
+  prompt: T | null;
 }
 
-export function usePromptCopy({ prompt }: UsePromptCopyOptions) {
+export function usePromptCopy<T extends { content: string }>({ prompt }: UsePromptCopyOptions<T>) {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
