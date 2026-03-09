@@ -71,7 +71,11 @@ export const PromptBuilderPage: React.FC = () => {
           />
           
           {isRecommendError && (
-            <div className="p-3 text-sm text-amber-700 bg-amber-50 rounded-md border border-amber-200">
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="p-3 text-sm text-amber-700 bg-amber-50 rounded-md border border-amber-200"
+            >
               추천을 불러오는 데 실패했습니다. 수동으로 설정을 선택해주세요.
             </div>
           )}
@@ -93,7 +97,11 @@ export const PromptBuilderPage: React.FC = () => {
         {/* Right Column: Preview & Output */}
         <div className="lg:col-span-5 h-[calc(100vh-12rem)] sticky top-8">
           {generationError && (
-            <div className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-md border border-red-200">
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-md border border-red-200"
+            >
               {generationError}
             </div>
           )}
