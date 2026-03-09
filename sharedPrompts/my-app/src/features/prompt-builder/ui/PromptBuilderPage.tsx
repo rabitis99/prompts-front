@@ -13,6 +13,7 @@ export const PromptBuilderPage: React.FC = () => {
     axisSources,
     recommendations,
     isLoading: isRecommending,
+    isError: isRecommendError,
     updateRawInput,
     updateCategory,
     updateField,
@@ -69,6 +70,12 @@ export const PromptBuilderPage: React.FC = () => {
             onCategoryChange={updateCategory}
           />
           
+          {isRecommendError && (
+            <div className="p-3 text-sm text-amber-700 bg-amber-50 rounded-md border border-amber-200">
+              추천을 불러오는 데 실패했습니다. 수동으로 설정을 선택해주세요.
+            </div>
+          )}
+
           <SemanticSettingsPanel
             selectedAxes={state.selectedAxes}
             overrides={overrides}
