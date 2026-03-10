@@ -11,8 +11,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { promptApi } from '@/features/prompt/api/prompt.api';
 import type { PromptSummaryResponse } from '@/features/prompt/types/prompt.types';
 import { SortType } from '@/features/prompt/types/prompt.types';
-import type { SortOption } from '../model/homeFeed.constants';
-import { DOMAIN_OPTIONS, PAGE_SIZE } from '../model/homeFeed.constants';
+import type { SortOption } from '../model/feed/homeFeed.constants';
+import { DOMAIN_OPTIONS, PAGE_SIZE } from '../model/feed/homeFeed.constants';
 import { rateLimitTracker } from '@/shared/utils/rateLimit';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 

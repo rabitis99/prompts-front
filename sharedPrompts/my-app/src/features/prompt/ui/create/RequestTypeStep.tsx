@@ -1,5 +1,5 @@
 import { Sparkles, Database, Settings2 } from 'lucide-react';
-import type { CreatePromptRequestType } from '@/features/prompt/model/useCreatePromptView';
+import type { CreatePromptRequestType } from '@/features/prompt/model/create/useCreatePromptView';
 import { RequestType } from '@/features/prompt/types/prompt.types';
 
 interface RequestTypeStepProps {

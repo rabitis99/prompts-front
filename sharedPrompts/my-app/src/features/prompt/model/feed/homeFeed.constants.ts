@@ -39,14 +39,12 @@ const CATEGORY_ICON_MAP: Partial<Record<PromptCategory, LucideIcon>> = {
 
 // PROMPT_CATEGORY_DISPLAY_NAMES를 기반으로 동적으로 DOMAIN_OPTIONS 생성
 export const DOMAIN_OPTIONS: DomainOption[] = [
-  // '전체' 옵션
   { id: 'all', label: '전체', icon: Sparkles },
-  // 모든 카테고리를 자동으로 생성
   ...(Object.entries(PROMPT_CATEGORY_DISPLAY_NAMES) as [PromptCategory, string][]).map(
     ([category, label]) => ({
       id: category.toLowerCase(),
       label,
-      icon: CATEGORY_ICON_MAP[category] || Sparkles, // 기본값으로 Sparkles 사용
+      icon: CATEGORY_ICON_MAP[category] || Sparkles,
       category,
     })
   ),
@@ -60,6 +58,4 @@ export const SORT_OPTIONS = {
 export type SortOption = keyof typeof SORT_OPTIONS;
 export const VALID_SORT_OPTIONS = Object.keys(SORT_OPTIONS) as SortOption[];
 
-// 페이지네이션 상수
 export const PAGE_SIZE = 20;
-

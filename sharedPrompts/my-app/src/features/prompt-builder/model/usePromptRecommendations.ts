@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { recommendPrompts } from '../api/prompt-builder.api';
 import type { PromptBuilderState, UserOverrides } from '../types/prompt-builder.types';
@@ -35,7 +35,7 @@ export function usePromptRecommendations() {
   
   const debouncedRawInput = useDebounce(state.rawInput, 500);
 
-  const { data: recommendations, isLoading, isError } = useQuery({
+  const { data: recommendations, isLoading, isFetching, isError } = useQuery({
     queryKey: ['promptRecommendations', debouncedRawInput, state.category],
     queryFn: () => 
       recommendPrompts({
@@ -43,8 +43,9 @@ export function usePromptRecommendations() {
         category: state.category || undefined,
         raw_input: debouncedRawInput,
       }),
-    enabled: debouncedRawInput.length > 2,
+    enabled: debouncedRawInput.trim().length > 0,
     staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   });
 
   // Apply recommendations automatically for fields not overridden by the user
@@ -58,8 +59,10 @@ export function usePromptRecommendations() {
           field: keyof PromptBuilderState['selectedAxes'],
           recommendedValue?: string
         ) => {
-          if (!overrides[field] && recommendedValue && prev.selectedAxes[field] !== recommendedValue) {
-            nextState.selectedAxes[field] = recommendedValue;
+          // 백엔드가 추천해주지 않았으면 빈 문자열로 리셋 (사용자가 수동으로 선택하지 않은 경우)
+          const newVal = recommendedValue || '';
+          if (!overrides[field] && prev.selectedAxes[field] !== newVal) {
+            nextState.selectedAxes[field] = newVal;
             hasChanges = true;
           }
         };
@@ -76,17 +79,15 @@ export function usePromptRecommendations() {
         return hasChanges ? nextState : prev;
       });
 
-      if (recommendations.axis_sources) {
-        setAxisSources(prev => {
-          const userSelected = Object.fromEntries(
-            Object.entries(prev).filter(([_, val]) => val === 'USER_SELECTED')
-          );
-          return {
-            ...recommendations.axis_sources,
-            ...userSelected,
-          };
-        });
-      }
+      setAxisSources(prev => {
+        const userSelected = Object.fromEntries(
+          Object.entries(prev).filter(([_, val]) => val === 'USER_SELECTED')
+        );
+        return {
+          ...(recommendations.axis_sources || {}),
+          ...userSelected,
+        };
+      });
     }
   }, [recommendations, overrides]);
 
@@ -120,7 +121,7 @@ export function usePromptRecommendations() {
     overrides,
     axisSources,
     recommendations,
-    isLoading,
+    isLoading: isLoading || isFetching,
     isError,
     updateRawInput,
     updateCategory,

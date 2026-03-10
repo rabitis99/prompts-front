@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
-import type { CreatePromptFormData } from '@/features/prompt/model/useCreatePromptView';
+import type { CreatePromptFormData } from '@/features/prompt/model/create/useCreatePromptView';
 import { LanguageType } from '@/features/prompt/types/prompt.types';
-import { LANGUAGE_DISPLAY_NAMES } from '@/features/prompt/model/enumDisplayNames';
+import { LANGUAGE_DISPLAY_NAMES } from '@/features/prompt/model/shared/enumDisplayNames';
 
 interface LanguageStepProps {
   formData: CreatePromptFormData;

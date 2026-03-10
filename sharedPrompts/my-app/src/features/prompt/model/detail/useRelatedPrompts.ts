@@ -20,11 +20,11 @@ export function useRelatedPrompts(prompt: PromptDetailResponse | null) {
           size: 4,
           prompt_category: prompt.prompt_category,
         });
-        
+
         const related = response.data.data.content
           .filter((p) => p.id !== prompt.id)
           .slice(0, 3);
-        
+
         if (!cancelled) {
           setRelatedPrompts(related);
         }
@@ -43,4 +43,3 @@ export function useRelatedPrompts(prompt: PromptDetailResponse | null) {
 
   return { relatedPrompts };
 }
-

@@ -40,4 +40,3 @@ export function usePromptDetail(promptId: number | null) {
     error,
   };
 }
-

@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
-import { usePromptLike } from '../hooks/usePromptLike';
-import { usePromptFavorite } from '../hooks/usePromptFavorite';
-import { usePromptCopy } from '../hooks/usePromptCopy';
+import { usePromptLike } from '../../hooks/usePromptLike';
+import { usePromptFavorite } from '../../hooks/usePromptFavorite';
+import { usePromptCopy } from '../../hooks/usePromptCopy';
 
 /**
  * 프롬프트 관련 액션들을 조합한 컴포저 훅
@@ -27,4 +27,3 @@ export function usePromptActions<T extends { id: number; like_count?: number; fa
     handleCopy,
   };
 }
-

@@ -50,16 +50,52 @@ export type SortType = (typeof SortType)[keyof typeof SortType];
 
 /** SIMPLE/ADVANCED 요청 시 의도 (ActionIntent) */
 export const ActionIntent = {
+  // ─── CREATION ──────────
+  CREATE: 'CREATE',
   GENERATE: 'GENERATE',
+  BRAINSTORM: 'BRAINSTORM',
+
+  // ─── MODIFICATION ──────────
   REWRITE: 'REWRITE',
-  SUMMARIZE: 'SUMMARIZE',
-  EXPLAIN: 'EXPLAIN',
-  PLAN: 'PLAN',
+  EDIT: 'EDIT',
+  REFINE: 'REFINE',
+  IMPROVE: 'IMPROVE',
+
+  // ─── ANALYSIS ──────────
   ANALYZE: 'ANALYZE',
   EVALUATE: 'EVALUATE',
+  COMPARE: 'COMPARE',
+  CRITIQUE: 'CRITIQUE',
+  DIAGNOSE: 'DIAGNOSE',
+
+  // ─── EXPLANATION ──────────
+  EXPLAIN: 'EXPLAIN',
+  TEACH: 'TEACH',
+  SIMPLIFY: 'SIMPLIFY',
+  SUMMARIZE: 'SUMMARIZE',
+  OUTLINE: 'OUTLINE',
+
+  // ─── PLANNING ──────────
+  PLAN: 'PLAN',
+  STRATEGIZE: 'STRATEGIZE',
+  PROPOSE: 'PROPOSE',
+  ORGANIZE: 'ORGANIZE',
+
+  // ─── DECISION ──────────
+  RECOMMEND: 'RECOMMEND',
+  OPTIMIZE: 'OPTIMIZE',
+  DECIDE: 'DECIDE',
+
+  // ─── RESEARCH ──────────
+  INVESTIGATE: 'INVESTIGATE',
+  SYNTHESIZE: 'SYNTHESIZE',
+  EXPLORE: 'EXPLORE',
+
+  // ─── EXTRACTION / CLASSIFICATION ──────────
   EXTRACT: 'EXTRACT',
   CLASSIFY: 'CLASSIFY',
-  DECIDE: 'DECIDE',
+
+  // ─── DEPRECATED (FOR FALLBACK) ──────────
   DEBUG: 'DEBUG',
   DESIGN: 'DESIGN',
   CODE: 'CODE',
@@ -155,38 +191,42 @@ export type { RoleType } from './role.types';
 
 // ========== Response DTOs (문서 §2) ==========
 
-/** 품질 배지 (통합 생성 응답) */
+/** 품질 배지 (통합 생성 응답) — 백엔드 BadgeDto: code, display_name */
 export interface BadgeDto {
   code: string;
   display_name: string;
 }
 
-/** 통합 프롬프트 생성 API 응답 */
+/** 통합 프롬프트 생성 API 응답 — 백엔드 UnifiedGeneratePromptResponse 기준 */
 export interface UnifiedGeneratePromptResponse {
   output: string;
   requested_engine_mode: EngineMode;
   effective_engine_mode: EngineMode;
-  engine_profile: string; // EngineProfile: QUALITY_PIPELINE | FAST_PIPELINE | JSON_STRICT | AUTO
+  engine_profile: string; // EngineProfile
+  resolved_category?: PromptCategory;
   resolved_domain: string; // TaskDomain
   objective: string; // PromptObjective
   output_needs: string; // OutputNeeds
-  intent: ActionIntent;
+  resolved_intent: ActionIntent;
   variant: string | null;
-  core_role: string | null;
-  domain_role: string | null;
+  resolved_role: string | null; // RoleTypeInterface (stable key)
+  resolved_action: string | null; // ActionTypeInterface (stable key)
   quality_badges: BadgeDto[];
   verify_passed: boolean;
   repair_count: number;
   finally_passed: boolean;
   schema_contract_failed: boolean;
   schema_failure_reasons: string[];
-  applied_rule_ids: string[];
-  routing_reasons: string[];
+  semantic_profiles_applied?: string[];
+  validation_warnings?: string[];
+  recommendation_hints?: string[];
+  semantic_resolution_summary?: string | null;
+  axis_sources?: Record<string, string> | null;
   /** 생성 후 저장된 프롬프트 ID (백엔드가 반환할 경우 PATCH 등에 사용) */
   id?: number;
 }
 
-/** 목록 조회 항목 (GET /prompts, /prompts/me, /prompts/users/{userId}) */
+/** 목록 조회 항목 (GET /prompts, /prompts/me, /prompts/users/{userId}) — 백엔드 PromptSummaryResponse */
 export interface PromptSummaryResponse {
   id: number;
   title: string;
@@ -197,13 +237,12 @@ export interface PromptSummaryResponse {
   like_count: number;
   view_count: number;
   created_at: string;
-  /** 목록에서 일부 API가 반환할 수 있음 */
   description?: string;
   content?: string;
   comment_count?: number;
 }
 
-/** 상세 조회/수정 응답 (GET /prompts/{id}, PATCH /prompts/{id}) */
+/** 상세 조회/수정 응답 (GET /prompts/{id}, PATCH /prompts/{id}) — 백엔드 PromptDetailResponse */
 export interface PromptDetailResponse {
   id: number;
   title: string;
@@ -218,7 +257,6 @@ export interface PromptDetailResponse {
   is_public: boolean;
   created_at: string;
   updated_at: string;
-  /** 백엔드가 반환할 경우 댓글 수 (문서에 없을 수 있음) */
   comment_count?: number;
 }
 
@@ -313,24 +351,6 @@ export interface PromptSearchCondition {
   sort?: SortType;
   prompt_category?: PromptCategory;
   keyword?: string;
-}
-
-// ========== Legacy (deprecated) ==========
-
-/** @deprecated 통합 generatePrompt 사용 권장 */
-export interface PromptRequestDto {
-  title: string;
-  description: string;
-  is_public?: boolean;
-  prompt_category: PromptCategory;
-  tags?: string[];
-  input: string;
-  action_type?: ActionType;
-  role_type?: RoleType;
-  tone?: ToneType;
-  experience?: ExperienceLevel;
-  style?: StyleType;
-  language?: LanguageType;
 }
 
 /** 목록/상세 카드에서 공통으로 쓸 수 있는 타입 (Summary + 선택적 상세 필드) */

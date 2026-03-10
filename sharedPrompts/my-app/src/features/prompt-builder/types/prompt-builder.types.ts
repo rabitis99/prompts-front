@@ -1,5 +1,6 @@
+/** POST /prompts/recommend — 백엔드 RecommendPromptRequest */
 export interface RecommendPromptRequest {
-  request_mode: string; // e.g. 'SIMPLE'
+  request_mode: string; // RequestMode: SIMPLE | EXTRACTION | ADVANCED
   category?: string;
   intent?: string;
   role_type?: string;
@@ -11,6 +12,7 @@ export interface RecommendPromptRequest {
   raw_input: string;
 }
 
+/** POST /prompts/recommend 응답 — 백엔드 RecommendPromptResponse */
 export interface RecommendPromptResponse {
   request_mode: string;
   category: string;
@@ -29,6 +31,7 @@ export interface RecommendPromptResponse {
   default_selection?: string;
 }
 
+/** POST /prompts/generate/confirmed — 백엔드 ConfirmedGeneratePromptRequest */
 export interface ConfirmedGeneratePromptRequest {
   request_mode: string;
   category: string;
@@ -39,24 +42,15 @@ export interface ConfirmedGeneratePromptRequest {
   style?: string;
   language?: string;
   experience?: string;
-  input: string; // maps from raw_input
+  input: string;
   json_schema?: string;
   title?: string;
   description?: string;
   tags?: string[];
 }
 
-export interface UnifiedGeneratePromptResponse {
-  output: string;
-  resolved_category?: string;
-  resolved_intent?: string;
-  semantic_resolution_summary?: string;
-  axis_sources?: Record<string, string>;
-  recommendation_hints?: string[];
-  validation_warnings?: string[];
-  schema_failure_reasons?: string[];
-  quality_badges?: Array<{ name: string; description: string }>;
-}
+/** 통합 생성 응답은 prompt.types.UnifiedGeneratePromptResponse 사용 */
+export type { UnifiedGeneratePromptResponse } from '@/features/prompt/types/prompt.types';
 
 export interface PromptBuilderState {
   rawInput: string;

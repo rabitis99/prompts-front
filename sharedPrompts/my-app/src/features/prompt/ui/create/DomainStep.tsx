@@ -1,5 +1,5 @@
-import type { CreatePromptFormData } from '@/features/prompt/model/useCreatePromptView';
-import { DOMAINS } from '@/features/prompt/model/createPrompt.constants';
+import type { CreatePromptFormData } from '@/features/prompt/model/create/useCreatePromptView';
+import { DOMAINS } from '@/features/prompt/model/create/createPrompt.constants';
 
 interface DomainStepProps {
   formData: CreatePromptFormData;
