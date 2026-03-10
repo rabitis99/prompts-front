@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { usePromptDetailView } from '@/features/prompt/model/usePromptDetailView';
+import { usePromptDetailView } from '@/features/prompt/model/detail/usePromptDetailView';
 import { PromptDetailHeader } from './PromptDetailHeader';
 import { PromptDetailCard } from './PromptDetailCard';
 import { CommentsSection } from './CommentsSection';

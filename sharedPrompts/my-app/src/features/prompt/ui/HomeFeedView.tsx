@@ -7,8 +7,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
-import { useHomeFeedView } from '@/features/prompt/model/useHomeFeedView';
-import { DOMAIN_OPTIONS, SORT_OPTIONS } from '@/features/prompt/model/homeFeed.constants';
+import { useHomeFeedView } from '@/features/prompt/model/feed/useHomeFeedView';
+import { DOMAIN_OPTIONS, SORT_OPTIONS } from '@/features/prompt/model/feed/homeFeed.constants';
 import { PromptCard } from './components/PromptCard';
 
 export function HomeFeedView() {

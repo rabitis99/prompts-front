@@ -357,87 +357,69 @@ export const ACTION_TYPE_DISPLAY_NAMES_KO: Record<ActionType, string> = {
 
 // RoleType 한국어 표시명 매핑
 export const ROLE_TYPE_DISPLAY_NAMES_KO: Record<RoleType, string> = {
-  // ProductivityRoleType
   PRODUCTIVITY_EXPERT: '생산성 전문가',
-  // DevelopmentRoleType
   BACKEND_DEVELOPER: '백엔드 개발자',
   FRONTEND_DEVELOPER: '프론트엔드 개발자',
   FULL_STACK_DEVELOPER: '풀스택 개발자',
   DEVOPS_ENGINEER: 'DevOps 엔지니어',
   CLOUD_ARCHITECT: '클라우드 아키텍트',
   SITE_RELIABILITY_ENGINEER: 'SRE 엔지니어',
-  // MarketingRoleType
   MARKETING_STRATEGIST: '마케팅 전략가',
   BRAND_SPECIALIST: '브랜드 전문가',
   DIGITAL_MARKETER: '디지털 마케터',
-  // CreativeRoleType
   CREATIVE_DIRECTOR: '크리에이티브 디렉터',
   STORYTELLER: '스토리텔러',
   CONCEPT_ARTIST: '컨셉 아티스트',
-  // ContentRoleType
   CONTENT_CREATOR: '콘텐츠 제작자',
   CONTENT_STRATEGIST: '콘텐츠 전략가',
   SOCIAL_MEDIA_MANAGER: '소셜 미디어 매니저',
-  // StudyRoleType
   STUDY_COACH: '학습 코치',
   LEARNING_SPECIALIST: '학습 전문가',
   TUTOR: '튜터',
-  // EducationRoleType
   EDUCATOR: '교육자',
   CURRICULUM_DESIGNER: '교육과정 설계자',
   INSTRUCTIONAL_DESIGNER: '교수 설계자',
-  // ResearchRoleType
   RESEARCHER: '연구자',
   ACADEMIC_WRITER: '학술 논문 작성자',
   RESEARCH_METHODOLOGIST: '연구 방법론 전문가',
-  // BusinessRoleType
   BUSINESS_CONSULTANT: '비즈니스 컨설턴트',
   PROJECT_MANAGER: '프로젝트 매니저',
   BUSINESS_ANALYST_BUSINESS: '비즈니스 분석가',
   FINANCIAL_ANALYST: '재무 분석가',
-  // DesignRoleType
   UI_UX_DESIGNER: 'UI/UX 디자이너',
   GRAPHIC_DESIGNER: '그래픽 디자이너',
   PRODUCT_DESIGNER: '제품 디자이너',
   INTERACTION_DESIGNER: '인터랙션 디자이너',
-  // WritingRoleType
   TECHNICAL_WRITER: '기술 문서 작성자',
   CONTENT_WRITER: '콘텐츠 작가',
   COPYWRITER: '카피라이터',
   EDITOR: '편집자',
   TRANSLATOR: '번역가',
-  // EtcRoleType
   GENERAL_CONSULTANT: '일반 상담 전문가',
   PROBLEM_SOLVER: '문제 해결 전문가',
   INFORMATION_SPECIALIST: '정보 전문가',
-  // SocialRoleType
   COMMUNITY_MANAGER: '커뮤니티 매니저',
   EVENT_COORDINATOR: '이벤트 코디네이터',
   SOCIAL_ACTIVIST: '사회 운동가',
   VOLUNTEER_COORDINATOR: '자원봉사 코디네이터',
   FUNDRAISING_SPECIALIST: '모금 전문가',
   PUBLIC_RELATIONS_SPECIALIST: 'PR 전문가',
-  // HealthFitnessRoleType
   FITNESS_COACH: '피트니스 코치',
   NUTRITIONIST: '영양사',
   PERSONAL_TRAINER: '개인 트레이너',
   WELLNESS_COACH: '웰니스 코치',
   HEALTH_EDUCATOR: '건강 교육자',
-  // CustomerSupportRoleType
   CUSTOMER_SUPPORT_SPECIALIST: '고객 지원 전문가',
   CUSTOMER_SUCCESS_MANAGER: '고객 성공 관리자',
   TECHNICAL_SUPPORT_ENGINEER: '기술 지원 엔지니어',
   SUPPORT_TRAINER: '지원 교육 전문가',
-  // AiMlRoleType
   ML_ENGINEER: '머신러닝 엔지니어',
   DATA_SCIENTIST: '데이터 사이언티스트',
   AI_RESEARCHER: 'AI 연구원',
   NLP_SPECIALIST: '자연어 처리 전문가',
   COMPUTER_VISION_ENGINEER: '컴퓨터 비전 엔지니어',
-  // CybersecurityRoleType
   SECURITY_ENGINEER: '보안 엔지니어',
   PENETRATION_TESTER: '침투 테스트 전문가',
   SECURITY_ANALYST: '보안 분석가',
   INFORMATION_SECURITY_OFFICER: '정보 보안 담당자',
 };
-

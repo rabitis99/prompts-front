@@ -89,12 +89,10 @@ export function usePromptDetailView() {
     }
   };
 
-  // 뒤로가기
   const handleBack = () => {
     navigate('/feed');
   };
 
-  // 프롬프트 삭제
   const handleDeletePrompt = async () => {
     if (!promptId) return;
 
@@ -111,7 +109,6 @@ export function usePromptDetailView() {
     }
   };
 
-  // 프롬프트 수정
   const handleUpdatePrompt = async (updateData: { title?: string; description?: string; is_public?: boolean; prompt_category?: string; tags?: string[] }) => {
     if (!promptId) return;
 
@@ -132,10 +129,8 @@ export function usePromptDetailView() {
     }
   };
 
-  // 작성자 본인 확인 (PromptDetailResponse는 author_id 사용)
   const isOwner = prompt && currentUserId ? prompt.author_id === currentUserId : false;
 
-  // 신고 모달 열기 (프롬프트)
   const handleOpenReportModal = () => {
     if (promptId) {
       setReportTargetId(promptId);
@@ -145,14 +140,12 @@ export function usePromptDetailView() {
     }
   };
 
-  // 신고 모달 열기 (댓글)
   const handleOpenCommentReportModal = (commentId: number) => {
     setReportTargetId(commentId);
     setReportType('COMMENT');
     setShowReportModal(true);
   };
 
-  // 신고 모달 닫기
   const handleCloseReportModal = () => {
     setShowReportModal(false);
     setReportTargetId(null);
@@ -211,4 +204,3 @@ export function usePromptDetailView() {
     isLiking,
   };
 }
-

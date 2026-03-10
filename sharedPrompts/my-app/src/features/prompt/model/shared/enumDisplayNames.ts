@@ -46,4 +46,3 @@ export const LANGUAGE_DISPLAY_NAMES: Record<LanguageType, string> = {
   ENGLISH: '영어',
   JAPANESE: '일본어',
 };
-

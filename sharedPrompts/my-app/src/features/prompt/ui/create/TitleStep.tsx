@@ -1,5 +1,5 @@
-import type { CreatePromptFormData } from '@/features/prompt/model/useCreatePromptView';
-import type { DomainOption, CategoryExample } from '@/features/prompt/model/createPrompt.constants';
+import type { CreatePromptFormData } from '@/features/prompt/model/create/useCreatePromptView';
+import type { DomainOption, CategoryExample } from '@/features/prompt/model/create/createPrompt.constants';
 
 interface TitleStepProps {
   formData: CreatePromptFormData;

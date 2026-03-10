@@ -171,4 +171,3 @@ export const CATEGORY_EXAMPLES: Record<string, CategoryExample> = {
     ]
   }
 };
-

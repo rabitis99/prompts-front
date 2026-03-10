@@ -8,7 +8,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { VALID_SORT_OPTIONS, type SortOption } from '../model/homeFeed.constants';
+import { VALID_SORT_OPTIONS, type SortOption } from '../model/feed/homeFeed.constants';
 
 function isValidSortOption(value: string | null): value is SortOption {
   return value !== null && VALID_SORT_OPTIONS.includes(value as SortOption);

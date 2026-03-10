@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
-import { useCreatePromptView, getCurrentStepId, getTotalStepCount } from '@/features/prompt/model/useCreatePromptView';
-import { DOMAINS, POPULAR_TAGS, CATEGORY_EXAMPLES } from '@/features/prompt/model/createPrompt.constants';
+import { useCreatePromptView, getCurrentStepId, getTotalStepCount } from '@/features/prompt/model/create/useCreatePromptView';
+import { DOMAINS, POPULAR_TAGS, CATEGORY_EXAMPLES } from '@/features/prompt/model/create/createPrompt.constants';
 import { CreatePromptSuccess } from '@/features/prompt/ui/create/CreatePromptSuccess';
 import { RequestTypeStep } from '@/features/prompt/ui/create/RequestTypeStep';
 import { DomainStep } from '@/features/prompt/ui/create/DomainStep';

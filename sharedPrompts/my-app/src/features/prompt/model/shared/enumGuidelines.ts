@@ -52,4 +52,3 @@ export const EXAMPLE_PROMPTS = {
     description: '이슈킹 스타일의 TOP 랭킹 이슈 영상을 자동 생성하기 위한 프롬프트입니다.',
   },
 };
-

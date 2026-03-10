@@ -1,25 +1,25 @@
 import { useState, useMemo } from 'react';
 import { Info, Check } from 'lucide-react';
-import type { CreatePromptFormData } from '@/features/prompt/model/useCreatePromptView';
+import type { CreatePromptFormData } from '@/features/prompt/model/create/useCreatePromptView';
 import { ToneType, ExperienceLevel, StyleType, LanguageType } from '@/features/prompt/types/prompt.types';
 import type { ActionType, RoleType } from '@/features/prompt/types';
-import { DOMAINS } from '@/features/prompt/model/createPrompt.constants';
+import { DOMAINS } from '@/features/prompt/model/create/createPrompt.constants';
 import { getActionTypesForCategory, getRoleTypesForCategory } from '@/features/prompt/types/category-mapping.types';
 import {
   TONE_DISPLAY_NAMES,
   EXPERIENCE_DISPLAY_NAMES,
   STYLE_DISPLAY_NAMES,
   LANGUAGE_DISPLAY_NAMES,
-} from '@/features/prompt/model/enumDisplayNames';
+} from '@/features/prompt/model/shared/enumDisplayNames';
 import {
   TONE_GUIDELINES,
   EXPERIENCE_GUIDELINES,
   STYLE_GUIDELINES,
-} from '@/features/prompt/model/enumGuidelines';
+} from '@/features/prompt/model/shared/enumGuidelines';
 import {
   ACTION_TYPE_DISPLAY_NAMES_KO,
   ROLE_TYPE_DISPLAY_NAMES_KO,
-} from '@/features/prompt/model/actionRoleDisplayNames';
+} from '@/features/prompt/model/shared/actionRoleDisplayNames';
 
 interface AdvancedOptionsStepProps {
   formData: CreatePromptFormData;

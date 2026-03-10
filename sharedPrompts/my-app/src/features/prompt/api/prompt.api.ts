@@ -1,7 +1,6 @@
 import { api } from '@/shared/api/axios';
 import type {
   PromptResponseDto,
-  PromptRequestDto,
   PromptUpdateDto,
   PromptSearchCondition,
   GeneratePromptRequestDto,
@@ -15,10 +14,6 @@ export const promptApi = {
   /** 프롬프트 생성 (통합 API: request_type별 SIMPLE | EXTRACTION | ADVANCED) → UnifiedGeneratePromptResponse */
   generatePrompt: (data: GeneratePromptRequestDto) =>
     api.post<CustomResponse<UnifiedGeneratePromptResponse>>('/prompts/generate', data),
-
-  /** @deprecated generatePrompt 사용 권장. 레거시 create는 /prompts 로 전송 */
-  createPromptLegacy: (data: PromptRequestDto) =>
-    api.post<CustomResponse<PromptResponseDto>>('/prompts', data),
 
   /** 목록: PageResponse<PromptSummaryResponse> */
   getPrompts: (condition?: PromptSearchCondition) =>

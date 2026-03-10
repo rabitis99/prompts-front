@@ -1,4 +1,4 @@
-import type { CreatePromptFormData } from '@/features/prompt/model/useCreatePromptView';
+import type { CreatePromptFormData } from '@/features/prompt/model/create/useCreatePromptView';
 
 interface TagsStepProps {
   formData: CreatePromptFormData;

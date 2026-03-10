@@ -1,5 +1,12 @@
 import React from 'react';
 import type { PromptBuilderState, UserOverrides } from '../types/prompt-builder.types';
+import {
+  TONE_DISPLAY_NAMES,
+  EXPERIENCE_DISPLAY_NAMES,
+  STYLE_DISPLAY_NAMES,
+  LANGUAGE_DISPLAY_NAMES,
+} from '@/features/prompt/model/shared/enumDisplayNames';
+import { ACTION_TYPE_DISPLAY_NAMES_KO, ROLE_TYPE_DISPLAY_NAMES_KO } from '@/features/prompt/model/shared/actionRoleDisplayNames';
 
 interface SemanticSettingsPanelProps {
   selectedAxes: PromptBuilderState['selectedAxes'];
@@ -9,8 +16,10 @@ interface SemanticSettingsPanelProps {
     intentCandidates?: string[];
     roleCandidates?: string[];
     actionCandidates?: string[];
-    // Tone and style might not have dynamic candidates in this payload,
-    // so we can hardcode some defaults or pass them if available.
+    toneCandidates?: string[];
+    styleCandidates?: string[];
+    languageCandidates?: string[];
+    experienceCandidates?: string[];
   };
   onUpdateField: (field: keyof PromptBuilderState['selectedAxes'], value: string) => void;
   isLoading: boolean;
@@ -25,6 +34,53 @@ const AXIS_CONFIG = [
   { id: 'language', label: 'Language', type: 'select', candidatesKey: 'languageCandidates' },
   { id: 'experience', label: 'Experience', type: 'select', candidatesKey: 'experienceCandidates' },
 ] as const;
+
+const INTENT_DISPLAY_NAMES_KO: Record<string, string> = {
+  CREATE: '생성/창작',
+  GENERATE: '생성',
+  BRAINSTORM: '브레인스토밍',
+  REWRITE: '재작성',
+  EDIT: '수정',
+  REFINE: '다듬기',
+  IMPROVE: '개선',
+  ANALYZE: '분석',
+  EVALUATE: '평가',
+  COMPARE: '비교',
+  CRITIQUE: '비평',
+  DIAGNOSE: '진단',
+  EXPLAIN: '설명',
+  TEACH: '교육',
+  SIMPLIFY: '단순화',
+  SUMMARIZE: '요약',
+  OUTLINE: '개요 작성',
+  PLAN: '계획',
+  STRATEGIZE: '전략 수립',
+  PROPOSE: '제안',
+  ORGANIZE: '정리',
+  RECOMMEND: '추천',
+  OPTIMIZE: '최적화',
+  DECIDE: '결정',
+  INVESTIGATE: '조사',
+  SYNTHESIZE: '종합',
+  EXPLORE: '탐색',
+  EXTRACT: '추출',
+  CLASSIFY: '분류',
+  // Deprecated Fallbacks
+  DEBUG: '디버깅',
+  DESIGN: '디자인',
+  CODE: '코드',
+};
+
+const getDisplayLabel = (id: string, opt: string) => {
+  if (id === 'intent') return INTENT_DISPLAY_NAMES_KO[opt] || opt;
+  if (id === 'actionType') return (ACTION_TYPE_DISPLAY_NAMES_KO as any)[opt] || opt;
+  if (id === 'roleType') return (ROLE_TYPE_DISPLAY_NAMES_KO as any)[opt] || opt;
+  if (id === 'tone') return (TONE_DISPLAY_NAMES as any)[opt] || opt;
+  if (id === 'style') return (STYLE_DISPLAY_NAMES as any)[opt] || opt;
+  if (id === 'language') return (LANGUAGE_DISPLAY_NAMES as any)[opt] || opt;
+  if (id === 'experience') return (EXPERIENCE_DISPLAY_NAMES as any)[opt] || opt;
+  return opt;
+};
 
 export const SemanticSettingsPanel: React.FC<SemanticSettingsPanelProps> = ({
   selectedAxes,
@@ -103,12 +159,12 @@ export const SemanticSettingsPanel: React.FC<SemanticSettingsPanelProps> = ({
                   {options.length > 0 ? (
                     options.map((opt) => (
                       <option key={opt} value={opt}>
-                        {opt}
+                        {getDisplayLabel(id, opt)}
                       </option>
                     ))
                   ) : (
                     // Fallback to show current value if no candidates
-                    value && <option value={value as string}>{value}</option>
+                    value && <option value={value as string}>{getDisplayLabel(id, value as string)}</option>
                   )}
                 </select>
               ) : (
@@ -124,7 +180,7 @@ export const SemanticSettingsPanel: React.FC<SemanticSettingsPanelProps> = ({
                             : 'bg-white text-gray-600 hover:bg-gray-50'
                         }`}
                       >
-                        {opt}
+                        {getDisplayLabel(id, opt)}
                       </button>
                     ))
                   ) : (
